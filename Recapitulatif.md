@@ -11,3 +11,7 @@
 [Les comptes rendus des séances de SAÉ (consultation uniquement)](https://1drv.ms/w/c/cf29648f8014f069/EXFzt359eGJGjIEnadLIJn4BePNuiMZ_Rabn-dBCIb5gNg)
 
 [Maquette de l'application web](https://framer.com/projects/Untitled--Ts7k6rS705D9eSODZAcf-fbQMT)
+
+## Base de données
+
+[Modèle Entité Association de la Base de Données (ouvrir avec draw.io)](https://drive.google.com/file/d/13g4qzHSnRilrsYOjBbHpyiyaf5ur9eEl/view)
