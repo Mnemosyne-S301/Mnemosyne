@@ -25,7 +25,7 @@ abstract class Controller
      * Affiche la vue
      * @param string $vue nom de la vue
      * @param array $data tableau contenant les données à passer à la vue
-     * @return aucun
+     * @return 
      */
     protected function render($vue, $data = [])
     {
