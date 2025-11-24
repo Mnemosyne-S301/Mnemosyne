@@ -10,7 +10,7 @@
                
                 <h2 style="color:#1B779F;">Connexion</h2><br>
               
-                <input type="text" name="user" placeholder="Nom d'utilisateu" id="field-user"><br><br>
+                <input type="text" name="user" placeholder="Nom d'utilisateur" id="field-user"><br><br>
 
                 <input type="password" name="pass" placeholder="Mot de passe" id="field-pass"><br><br>
 
