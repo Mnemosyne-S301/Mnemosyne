@@ -29,7 +29,7 @@
     </header>
 
     <!-- ============================
-         MAIN : Formulaire centré
+         MAIN : Formulaire centréee
     ============================= -->
     <main class="flex items-center justify-center flex-1">
 
