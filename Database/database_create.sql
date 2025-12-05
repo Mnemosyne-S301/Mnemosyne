@@ -73,7 +73,9 @@ CREATE TABLE FormSemestre(
 CREATE TABLE RCUE(
     rcue_id SERIAL PRIMARY KEY,
     nomCompetence VARCHAR(50) NOT NULL,
-    niveau INTEGER -- je sais pas ce que c'est. J'ai pas retrouvé à quoi correspond le "niveau d'une compétence"
+    niveau INTEGER, -- je sais pas ce que c'est. J'ai pas retrouvé à quoi correspond le "niveau d'une compétence"
+    anneeformation_id BIGINT UNSIGNED,
+    FOREIGN KEY (anneeformation_id) REFERENCES AnneeFormation(anneeformation_id) ON DELETE CASCADE
 );
 
 CREATE TABLE UE(
