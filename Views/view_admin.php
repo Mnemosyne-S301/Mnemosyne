@@ -9,7 +9,7 @@
 </head>
 <body class="bg-[#0A1E2F]">
     <nav>
-        <div class="flex items-center justify-between p-4 bg-[#0E2233]">
+        <div class="flex items-center justify-between p-4 bg-[#0E2233] shadow-lg">
             <a href="/" class="text-white text-xl font-bold flex items-center">
                 <i class="fas fa-home mr-2"></i> Accueil
             </a>
@@ -22,11 +22,11 @@
             <form action="/login" method="POST" class="space-y-4">
                 <div>
                     <label for="username" class="block text-white mb-1">Nom d'utilisateur</label>
-                    <input type="text" id="username" name="username" required class="bg-[#999999] w-full px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-600">
+                    <input type="text" id="username" name="username" placeholder="Admin" required class="placeholder-gray-700 bg-[#999999] w-full px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-600">
                 </div>
                 <div>
                     <label for="password" class="block text-white mb-1">Mot de passe</label>
-                    <input type="password" id="password" name="password" required class="bg-[#999999] w-full px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-600">
+                    <input type="password" id="password" name="password" placeholder = "Mot de Passe" required class="placeholder-gray-700 bg-[#999999] w-full px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-600">
                 </div>
                 <button type="submit" class="w-full bg-[#333333] text-white py-3 my-4 rounded-md hover:bg-blue-700 transition duration-300">Se connecter</button>
             </form>
