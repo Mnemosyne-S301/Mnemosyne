@@ -9,18 +9,12 @@
     <title>Sankey</title>
 </head>
 <body class="bg-[#0A1E2F]"><!-- Corps de la page -->
-    <nav class="bg-white p-2"><!-- Navbar -->
-        <!-- Boutton Retour navbar -->
-        <svg xmlns="http://www.w3.org/2000/svg" 
-            fill="none" 
-            viewBox="0 0 24 24" 
-            stroke-width="1.5" 
-            stroke="currentColor" 
-            class="w-8 h-8">
-        <path stroke-linecap="round" stroke-linejoin="round"
-                d="M2.25 12l8.954-8.955a1.125 1.125 0 011.59 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75V15a1.5 1.5 0 011.5-1.5h1.5a1.5 1.5 0 011.5 1.5v6h4.125c.621 0 1.125-.504 1.125-1.125V9.75" />
-        </svg>
-
+    <nav>
+        <div class="flex items-center justify-between p-4 bg-[#0E2233] shadow-lg">
+            <a href="/" class="text-white text-xl font-bold flex items-center">
+                <i class="fas fa-home mr-2"></i> Accueil
+            </a>
+        </div>
     </nav>
 
         <section id="Sankey" class="mt-6 flex justify-center"><!-- Diagramme Sankey -->
