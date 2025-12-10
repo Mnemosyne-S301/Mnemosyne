@@ -9,7 +9,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body class="h-screen overflow-hidden bg-[#091D2F] flex flex-col">
+<body class="h-screen overflow-hidden bg-[#0A1E2F] flex flex-col">
 
     <!-- ============================
          HEADER : Logo + Slogan
