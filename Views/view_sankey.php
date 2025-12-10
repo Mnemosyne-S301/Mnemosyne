@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <title>Sankey</title>
 </head>
 <body class="bg-[#0A1E2F]"><!-- Corps de la page -->
@@ -24,6 +25,8 @@
 
         <section id="Sankey" class="mt-6 flex justify-center"><!-- Diagramme Sankey -->
             <div id="sankey_container" class="flex justify-center mt-10">
+                <!-- Conteneur du diagramme Sankey -->
+                 <script src="Js/sankey.js"></script>
             </div>
         </section>
         <section id="stats" class="my-8 text-white"><!-- Affichage des stats -->
