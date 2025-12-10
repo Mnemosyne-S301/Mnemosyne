@@ -50,7 +50,7 @@
 
                 <!-- Sélecteur de formation -->
                 <select class="appearance-none block w-full bg-neutral-secondary-medium text-[#999999]
-                               border-default-medium text-heading text-sm rounded-base
+                               border-default-medium text-heading text-sm rounded-lg
                                focus:ring-brand focus:border-brand px-3 py-2.5 shadow-xs
                                text-fg-disabled bg-[#88888880]">
                     <option value="INFO">INFO</option>
@@ -75,7 +75,7 @@
                 <!-- Sélecteur d'années (PHP générant les options) -->
                 <select name="annee"
                         class="appearance-none block text-[#999999] w-full bg-neutral-secondary-medium
-                               border-default-medium text-heading text-sm rounded-base
+                               border-default-medium text-heading text-sm rounded-lg
                                focus:ring-brand focus:border-brand px-3 py-2.5 shadow-xs
                                text-fg-disabled bg-[#88888880]">
 
