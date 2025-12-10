@@ -265,5 +265,132 @@ class StatsDAO
         $stmt->execute($allFormSemestreValues);
     }
 
+    public function addUE(array $ues)
+    {
+        // query writting
+        $query = "INSERT INTO UE(ue_id, rcue_id, formsemestre_id) VALUES ";
+        for ($i = 0; $i < count($ues); $i++)
+        {
+            $query = $query . "(?, ?, ?)";
+            if ($i < count($ues) - 1)
+            {
+                $query = $query . ", ";
+            }
+        }
+        $query = $query . ";";
+
+        // récupération des valeurs du tableau de tableaux représentants les UE
+        $allUEValues = [];
+        foreach($ues as $ue)
+        {
+            $allUEValues[] = $ue['ue_id'];
+            $allUEValues[] = $ue['rcue_id'];
+            $allUEValues[] = $ue['formsemestre_id'];
+        }
+
+        // execution de la requete
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute($allUEValues);
+    }
+
+    public function addCodeAnnee(array $codeAnnees)
+    {
+        // query writting
+        $query = "INSERT INTO CodeAnnee(code, signification) VALUES ";
+        for ($i = 0; $i < count($codeAnnees); $i++)
+        {
+            $query = $query . "(?, ?)";
+            if ($i < count($codeAnnees) - 1)
+            {
+                $query = $query . ", ";
+            }
+        }
+        $query = $query . ";";
+
+        // récupération des valeurs du tableau de tableaux représentants les CodeAnnee
+        $allCodeAnneeValues = [];
+        foreach($codeAnnees as $ca)
+        {
+            $allCodeAnneeValues[] = $ca['code'];
+            $allCodeAnneeValues[] = $ca['signification'];
+        }
+
+        // execution de la requete
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute($allCodeAnneeValues);
+    }
+
+    /** Permet d'ajouter des EffectuerAnnee à la base de données. Les données doivent être fournis dans
+     * un array contenant des array associatifs.
+     * 
+     * @param mixed[] $effectuerAnnees  Array structure contenant des array de parcours.
+     *                                  Un array de de effectuerAnnees contient les clés suivante :
+     *                                      'annee_scolaire' : l'année scolaire (ex : 2021) 
+     *                                      'code_nip' : le hash du code nip de l'étudiant (doit être valeur de la table Etudiant)
+     *                                      'parcours_code' : le code du parcours (doit être valeur de la table Parcours)
+     *                                      'code_annee' : le code obtenu pour l'année (ex : ADM, AJ, etc.) (doit être valeur de la table CodeAnnee)
+     */
+    public function addEffectuerAnnee(array $effectuerAnnees)
+    {
+        // query writting
+        $query = "INSERT INTO EffectuerAnnee(annee_scolaire, anneeformation_id, etudiant_id, codeannee_id)";
+        for ($i = 0; $i < count($effectuerAnnees); $i++)
+        {
+            $query = $query . " SELECT ? AS annee_scolaire, B.anneeformation_id, A.etudiant_id, C.codeannee_id
+                                FROM (
+                                    SELECT etudiant_id
+                                    FROM Etudiant
+                                    WHERE code_nip = ?
+                                ) AS A,
+                                (
+                                    SELECT anneeformation_id
+                                    FROM AnneeFormation
+                                    INNER JOIN FormSemestre USING(anneeformation_id)
+                                    INNER JOIN Parcours USING(parcours_id)
+                                    WHERE formsemestre_id = 1
+                                    AND code = ?
+                                ) AS B,
+                                (
+                                    SELECT codeannee_id
+                                    FROM CodeAnnee
+                                    WHERE code = ?
+                                ) AS C
+                            ";
+            if ($i < count($effectuerAnnees) - 1)
+            {
+                $query = $query . " UNION ALL ";
+            }
+        }
+        $query = $query . ";";
+
+        // récupération des valeurs du tableau de tableaux représentants les EffectuerAnnee
+        $allEffectuerAnneeValues = [];
+        foreach($effectuerAnnees as $ea)
+        {
+            $allEffectuerAnneeValues[] = $ea['annee_scolaire'];
+            $allEffectuerAnneeValues[] = $ea['code_nip'];
+            $allEffectuerAnneeValues[] = $ea['parcours_code'];
+            $allEffectuerAnneeValues[] = $ea['code_annee'];
+        }
+
+        // execution de la requete
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute($allEffectuerAnneeValues);
+    }
+
+    public function addEffectuerRCUE(array $effectuerRCUEs)
+    {
+        /*
+        À FAIRE ...
+        */
+    }
+
+    public function addEffectuerUE(array $effectuerUEs)
+    {
+        /*
+        À FAIRE..
+        */
+    }
+
 }
 ?>
