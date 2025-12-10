@@ -8,20 +8,27 @@
     <title>Sankey</title>
 </head>
 <body class="bg-[#0A1E2F]"><!-- Corps de la page -->
-    <nav><!-- Navbar -->
+    <nav class="bg-white p-2"><!-- Navbar -->
         <!-- Boutton Retour navbar -->
-        <a href="view_acceuil.php"><img src="img/Mnemosyne_logo.png" alt="Retour Acceuil"></a>
+        <svg xmlns="http://www.w3.org/2000/svg" 
+            fill="none" 
+            viewBox="0 0 24 24" 
+            stroke-width="1.5" 
+            stroke="currentColor" 
+            class="w-8 h-8">
+        <path stroke-linecap="round" stroke-linejoin="round"
+                d="M2.25 12l8.954-8.955a1.125 1.125 0 011.59 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75V15a1.5 1.5 0 011.5-1.5h1.5a1.5 1.5 0 011.5 1.5v6h4.125c.621 0 1.125-.504 1.125-1.125V9.75" />
+        </svg>
+
     </nav>
 
-    <section class="flex min-h-screen justify-center items-center">
-        <div id="Sankey" class="mt-6"><!-- Diagramme Sankey -->
+        <section id="Sankey" class="mt-6 flex justify-center"><!-- Diagramme Sankey -->
             <div id="sankey_container" class="flex justify-center mt-10">
             </div>
-        </div>
-        <div id="stats"><!-- Affichage des stats -->
-            <input  class="items-start" type="checkbox">Afficher les stats <!-- Checkbox pour faire apparaitre les stats -->
+        </section>
+        <section id="stats" class="my-8 text-white"><!-- Affichage des stats -->
+            <input  class="items-start" type="checkbox">  Afficher les stats <!-- Checkbox pour faire apparaitre les stats -->
             <div class="container border bg-gray"></div><!-- Conteneur des stats -->
-        </div>
-    </section>
+        </section>
 </body>
 </html>
