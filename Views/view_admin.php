@@ -8,6 +8,13 @@
     <title>Connection ...</title>
 </head>
 <body class="bg-[#0A1E2F]">
+    <nav>
+        <div class="flex items-center justify-between p-4 bg-[#0E2233]">
+            <a href="/" class="text-white text-xl font-bold flex items-center">
+                <i class="fas fa-home mr-2"></i> Accueil
+            </a>
+        </div>
+    </nav>
     <div class="flex flex-col items-center justify-center min-h-screen">
         <img src="/Statics/img/logo.png" alt="Logo Mnemosyne" class="mb-16 w-64 h-64">
         <div class="bg-[#102436] p-8 rounded-lg shadow-lg w-full max-w-md">
