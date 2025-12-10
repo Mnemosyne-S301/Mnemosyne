@@ -28,7 +28,7 @@
                     <label for="password" class="block text-white mb-1">Mot de passe</label>
                     <input type="password" id="password" name="password" placeholder = "Mot de Passe" required class="placeholder-gray-700 bg-[#999999] w-full px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-600">
                 </div>
-                <button type="submit" class="w-full bg-[#333333] text-white py-3 my-4 rounded-md hover:bg-blue-700 transition duration-300">Se connecter</button>
+                <button type="submit" class="w-full bg-[#333333] text-white py-3 my-4 rounded-md hover:bg-[#444444] transition duration-300">Se connecter</button>
             </form>
         </div>
     </div>
