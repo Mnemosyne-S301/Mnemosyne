@@ -111,31 +111,34 @@ CREATE TABLE CodeAnnee(
 );
 
 CREATE TABLE EffectuerRCUE(
-    annee_scolaire INTEGER UNSIGNED PRIMARY KEY,
+    annee_scolaire INTEGER UNSIGNED,
     rcue_id BIGINT UNSIGNED,
     etudiant_id BIGINT UNSIGNED,
     codercue_id BIGINT UNSIGNED,
+    PRIMARY KEY (annee_scolaire, rcue_id, etudiant_id, codercue_id),
     FOREIGN KEY (rcue_id) REFERENCES RCUE(rcue_id) ON DELETE CASCADE,
     FOREIGN KEY (etudiant_id) REFERENCES Etudiant(etudiant_id) ON DELETE CASCADE,
     FOREIGN KEY (codercue_id) REFERENCES CodeRCUE(codercue_id) ON DELETE CASCADE
 );
 
 CREATE TABLE EffectuerUE(
-    annee_scolaire INTEGER UNSIGNED PRIMARY KEY,
+    annee_scolaire INTEGER UNSIGNED,
     ue_id INTEGER,
     etudiant_id BIGINT UNSIGNED,
     codeue_id BIGINT UNSIGNED,
+    PRIMARY KEY (annee_scolaire, ue_id, etudiant_id, codeue_id),
     FOREIGN KEY (ue_id) REFERENCES UE(ue_id) ON DELETE CASCADE,
     FOREIGN KEY (etudiant_id) REFERENCES Etudiant(etudiant_id) ON DELETE CASCADE,
     FOREIGN KEY (codeue_id) REFERENCES CodeUE(codeue_id) ON DELETE CASCADE
 );
 
 CREATE TABLE EffectuerAnnee(
-    annee_scolaire INTEGER UNSIGNED PRIMARY KEY,
+    annee_scolaire INTEGER UNSIGNED,
     anneeformation_id BIGINT UNSIGNED,
     etudiant_id BIGINT UNSIGNED,
-    code_annee_id BIGINT UNSIGNED,
+    codeannee_id BIGINT UNSIGNED,
+    PRIMARY KEY (annee_scolaire, anneeformation_id, etudiant_id, codeannee_id),
     FOREIGN KEY (anneeformation_id) REFERENCES AnneeFormation(anneeformation_id) ON DELETE CASCADE,
     FOREIGN KEY (etudiant_id) REFERENCES Etudiant(etudiant_id) ON DELETE CASCADE,
-    FOREIGN KEY (code_annee_id) REFERENCES CodeAnnee(codeannee_id) ON DELETE CASCADE
+    FOREIGN KEY (codeannee_id) REFERENCES CodeAnnee(codeannee_id) ON DELETE CASCADE
 );
