@@ -8,7 +8,7 @@ private string $api_url="https://ton-scodoc.fr/ScoDoc/api";
 
 
     protected function __getdbconnction(): PDO {
-        $this->pdo = DB ::__getdbconnction();
+        $this->pdo = DB ::getConnectionDB();
         return $this->pdo;  
 
     }
