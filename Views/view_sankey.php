@@ -20,7 +20,7 @@
         <section id="Sankey" class="mt-6 flex justify-center"><!-- Diagramme Sankey -->
             <div id="sankey_container" class="flex justify-center mt-10">
                 <!-- Conteneur du diagramme Sankey -->
-                 <script src="Js/Sankey.js"></script>
+                 <script src="../Js/Sankey.js"></script>
             </div>
         </section>
         <section id="stats" class="my-8 text-white"><!-- Affichage des stats -->
