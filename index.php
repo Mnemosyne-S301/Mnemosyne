@@ -4,13 +4,8 @@ ini_set('display_errors', 'On');
 error_reporting(E_ALL);
 
 
-<<<<<<< HEAD
-$controllers = ["index"]; //Liste des contrôleurs
-$controller_default = "index"; //Nom du contrôleur par défaut
-=======
 $controllers = ["accueil","auth","admin"]; //Liste des contrôleurs
 $controller_default = "accueil"; //Nom du contrôleur par défaut
->>>>>>> logAdmin
 
 //On teste si le paramètre controller existe et correspond à un contrôleur
 //de la liste $controllers
