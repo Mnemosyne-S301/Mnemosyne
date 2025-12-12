@@ -1,13 +1,13 @@
 <?php
 
-class StatsDAO
+class ScolariteDAO
 {
     private $conn; // contains the PDO instance
     private static $instance = null;
 
     private function __construct()
     {
-        $this->conn = new PDO('mysql:host=localhost;dbname=Mnemosyne', 'phpserv', 'mdptest');
+        $this->conn = new PDO('mysql:host=localhost;dbname=Scolarite', 'phpserv', 'mdptest');
         // l'utilisateur ici est phpserv avec comme mot de passe mdptest . Pensez enventuellement à changer ça selon votre configuration.
     }
 
