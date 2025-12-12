@@ -22,7 +22,7 @@
                 <!-- Conteneur du diagramme Sankey -->
             </div>
         </section>
-        <section id="stats" class="my-8 text-white"><!-- Affichage des stats -->
+        <section id="stats" class="m-12 text-white"><!-- Affichage des stats -->
             <input  class="items-start" type="checkbox">  Afficher les stats <!-- Checkbox pour faire apparaitre les stats -->
             <div class="container border bg-gray"></div><!-- Conteneur des stats -->
         </section>

@@ -1,7 +1,7 @@
 // --- LISTE DES FICHIERS JSON À CHARGER ---
 const FICHIERS_JSON = [
-'decisions_jury_2022_fs_1095_BUT_Informatique_en_FI_classique.json',
-'decisions_jury_2023_fs_1174_BUT_Informatique_en_FI_classique.json'
+'../Database/example/json/decisions_jury_2022_fs_1095_BUT_Informatique_en_FI_classique.json',
+'../Database/example/json/decisions_jury_2023_fs_1174_BUT_Informatique_en_FI_classique.json'
 ];
 let toutesLesDonneesConsolidees = [];
 const selecteurCohorte = document.getElementById('selecteur-cohorte');
