@@ -20,6 +20,9 @@
         <section id="Sankey" class="mt-6 flex justify-center"><!-- Diagramme Sankey -->
             <div id='sankey-annee-unique' class="flex justify-center mt-10">
                 <!-- Conteneur du diagramme Sankey -->
+                 <select id="selecteur-cohorte" class="mb-4 p-2 border border-gray-300 rounded">
+                    <!-- Menu déroulant pour sélectionner la cohorte -->
+                </select>
             </div>
         </section>
         <section id="stats" class="m-12 text-white"><!-- Affichage des stats -->
