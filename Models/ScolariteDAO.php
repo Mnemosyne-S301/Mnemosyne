@@ -377,21 +377,20 @@ class ScolariteDAO
     /** Permet d'ajouter des EffectuerAnnee à la base de données. Les données doivent être fournis dans
      * un array contenant des array associatifs.
      * 
+     * ATTENTION peut poser problème si on enregistre deux fois, pour le même étudiant, la même année scolaire,
+     * des formsemestre qui sont de la même année de formation. 
+     * Il est donc conseillé de ne renseigner que le dernier semestre de chaque année. (Les semestres pairs.)
+     * 
      * @param mixed[] $effectuerAnnees  Array structure contenant des array de parcours.
      *                                  Un array de de effectuerAnnees contient les clés suivante :
      *                                      'annee_scolaire' : l'année scolaire (ex : 2021) 
      *                                      'code_nip' : le hash du code nip de l'étudiant (doit être valeur de la table Etudiant)
-     *                                      'parcours_code' : le code du parcours (doit être valeur de la table Parcours)
+     *                                      'formsemestre_id' : l'id d'un formesemestre de l'année de formation. (doit être renseigné dans la table Formsemestre)
      *                                      'code_annee' : le code obtenu pour l'année (ex : ADM, AJ, etc.) (doit être valeur de la table CodeAnnee)
      */
     public function addEffectuerAnnee(array $effectuerAnnees)
     {
         // query writting
-        /* /!\ ATTENTION
-        * Pas sur que la requête soit correcte. 
-        * le WHERE formsemestre_id = 1 n'est pas normal.
-        * À changer...
-        */
         $query = "INSERT INTO EffectuerAnnee(annee_scolaire, anneeformation_id, etudiant_id, codeannee_id)";
         for ($i = 0; $i < count($effectuerAnnees); $i++)
         {
@@ -405,9 +404,7 @@ class ScolariteDAO
                                     SELECT anneeformation_id
                                     FROM AnneeFormation
                                     INNER JOIN FormSemestre USING(anneeformation_id)
-                                    INNER JOIN Parcours USING(parcours_id)
-                                    WHERE formsemestre_id = 1
-                                    AND code = ?
+                                    WHERE formsemestre_id = ?
                                 ) AS B,
                                 (
                                     SELECT codeannee_id
@@ -428,7 +425,7 @@ class ScolariteDAO
         {
             $allEffectuerAnneeValues[] = $ea['annee_scolaire'];
             $allEffectuerAnneeValues[] = $ea['code_nip'];
-            $allEffectuerAnneeValues[] = $ea['parcours_code'];
+            $allEffectuerAnneeValues[] = $ea['formsemestre_id'];
             $allEffectuerAnneeValues[] = $ea['code_annee'];
         }
 
@@ -492,11 +489,54 @@ class ScolariteDAO
         $stmt->execute($allEffectuerRCUEValues);
     }
 
+    /** Permet d'ajouter des EffectuerUE à la base de données. Les données doivent être fournis dans
+     * un array contenant des array associatifs.
+     * 
+     * @param mixed[] $effectuerUEs     Array structure contenant des array de parcours.
+     *                                  Un array de de effectuerUEs contient les clés suivante :
+     *                                      'annee_scolaire' : l'année scolaire (ex : 2021) 
+     *                                      'code_nip' : le hash du code nip de l'étudiant (doit être valeur de la table Etudiant)
+     *                                      'ue_id' : l'id de l'UE. Permet de l'identifier. 
+     *                                      'code_rcue' : le code de la decision obtenu sur cette UE (ex : ADM, AJ, etc.) (doit être valeur de la table CodeUE)
+     */
     public function addEffectuerUE(array $effectuerUEs)
     {
-        /*
-        À FAIRE..
-        */
+        // query writting
+        $query = "INSERT INTO EffectuerUE(annee_scolaire, ue_id, etudiant_id, codeue_id)";
+        for ($i = 0; $i < count($effectuerUEs); $i++)
+        {
+            $query = $query . " SELECT ? AS annee_scolaire, ? AS ue_id, A.etudiant_id, C.codeue_id
+                                FROM (
+                                    SELECT etudiant_id
+                                    FROM Etudiant
+                                    WHERE code_nip = ?
+                                ) AS A,
+                                (
+                                    SELECT codeue_id
+                                    FROM CodeUE
+                                    WHERE code = ?
+                                ) AS C";
+            if ($i < count($effectuerUEs) - 1)
+            {
+                $query = $query . " UNION ALL ";
+            }
+        }
+        $query = $query . ";";
+
+        // récupération des valeurs du tableau de tableaux représentants les EffectuerRCUE
+        $allEffectuerUEValues = [];
+        foreach($effectuerUEs as $eue)
+        {
+            // ATTENTION l'ordre des valeurs est différente car l'ordre des arguments dans la requête est différente
+            $allEffectuerUEValues[] = $eue['annee_scolaire'];
+            $allEffectuerUEValues[] = $eue['ue_id'];
+            $allEffectuerUEValues[] = $eue['code_nip'];
+            $allEffectuerUEValues[] = $eue['code_ue'];
+        }
+
+        // execution de la requete
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute($allEffectuerUEValues);
     }
 
 }

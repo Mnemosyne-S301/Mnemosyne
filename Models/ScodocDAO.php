@@ -29,7 +29,7 @@ protected function getToken () {// on s'authentifie a l api scodoc avec la metho
 
         if ($this->token !== null) {// on regarde si on a deja un token 
             return; 
-    } 
+                     } 
 
         $curl= curl_init();
         //obtenir un token si on en a pas 
@@ -48,17 +48,18 @@ protected function getToken () {// on s'authentifie a l api scodoc avec la metho
     if ($reponse===false ) {
         curl_close($curl);
         throw new RuntimeException(curl_error($curl));
-    }
+                    }
     else {
   
     curl_close($curl);
     $json=json_decode($reponse,true);
     if (!isset ($json["token"])) {
-        throw new RuntimeException("token invalide");}
+        throw new RuntimeException("token invalide");
+                                }
     else {
     $this->token = $json["token"];
     }
-}
+            }
 
 
 
@@ -88,10 +89,12 @@ protected function getToken () {// on s'authentifie a l api scodoc avec la metho
 
 
 
-
+/*====================================
+    ETUDIANTS
+=====================================*/
 
     public function findall_etudiant(): array {
-        $etudiants=$this->get("etudiants");
+        $etudiants=$this->get("etudiants/courants");
         $instances=[];
         foreach ($etudiants as $donnees_etudiant) {
             $instances[]=new Etudiant($donnees_etudiant);
@@ -99,18 +102,19 @@ protected function getToken () {// on s'authentifie a l api scodoc avec la metho
         return $instances;
 
 }
-
-
-
-    public function findall_ue(){
-        $ues= $this->get("ues");
+    public function findEtudiantsByDepartement(string $dept){
+        $etudiants = $this->get("departement/$dept/etudiants");
         $instances=[];
-        foreach ($ues as $donnees_ues) {
-            $instances[]=new UE($donnees_ues);
+        foreach ($etudiants as $donnees_etudiant) {
+            $instances[]=new Etudiant($donnees_etudiant);
         }
         return $instances;
+
     }
 
+/*====================================
+            DEPARTEMENTS
+=====================================*/
 
 
     public function findall_departement() {
@@ -122,10 +126,35 @@ protected function getToken () {// on s'authentifie a l api scodoc avec la metho
         return $instances;
     }
 
+        public function finddepartement_by_accronyme(string $accronyme) {
+        $donnees_departement =$this->get("departement/$accronyme");
+        return new Departement ($donnees_departement);
+        
+    }
 
+/*====================================
+            FORMATIONS
+=====================================*/
+  public function findall_formation () {
+            $formations= $this->get("formations");
+        $instances=[];
+        foreach ($formations as $donnees_formation) {
+            $instances[]=new Formation($donnees_formation);
+        }
+        return $instances;
+    }
+
+  public function findformation_by_id(string $id) {
+        $donnnes_formation= $this->get("formation/$id");
+        return new Formation($donnnes_formation);
+    }
+
+/*====================================
+            FORMSEMESTRES
+=====================================*/
 
     public function findall_formsemestre(){
-        $formsemestres= $this->get("formsemestres");
+        $formsemestres= $this->get("formsemestres/query");
         $instances=[];
         foreach ($formsemestres as $donnees_formsmestre) {
             $instances[]=new Formsemestre($donnees_formsmestre);
@@ -135,38 +164,103 @@ protected function getToken () {// on s'authentifie a l api scodoc avec la metho
     }
 
 
-    public function findall_decision() { // pas terminer 
-        $decisions= $this->get("decisions");
-        $instances=[];
-        foreach ($decisions as $donnees_decision) {
-            $instances[]=new Decision($donnees_decision);
-        }
-        return $instances;  
-
-
-        
-
-    }
-
-
-    public function findformation_by_accronyme(string $accronyme) {
-        $donnnes_formation= $this->get("formations/$accronyme");
-        return new Formation($donnnes_formation);
-    }
-
-
-    public function finddepartement_by_accronyme(string $accronyme) {
-        $donnees_departement =$this->get("departements/$accronyme");
-        return new Departement ($donnees_departement);
-        
-    }
-
-    public function findformsemestre_by_id(string $id) {   
-        $donnees_formsemestre= $this->get("formsemestres/$id");
+        public function findformsemestre_by_id(string $id) {   
+        $donnees_formsemestre= $this->get("formsemestre/$id/with_description");
         return new Formsemestre($donnees_formsemestre);
         
          
     }
+
+        public function findFormsemestresByFormation(string $id){
+        $formsemestres = $this->get("formsemestres/query?formation_id=$id");
+        $instances=[];
+        foreach ($formsemestres as $donnees_formsemestres) {
+            $instances[]=new Formsemestres($donnees_formsemestres);
+        }
+        return $instances;
+    }
+
+
+
+/*====================================
+            UES
+=====================================*/
+    public function findall_ue(){ // y'a pas de route api qui renvoie tous les ues donc alternative mais a revoir 
+        $formations = $this->get("formations");
+        $instances=[];
+        foreach ($formations as $formation) {
+            $export=$this->get("formation/" . $formation["formation_id"] . "/export");
+            if (isset($export["ues"])) {
+                foreach ($export["ues"] as $ue) {
+                    $instances[]=new UE($ue);
+            
+        }
+        return $instances;
+    }
+   }
+}
+
+
+    public function findUEByCode(string $code){ // y'a pas de route api qui renvoie tous les ues donc alternative mais a revoir 
+        $formations = $this->get("formations");
+        
+        foreach ($formations as $formation) {
+            $export=$this->get("formation/" . $formation["formation_id"] . "/export");
+            if (isset($export["ues"])) {
+                foreach ($export["ues"] as $ue) {
+                    if ($ue["code"] == $code) {
+                        return new UE($ue);
+                    }
+                }
+            }
+        }
+    return null;
+    }
+            
+
+
+
+
+/*====================================
+            DECISIONS
+=====================================*/
+
+  
+
+    public function findall_decision() { // onj doit passer par toute les formations d abbord 
+        
+        $formsemestres= $this->get("formsemestres/query");
+        $instances=[];
+        foreach ($formsemestres as $formsemestre) {
+            $decisions= $this->get("formsemestre/" . $formsemestre["formsemestre_id"] . "/decision
+            _jury");
+            foreach ($decisions as $donnees_decision) {
+                $instances[]=new Decision($donnees_decision);
+        }
+         
+    }
+    return $instances; 
+    }
+
+
+
+    public function findDecisionsByFormsemestre(string $id){
+        $decisions = $this->get("formsemestre/$id/decisions_jury");
+        $instances=[];
+        foreach ($decisions as $donnees_decision) {
+            $instances[]=new Decision($donnees_decision);
+        }
+        return $instances;
+    }
+
+
+
+
+    
+
+
+    
+
 
 
 
