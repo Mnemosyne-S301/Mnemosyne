@@ -158,4 +158,27 @@ class StatsDAO {
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+
+    /**
+     * Calcule le total précis d'étudiants pour une formation et une année.
+     * C'est beaucoup plus performant que de récupérer toutes les lignes et de compter en PHP.
+     * * @param string $formation
+     * @param int|string $annee
+     * @return int Le nombre total d'étudiants.
+     */
+    public function getEffectifTotalPrecise($formation, $annee) {
+        $query = "SELECT SUM(nombre_etudiants) 
+                  FROM nb_eleve_par_formation 
+                  WHERE formation = :formation AND annee_scolaire = :annee";
+        
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindValue(':formation', $formation, PDO::PARAM_STR);
+        $stmt->bindValue(':annee', $annee, PDO::PARAM_STR);
+        $stmt->execute();
+
+        // Retourne directement le chiffre (int)
+        return (int) $stmt->fetchColumn();
+    }
+
 }
