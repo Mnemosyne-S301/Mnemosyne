@@ -84,7 +84,8 @@
 const CONFIG = {
     files: [
         '/Database/example/json/decisions_jury_2022_fs_1095_BUT_Informatique_en_FI_classique.json',
-        '/Database/example/json/decisions_jury_2023_fs_1174_BUT_Informatique_en_FI_classique.json'
+        '/Database/example/json/decisions_jury_2023_fs_1174_BUT_Informatique_en_FI_classique.json',
+        '/Database/example/json/decisions_jury_2024_fs_1285_BUT_Informatique_en_FI_classique.json'
     ],
     colors: {
         'Parcoursup': '#3B82F6',
@@ -93,6 +94,7 @@ const CONFIG = {
         'BUT1_2023': '#FBBF24',
         'BUT2_2023': '#FCD34D',
         'BUT3_2023': '#FDE68A',
+        'BUT3_2024': '#10B981',
         'ADM': '#10B981',
         'PASD': '#34D399',
         'ADSUP': '#6EE7B7',
@@ -115,11 +117,12 @@ const hexToRgba = (hex, a) => {
     return `rgba(${r}, ${g}, ${b}, ${a})`;
 };
 
-function processCohortData(data2022, data2023) {
+function processCohortData(data2022, data2023, data2024) {
     const etudiants = new Map();
     const stats = {
         total2022: 0,
         total2023: 0,
+        total2024: 0,
         passages: 0,
         redoublements: 0,
         abandons: 0,
@@ -154,6 +157,23 @@ function processCohortData(data2022, data2023) {
         
         etudiants.get(etud.etudid).annees.push({
             annee: 2023,
+            ordre: etud.annee.ordre || 1,
+            code: etud.annee.code,
+            etat: etud.etat
+        });
+    });
+
+    // Traiter les données 2024
+    data2024.forEach(etud => {
+        if (!etud.etudid || !etud.annee || !etud.annee.code) return;
+        
+        if (!etudiants.has(etud.etudid)) {
+            etudiants.set(etud.etudid, { annees: [] });
+            stats.total2024++;
+        }
+        
+        etudiants.get(etud.etudid).annees.push({
+            annee: 2024,
             ordre: etud.annee.ordre || 1,
             code: etud.annee.code,
             etat: etud.etat
@@ -239,11 +259,11 @@ function processCohortData(data2022, data2023) {
 
 async function init() {
     try {
-        const [data2022, data2023] = await Promise.all(
+        const [data2022, data2023, data2024] = await Promise.all(
             CONFIG.files.map(f => fetch(f).then(r => r.json()))
         );
         
-        const processed = processCohortData(data2022, data2023);
+        const processed = processCohortData(data2022, data2023, data2024);
         
         document.getElementById('loader').classList.add('hidden');
         renderChart(processed);
@@ -290,6 +310,7 @@ function renderChart(data) {
         if (label === 'Parcoursup') return CONFIG.colors.Parcoursup;
         if (label.includes('2022')) return CONFIG.colors.BUT1_2022;
         if (label.includes('2023')) return CONFIG.colors.BUT1_2023;
+        if (label.includes('2024')) return CONFIG.colors.BUT3_2024;
         if (label === 'NAR') return CONFIG.colors.NAR;
         if (label === 'DEF') return CONFIG.colors.DEF;
         if (label === 'DEM') return CONFIG.colors.DEM;
