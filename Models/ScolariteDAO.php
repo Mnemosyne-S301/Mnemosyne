@@ -1,13 +1,13 @@
 <?php
 
-class StatsDAO
+class ScolariteDAO
 {
     private $conn; // contains the PDO instance
     private static $instance = null;
 
     private function __construct()
     {
-        $this->conn = new PDO('mysql:host=localhost;dbname=Mnemosyne', 'phpserv', 'mdptest');
+        $this->conn = new PDO('mysql:host=localhost;dbname=Scolarite', 'phpserv', 'mdptest');
         // l'utilisateur ici est phpserv avec comme mot de passe mdptest . Pensez enventuellement à changer ça selon votre configuration.
     }
 
@@ -320,6 +320,60 @@ class StatsDAO
         $stmt->execute($allCodeAnneeValues);
     }
 
+    public function addCodeRCUE(array $codeRCUEs)
+    {
+        // query writting
+        $query = "INSERT INTO CodeRCUE(code, signification) VALUES ";
+        for ($i = 0; $i < count($codeRCUEs); $i++)
+        {
+            $query = $query . "(?, ?)";
+            if ($i < count($codeRCUEs) - 1)
+            {
+                $query = $query . ", ";
+            }
+        }
+        $query = $query . ";";
+
+        // récupération des valeurs du tableau de tableaux représentants les CodeAnnee
+        $allCodeRCUEsValues = [];
+        foreach($codeRCUEs as $c)
+        {
+            $allCodeRCUEsValues[] = $c['code'];
+            $allCodeRCUEsValues[] = $c['signification'];
+        }
+
+        // execution de la requete
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute($allCodeRCUEsValues);
+    }
+
+    public function addCodeUE(array $codeUEs)
+    {
+        // query writting
+        $query = "INSERT INTO CodeUE(code, signification) VALUES ";
+        for ($i = 0; $i < count($codeUEs); $i++)
+        {
+            $query = $query . "(?, ?)";
+            if ($i < count($codeUEs) - 1)
+            {
+                $query = $query . ", ";
+            }
+        }
+        $query = $query . ";";
+
+        // récupération des valeurs du tableau de tableaux représentants les CodeAnnee
+        $allCodeUEsValues = [];
+        foreach($codeUEs as $c)
+        {
+            $allCodeUEsValues[] = $c['code'];
+            $allCodeUEsValues[] = $c['signification'];
+        }
+
+        // execution de la requete
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute($allCodeUEsValues);
+    }
+
     /** Permet d'ajouter des EffectuerAnnee à la base de données. Les données doivent être fournis dans
      * un array contenant des array associatifs.
      * 
@@ -333,6 +387,11 @@ class StatsDAO
     public function addEffectuerAnnee(array $effectuerAnnees)
     {
         // query writting
+        /* /!\ ATTENTION
+        * Pas sur que la requête soit correcte. 
+        * le WHERE formsemestre_id = 1 n'est pas normal.
+        * À changer...
+        */
         $query = "INSERT INTO EffectuerAnnee(annee_scolaire, anneeformation_id, etudiant_id, codeannee_id)";
         for ($i = 0; $i < count($effectuerAnnees); $i++)
         {
@@ -378,11 +437,59 @@ class StatsDAO
         $stmt->execute($allEffectuerAnneeValues);
     }
 
+    /** Permet d'ajouter des EffectuerRCUE à la base de données. Les données doivent être fournis dans
+     * un array contenant des array associatifs.
+     * 
+     * @param mixed[] $effectuerRCUEs   Array structure contenant des array de parcours.
+     *                                  Un array de de effectuerRCUEs contient les clés suivante :
+     *                                      'annee_scolaire' : l'année scolaire (ex : 2021) 
+     *                                      'code_nip' : le hash du code nip de l'étudiant (doit être valeur de la table Etudiant)
+     *                                      'ue_id' : l'id d'un des UE composant cette RCUE. Sans ça, la RCUE ne peut être identifiée.
+     *                                      'code_rcue' : le code de la decision obtenu sur cette RCUE (ex : ADM, AJ, etc.) (doit être valeur de la table CodeRCUE)
+     */
     public function addEffectuerRCUE(array $effectuerRCUEs)
     {
-        /*
-        À FAIRE ...
-        */
+        // query writting
+        $query = "INSERT INTO EffectuerRCUE(annee_scolaire, rcue_id, etudiant_id, codercue_id)";
+        for ($i = 0; $i < count($effectuerRCUEs); $i++)
+        {
+            $query = $query . " SELECT ? AS annee_scolaire, B.rcue_id, A.etudiant_id, C.codercue_id
+                                FROM (
+                                    SELECT etudiant_id
+                                    FROM Etudiant
+                                    WHERE code_nip = ?
+                                ) AS A,
+                                (
+                                    SELECT rcue_id
+                                    FROM RCUE
+                                    INNER JOIN UE USING(rcue_id)
+                                    WHERE ue_id = ?
+                                ) AS B,
+                                (
+                                    SELECT codercue_id
+                                    FROM CodeRCUE
+                                    WHERE code = ?
+                                ) AS C";
+            if ($i < count($effectuerRCUEs) - 1)
+            {
+                $query = $query . " UNION ALL ";
+            }
+        }
+        $query = $query . ";";
+
+        // récupération des valeurs du tableau de tableaux représentants les EffectuerRCUE
+        $allEffectuerRCUEValues = [];
+        foreach($effectuerRCUEs as $ercue)
+        {
+            $allEffectuerRCUEValues[] = $ercue['annee_scolaire'];
+            $allEffectuerRCUEValues[] = $ercue['code_nip'];
+            $allEffectuerRCUEValues[] = $ercue['ue_id'];
+            $allEffectuerRCUEValues[] = $ercue['code_rcue'];
+        }
+
+        // execution de la requete
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute($allEffectuerRCUEValues);
     }
 
     public function addEffectuerUE(array $effectuerUEs)

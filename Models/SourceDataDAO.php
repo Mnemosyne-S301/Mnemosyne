@@ -10,7 +10,10 @@ interface SourceDataDAO {
     public function finddepartement_by_accronyme(string $accronyme);
     public function findformsemestre_by_id(string $id);
 
-    
+    public function findDecisionsByFormsemestre(string $id);
+    public function findEtudiantsByDepartement(string $dept);
+    public function findFormsemestresByFormation(string $acronyme);
+    public function findUEByCode(string $code);
 }
 
 ?>
