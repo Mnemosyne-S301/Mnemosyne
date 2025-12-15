@@ -256,6 +256,7 @@ const SankeyCohort = (function() {
         const targets = [];
         const values = [];
         const colors = [];
+        const linkLabels = [];
         
         data.links.forEach((val, key) => {
             const [src, tgt] = key.split('→');
@@ -267,6 +268,7 @@ const SankeyCohort = (function() {
                 targets.push(tgtIdx);
                 values.push(val);
                 colors.push(getLinkColor(tgt));
+                linkLabels.push(val);  // Ajouter le nombre d'étudiants
             }
         });
 
@@ -288,6 +290,7 @@ const SankeyCohort = (function() {
                 target: targets, 
                 value: values, 
                 color: colors,
+                label: linkLabels,
                 hovertemplate: '%{source.label} → %{target.label}<br>%{value} étudiants<extra></extra>'
             }
         }];
@@ -310,7 +313,17 @@ const SankeyCohort = (function() {
             modeBarButtonsToRemove: ['lasso2d', 'select2d']
         };
 
+        // Animation de fade-in
+        const sankey = document.getElementById('sankey-plot');
+        sankey.style.transition = 'opacity 0.3s ease';
+        sankey.style.opacity = '0';
+        
         Plotly.newPlot('sankey-plot', plotData, layout, config);
+        
+        // Fade-in après le rendu
+        setTimeout(() => {
+            sankey.style.opacity = '1';
+        }, 50);
     }
 
     async function init() {
@@ -383,16 +396,23 @@ const SankeyCohort = (function() {
                     processYearData(filteredData[2023], 2023, etudiants);
                 }
                 
-                const processed = buildLinks(etudiants);
-                const nodes = extractNodes(processed.links);
+                // Animation fade-out avant la mise à jour
+                const sankey = document.getElementById('sankey-plot');
+                sankey.style.opacity = '0';
+                sankey.style.transition = 'opacity 0.3s ease';
                 
-                const chartData = {
-                    nodes: Array.from(nodes),
-                    links: processed.links,
-                    stats: processed.stats
-                };
-                
-                renderChart(chartData);
+                setTimeout(() => {
+                    const processed = buildLinks(etudiants);
+                    const nodes = extractNodes(processed.links);
+                    
+                    const chartData = {
+                        nodes: Array.from(nodes),
+                        links: processed.links,
+                        stats: processed.stats
+                    };
+                    
+                    renderChart(chartData);
+                }, 300);
             });
         });
     }
