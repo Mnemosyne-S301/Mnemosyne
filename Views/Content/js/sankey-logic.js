@@ -9,12 +9,10 @@ const SankeyCohort = (function() {
     // Configuration des couleurs
     const COLORS = {
         'Parcoursup': '#3B82F6',
-        'BUT1_2022': '#60A5FA', 
-        'BUT2_2022': '#93C5FD',
-        'BUT1_2023': '#FBBF24',
-        'BUT2_2023': '#FCD34D',
-        'BUT3_2023': '#FDE68A',
-        'BUT3_2024': '#10B981',
+        'Hors Parcoursup': '#8B5CF6',
+        'BUT1': '#60A5FA', 
+        'BUT2': '#93C5FD',
+        'BUT3': '#DBEAFE',
         'ADM': '#10B981',
         'PASD': '#34D399',
         'ADSUP': '#6EE7B7',
@@ -42,26 +40,26 @@ const SankeyCohort = (function() {
     /**
      * Traite les données brutes des trois années pour construire les flux
      */
-    function processCohortData(data2022, data2023, data2024) {
+    function processCohortData(data2021, data2022, data2023) {
         const etudiants = new Map();
         const stats = {
+            total2021: 0,
             total2022: 0,
             total2023: 0,
-            total2024: 0,
             passages: 0,
             redoublements: 0,
             abandons: 0,
             demissions: 0
         };
 
+        // Traiter les données 2021
+        processYearData(data2021, 2021, etudiants, stats, 'total2021');
+        
         // Traiter les données 2022
         processYearData(data2022, 2022, etudiants, stats, 'total2022');
         
         // Traiter les données 2023
         processYearData(data2023, 2023, etudiants, stats, 'total2023');
-        
-        // Traiter les données 2024
-        processYearData(data2024, 2024, etudiants, stats, 'total2024');
 
         // Construire les liens entre nœuds
         const links = buildLinks(etudiants, stats);
@@ -106,37 +104,62 @@ const SankeyCohort = (function() {
      * Construit la map des liens entre nœuds
      */
     function buildLinks(etudiants, stats) {
-        const links = new Map();
+    const links = new Map();
+    
+    const addLink = (source, target) => {
+        if (source === target) return;
+        const key = `${source}→${target}`;
+        links.set(key, (links.get(key) || 0) + 1);
+    };
+
+    etudiants.forEach(etudiant => {
+        etudiant.annees.sort((a, b) => a.annee - b.annee || a.ordre - b.ordre);
         
-        const addLink = (source, target) => {
-            if (source === target) return;
-            const key = `${source}→${target}`;
-            links.set(key, (links.get(key) || 0) + 1);
-        };
-
-        etudiants.forEach(etudiant => {
-            // Trier par année puis par ordre
-            etudiant.annees.sort((a, b) => a.annee - b.annee || a.ordre - b.ordre);
+        // Déterminer l'origine : Parcoursup ou Hors Parcoursup
+        const firstStep = etudiant.annees[0];
+        let previous = (firstStep.ordre === 1 && firstStep.code === 'ADM') ? 'Parcoursup' : 'Hors Parcoursup';
+        
+        etudiant.annees.forEach((step, idx) => {
+            const niveau = `BUT${step.ordre}`;
             
-            let previous = 'Parcoursup';
-            
-            etudiant.annees.forEach((step, idx) => {
-                const niveau = `BUT${step.ordre}_${step.annee}`;
+            // Si c'est la première année, venir de l'origine déterminée
+            if (idx === 0) {
                 addLink(previous, niveau);
-                
-                // Déterminer la destination selon le code décision
-                const destination = determineDestination(step, idx, etudiant.annees, stats);
-                
-                if (destination) {
-                    addLink(niveau, destination);
+            }
+            
+            const code = step.code;
+            const isLastStep = idx === etudiant.annees.length - 1;
+            
+            // Déterminer la destination finale
+            if (code === 'DEM' || code === 'DEF') {
+                stats.demissions++;
+                addLink(niveau, code);
+            } else if (code === 'NAR') {
+                stats.abandons++;
+                addLink(niveau, code);
+            } else if (['RED', 'AJ', 'ADJ'].includes(code)) {
+                stats.redoublements++;
+                addLink(niveau, code);
+            } else if (['ADM', 'PASD', 'ADSUP', 'CMP'].includes(code)) {
+                if (!isLastStep) {
+                    // Il y a une année suivante dans les données
+                    const next = etudiant.annees[idx + 1];
+                    const nextNiveau = `BUT${next.ordre}`;
+                    stats.passages++;
+                    addLink(niveau, nextNiveau);
+                } else if (step.ordre >= 3) {
+                    // Dernière année = diplômé
+                    addLink(niveau, 'Diplômé');
+                } else {
+                    // Passage validé mais pas de données suivantes
+                    addLink(niveau, code);
                 }
-                
-                previous = niveau;
-            });
+            }
         });
+    });
 
-        return links;
-    }
+    return links;
+}
 
     /**
      * Détermine la destination d'un étudiant selon sa décision jury
@@ -169,7 +192,7 @@ const SankeyCohort = (function() {
             if (idx < allSteps.length - 1) {
                 const next = allSteps[idx + 1];
                 stats.passages++;
-                return `BUT${next.ordre}_${next.annee}`;
+                return `BUT${next.ordre}`;
             } else if (step.ordre >= 3) {
                 return 'Diplômé';
             } else {
@@ -198,10 +221,13 @@ const SankeyCohort = (function() {
      */
     function getNodeColor(label) {
         if (label === 'Parcoursup') return COLORS.Parcoursup;
-        if (label.includes('2022')) return COLORS.BUT1_2022;
-        if (label.includes('2023')) return COLORS.BUT1_2023;
-        if (label.includes('2024')) return COLORS.BUT3_2024;
+        if (label === 'Hors Parcoursup') return COLORS['Hors Parcoursup'];
         if (label === 'Diplômé') return COLORS.Diplômé;
+        
+        // Niveaux BUT
+        if (label === 'BUT1') return COLORS.BUT1;
+        if (label === 'BUT2') return COLORS.BUT2;
+        if (label === 'BUT3') return COLORS.BUT3;
         
         // Décisions jury
         return COLORS[label] || COLORS.DEFAULT;
@@ -342,7 +368,7 @@ const SankeyCohort = (function() {
 
             // Charger tous les fichiers en parallèle
             console.log('Début du chargement des fichiers...');
-            const [data2022, data2023, data2024] = await Promise.all(
+            const [data2021, data2022, data2023] = await Promise.all(
                 files.map(f => {
                     console.log('Chargement de:', f);
                     return fetch(f).then(r => {
@@ -354,13 +380,13 @@ const SankeyCohort = (function() {
             );
             
             console.log('Données chargées:', {
+                data2021: data2021?.length,
                 data2022: data2022?.length,
-                data2023: data2023?.length,
-                data2024: data2024?.length
+                data2023: data2023?.length
             });
             
             // Traiter les données
-            const processed = processCohortData(data2022, data2023, data2024);
+            const processed = processCohortData(data2021, data2022, data2023);
             
             // Masquer le loader
             loader.classList.add('hidden');

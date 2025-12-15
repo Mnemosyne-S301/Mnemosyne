@@ -44,6 +44,16 @@
         </section>
 
         <section class="w-full max-w-7xl mx-auto">
+            <h3 class="text-xl font-semibold mb-4">- Origine des étudiants - </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm mb-6">
+                <div class="bg-blue-500/10 border border-blue-500/30 p-3 rounded-lg">
+                    <span class="font-bold text-blue-400">Parcoursup:</span> Admission via Parcoursup
+                </div>
+                <div class="bg-purple-500/10 border border-purple-500/30 p-3 rounded-lg">
+                    <span class="font-bold text-purple-400">Hors Parcoursup:</span> Autres modes d'admission
+                </div>
+            </div>
+
             <h3 class="text-xl font-semibold mb-4">- Légende des décisions jury - </h3>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
                 <div class="bg-green-500/10 border border-green-500/30 p-3 rounded-lg">
@@ -83,9 +93,9 @@
     <!-- Configuration passée du PHP au JS -->
     <script>
         window.SANKEY_CONFIG = [
-            '../Database/example/json/decisions_jury_2022_fs_1095_BUT_Informatique_en_FI_classique.json',
-            '../Database/example/json/decisions_jury_2023_fs_1174_BUT_Informatique_en_FI_classique.json',
-            '../Database/example/json/decisions_jury_2024_fs_1285_BUT_Informatique_en_FI_classique.json'
+            '/Database/example/json/testdata/test_promo_2021_v2.json',
+            '/Database/example/json/testdata/test_promo_2022_v2.json',
+            '/Database/example/json/testdata/test_promo_2023_v2.json'
         ];
     </script>
     

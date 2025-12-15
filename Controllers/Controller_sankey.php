@@ -11,9 +11,9 @@ class SankeyController {
         // Configuration des fichiers JSON à charger (chemins exacts)
         $config = [
             'files' => [
-                '/Database/example/json/decisions_jury_2023_fs_1210_BUT_Informatique_en_FI_classique.json',
-                '/Database/example/json/decisions_jury_2024_fs_1284_BUT_Informatique_en_FI_classique.json',
-                '/Database/example/json/decisions_jury_2024_fs_1285_BUT_Informatique_en_FI_classique.json'
+                '/Database/example/json/testdata/test_promo_2021_v2.json',
+            '/Database/example/json/testdata/test_promo_2022_v2.json',
+            '/Database/example/json/testdata/test_promo_2023_v2.json'
             ],
             'title' => 'Suivi de Cohorte d\'étudiants',
             'formation' => 'BUT Informatique'
