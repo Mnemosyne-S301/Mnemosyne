@@ -24,6 +24,23 @@
     <main class="flex-1 overflow-y-auto px-10 pb-10 space-y-8">
         
         <section class="w-full">
+            <!-- Contrôle par niveau BUT avec boutons -->
+            <div class="flex items-center justify-center gap-4 mb-6 flex-wrap">
+                <span class="text-lg font-semibold">Filtrer par niveau :</span>
+                <button id="btn-all" class="but-filter px-6 py-2 rounded-lg font-semibold transition-all bg-[#E3BF81] text-[#0A1E2F] border-2 border-[#E3BF81]" data-level="all">
+                    Toutes les années
+                </button>
+                <button id="btn-but1" class="but-filter px-6 py-2 rounded-lg font-semibold transition-all bg-transparent text-[#60A5FA] border-2 border-[#60A5FA] hover:bg-[#60A5FA] hover:text-white" data-level="1">
+                    BUT 1
+                </button>
+                <button id="btn-but2" class="but-filter px-6 py-2 rounded-lg font-semibold transition-all bg-transparent text-[#60A5FA] border-2 border-[#60A5FA] hover:bg-[#60A5FA] hover:text-white" data-level="2">
+                    BUT 2
+                </button>
+                <button id="btn-but3" class="but-filter px-6 py-2 rounded-lg font-semibold transition-all bg-transparent text-[#60A5FA] border-2 border-[#60A5FA] hover:bg-[#60A5FA] hover:text-white" data-level="3">
+                    BUT 3
+                </button>
+            </div>
+
             <div id="sankey-container" class="w-full h-[700px] bg-[#FFFFFF0A] rounded-2xl backdrop-blur-md shadow-2xl border border-white/10 relative">
                 <div id="loader" class="absolute inset-0 flex items-center justify-center z-10">
                     <p class="animate-pulse text-xl">Analyse des flux de cohorte...</p>
@@ -92,314 +109,22 @@
         </section>
     </main>
 
+    <!-- Configuration des données -->
     <script>
-        window.SANKEY_CONFIG = [
-            '/Database/example/json/testdata/test_promo_2021_v2.json',
-            '/Database/example/json/testdata/test_promo_2022_v2.json',
-            '/Database/example/json/testdata/test_promo_2023_v2.json'
-        ];
+        // Les données sont passées directement par le contrôleur
+        window.SANKEY_DATA = {
+            data2021: <?php echo isset($data2021) ? json_encode($data2021) : '[]'; ?>,
+            data2022: <?php echo isset($data2022) ? json_encode($data2022) : '[]'; ?>,
+            data2023: <?php echo isset($data2023) ? json_encode($data2023) : '[]'; ?>
+        };
+        
+        console.log('Données chargées depuis le contrôleur');
+        console.log('2021:', window.SANKEY_DATA.data2021.length, 'étudiants');
+        console.log('2022:', window.SANKEY_DATA.data2022.length, 'étudiants');
+        console.log('2023:', window.SANKEY_DATA.data2023.length, 'étudiants');
     </script>
     
-    <script>
-/**
- * Module de visualisation Sankey pour le suivi de cohorte BUT
- * VERSION OPTIMISÉE - Corrigée et améliorée
- */
-
-const SankeyCohort = (function() {
-    'use strict';
-
-    const COLORS = {
-        'Parcoursup': '#3B82F6',
-        'Hors Parcoursup': '#8B5CF6',
-        'BUT1': '#60A5FA', 
-        'BUT2': '#93C5FD',
-        'BUT3': '#DBEAFE',
-        'ADM': '#10B981',
-        'PASD': '#34D399',
-        'ADSUP': '#6EE7B7',
-        'CMP': '#A7F3D0',
-        'RED': '#F59E0B',
-        'ADJ': '#FBBF24',
-        'AJ': '#FCD34D',
-        'NAR': '#EF4444',
-        'DEF': '#DC2626',
-        'DEM': '#B91C1C',
-        'Diplômé': '#8B5CF6',
-        'En cours': '#60A5FA',
-        'DEFAULT': '#6B7280'
-    };
-
-    function hexToRgba(hex, alpha = 1) {
-        const r = parseInt(hex.slice(1, 3), 16);
-        const g = parseInt(hex.slice(3, 5), 16);
-        const b = parseInt(hex.slice(5, 7), 16);
-        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-    }
-
-    function processCohortData(data2021, data2022, data2023) {
-        const etudiants = new Map();
-
-        processYearData(data2021, 2021, etudiants);
-        processYearData(data2022, 2022, etudiants);
-        processYearData(data2023, 2023, etudiants);
-
-        const links = buildLinks(etudiants);
-        const nodes = extractNodes(links);
-
-        console.log('Total étudiants:', etudiants.size);
-        console.log('Liens créés:', links.size);
-
-        return { 
-            nodes: Array.from(nodes), 
-            links,
-            totalEtudiants: etudiants.size
-        };
-    }
-
-    function processYearData(data, year, etudiants) {
-        if (!data || !Array.isArray(data)) return;
-
-        data.forEach(etud => {
-            if (!etud.etudid || !etud.annee || !etud.annee.code) return;
-            
-            if (!etudiants.has(etud.etudid)) {
-                etudiants.set(etud.etudid, { annees: [] });
-            }
-            
-            etudiants.get(etud.etudid).annees.push({
-                annee: year,
-                ordre: etud.annee.ordre || 1,
-                code: etud.annee.code,
-                etat: etud.etat
-            });
-        });
-    }
-
-    function buildLinks(etudiants) {
-        const links = new Map();
-        
-        const addLink = (source, target, count = 1) => {
-            if (source === target) return;
-            const key = `${source}→${target}`;
-            links.set(key, (links.get(key) || 0) + count);
-        };
-
-        etudiants.forEach((etudiant) => {
-            etudiant.annees.sort((a, b) => a.annee - b.annee || a.ordre - b.ordre);
-            
-            const firstStep = etudiant.annees[0];
-            const origine = (firstStep.ordre === 1 && firstStep.code === 'ADM') 
-                ? 'Parcoursup' 
-                : 'Hors Parcoursup';
-            
-            const premierNiveau = `BUT${firstStep.ordre}`;
-            addLink(origine, premierNiveau);
-            
-            for (let idx = 0; idx < etudiant.annees.length; idx++) {
-                const step = etudiant.annees[idx];
-                const niveau = `BUT${step.ordre}`;
-                const code = step.code;
-                const isLastStep = idx === etudiant.annees.length - 1;
-                
-                // Cas d'abandon définitif
-                if (['NAR', 'DEM', 'DEF'].includes(code)) {
-                    addLink(niveau, code);
-                    break;
-                }
-                
-                // Cas de redoublement
-                if (['RED', 'AJ', 'ADJ'].includes(code)) {
-                    if (!isLastStep) {
-                        const next = etudiant.annees[idx + 1];
-                        const nextNiveau = `BUT${next.ordre}`;
-                        
-                        if (next.ordre === step.ordre) {
-                            addLink(niveau, code);
-                        } else {
-                            addLink(niveau, nextNiveau);
-                        }
-                    } else {
-                        addLink(niveau, code);
-                    }
-                    continue;
-                }
-                
-                // Cas de passage validé
-                if (['ADM', 'PASD', 'ADSUP', 'CMP'].includes(code)) {
-                    if (!isLastStep) {
-                        const next = etudiant.annees[idx + 1];
-                        const nextNiveau = `BUT${next.ordre}`;
-                        addLink(niveau, nextNiveau);
-                    } else {
-                        if (step.ordre >= 3) {
-                            addLink(niveau, 'Diplômé');
-                        } else {
-                            addLink(niveau, 'En cours');
-                        }
-                    }
-                }
-            }
-        });
-
-        return links;
-    }
-
-    function extractNodes(links) {
-        const nodes = new Set();
-        links.forEach((count, key) => {
-            const [src, tgt] = key.split('→');
-            nodes.add(src);
-            nodes.add(tgt);
-        });
-        return nodes;
-    }
-
-    function getNodeColor(label) {
-        return COLORS[label] || COLORS.DEFAULT;
-    }
-
-    function getLinkColor(target) {
-        const colorMap = {
-            'NAR': COLORS.NAR,
-            'DEF': COLORS.DEF,
-            'DEM': COLORS.DEM,
-            'RED': COLORS.RED,
-            'AJ': COLORS.AJ,
-            'ADJ': COLORS.ADJ,
-            'ADM': COLORS.ADM,
-            'PASD': COLORS.PASD,
-            'ADSUP': COLORS.ADSUP,
-            'CMP': COLORS.CMP,
-            'Diplômé': COLORS.Diplômé,
-            'En cours': COLORS['En cours']
-        };
-        
-        if (colorMap[target]) {
-            return hexToRgba(colorMap[target], 0.4);
-        }
-        
-        if (target.includes('BUT')) {
-            return hexToRgba(COLORS.Parcoursup, 0.4);
-        }
-        
-        return hexToRgba(COLORS.DEFAULT, 0.4);
-    }
-
-    function renderChart(data) {
-        const nodeLabels = data.nodes;
-        const nodeIndices = new Map(nodeLabels.map((n, i) => [n, i]));
-        
-        const sources = [];
-        const targets = [];
-        const values = [];
-        const colors = [];
-        
-        data.links.forEach((val, key) => {
-            const [src, tgt] = key.split('→');
-            const srcIdx = nodeIndices.get(src);
-            const tgtIdx = nodeIndices.get(tgt);
-            
-            if (srcIdx !== undefined && tgtIdx !== undefined) {
-                sources.push(srcIdx);
-                targets.push(tgtIdx);
-                values.push(val);
-                colors.push(getLinkColor(tgt));
-            }
-        });
-
-        const nodeColors = nodeLabels.map(getNodeColor);
-
-        const plotData = [{
-            type: "sankey",
-            orientation: "h",
-            node: { 
-                pad: 30,
-                thickness: 20,
-                label: nodeLabels,
-                color: nodeColors,
-                line: { color: "white", width: 1 }
-            },
-            link: { 
-                source: sources, 
-                target: targets, 
-                value: values, 
-                color: colors 
-            }
-        }];
-
-        const layout = {
-            font: { color: "#FBEDD3", size: 13, family: 'Arial' },
-            paper_bgcolor: "rgba(0,0,0,0)",
-            plot_bgcolor: "rgba(0,0,0,0)",
-            margin: { l: 20, r: 150, t: 40, b: 40 },
-            title: { 
-                text: `Parcours de ${data.totalEtudiants} étudiants`,
-                font: { size: 18, color: "#E3BF81" }
-            }
-        };
-
-        const config = { 
-            responsive: true,
-            displayModeBar: true 
-        };
-
-        Plotly.newPlot('sankey-plot', plotData, layout, config);
-    }
-
-    async function init() {
-        const loader = document.getElementById('loader');
-        
-        try {
-            const files = window.SANKEY_CONFIG || [];
-            
-            if (files.length === 0) {
-                throw new Error('Aucun fichier de données configuré');
-            }
-
-            const dataPromises = files.map(f => 
-                fetch(f).then(r => {
-                    if (!r.ok) throw new Error(`Erreur HTTP ${r.status} pour ${f}`);
-                    return r.json();
-                })
-            );
-            
-            const [data2021, data2022, data2023] = await Promise.all(dataPromises);
-            
-            const processed = processCohortData(data2021, data2022, data2023);
-            
-            loader.classList.add('hidden');
-            
-            renderChart(processed);
-            
-            setupLegendToggle();
-
-        } catch (err) {
-            console.error('Erreur lors du chargement:', err);
-            loader.innerHTML = `⚠ Erreur : ${err.message}`;
-        }
-    }
-
-    function setupLegendToggle() {
-        const toggle = document.getElementById('toggle-legend');
-        const legendContainer = document.getElementById('legend-container');
-        
-        if (toggle && legendContainer) {
-            toggle.addEventListener('change', (e) => {
-                if (e.target.checked) {
-                    legendContainer.classList.remove('opacity-0', 'pointer-events-none', 'h-0');
-                } else {
-                    legendContainer.classList.add('opacity-0', 'pointer-events-none', 'h-0');
-                }
-            });
-        }
-    }
-
-    return { init };
-
-})();
-
-document.addEventListener('DOMContentLoaded', SankeyCohort.init);
-    </script>
+    <!-- Charger le fichier JavaScript externe -->
+    <script src="Views/Content/js/sankey-logic.js"></script>
 </body>
 </html>

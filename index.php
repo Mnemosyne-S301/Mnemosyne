@@ -3,8 +3,10 @@
 ini_set('display_errors', 'On');
 error_reporting(E_ALL);
 
+// Charger la classe parent Controller
+require_once 'Controllers/Controller.php';
 
-$controllers = ["index"]; //Liste des contrôleurs
+$controllers = ["index", "accueil", "sankey", "admin", "api", "users"]; //Liste des contrôleurs
 $controller_default = "index"; //Nom du contrôleur par défaut
 
 //On teste si le paramètre controller existe et correspond à un contrôleur

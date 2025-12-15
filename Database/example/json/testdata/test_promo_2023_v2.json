@@ -1,86 +1,5 @@
 [
     {
-        "etudid": "test_etud_001",
-        "code_nip": "nip001",
-        "code_ine": null,
-        "is_apc": true,
-        "etat": "I",
-        "nb_competences": 6,
-        "rcues": [
-            {
-                "ue_1": {"ue_id": 5, "moy": 11.0, "code": "ADM"},
-                "ue_2": {"ue_id": 6, "moy": 10.5, "code": "ADM"},
-                "moy": 10.75,
-                "code": "ADM"
-            }
-        ],
-        "ues": [
-            {"ue_id": 5, "code": "ADM", "ects": 5},
-            {"ue_id": 6, "code": "ADM", "ects": 5}
-        ],
-        "semestre": [],
-        "annee": {
-            "code": "ADM",
-            "ordre": 3,
-            "annee_scolaire": 2023
-        },
-        "autorisations": []
-    },
-    {
-        "etudid": "test_etud_002",
-        "code_nip": "nip002",
-        "code_ine": null,
-        "is_apc": true,
-        "etat": "I",
-        "nb_competences": 6,
-        "rcues": [
-            {
-                "ue_1": {"ue_id": 5, "moy": 9.0, "code": "AJ"},
-                "ue_2": {"ue_id": 6, "moy": 8.5, "code": "AJ"},
-                "moy": 8.75,
-                "code": "AJ"
-            }
-        ],
-        "ues": [
-            {"ue_id": 5, "code": "AJ", "ects": 0},
-            {"ue_id": 6, "code": "AJ", "ects": 0}
-        ],
-        "semestre": [],
-        "annee": {
-            "code": "AJ",
-            "ordre": 3,
-            "annee_scolaire": 2023
-        },
-        "autorisations": []
-    },
-    {
-        "etudid": "test_etud_003",
-        "code_nip": "nip003",
-        "code_ine": null,
-        "is_apc": true,
-        "etat": "I",
-        "nb_competences": 6,
-        "rcues": [
-            {
-                "ue_1": {"ue_id": 5, "moy": 7.0, "code": "AJ"},
-                "ue_2": {"ue_id": 6, "moy": 6.5, "code": "AJ"},
-                "moy": 6.75,
-                "code": "AJ"
-            }
-        ],
-        "ues": [
-            {"ue_id": 5, "code": "AJ", "ects": 0},
-            {"ue_id": 6, "code": "AJ", "ects": 0}
-        ],
-        "semestre": [],
-        "annee": {
-            "code": "AJ",
-            "ordre": 3,
-            "annee_scolaire": 2023
-        },
-        "autorisations": []
-    },
-    {
         "etudid": "test_etud_004",
         "code_nip": "nip004",
         "code_ine": null,
@@ -89,19 +8,35 @@
         "nb_competences": 6,
         "rcues": [
             {
-                "ue_1": {"ue_id": 5, "moy": 5.0, "code": "DEF"},
-                "ue_2": {"ue_id": 6, "moy": 4.5, "code": "DEF"},
-                "moy": 4.75,
-                "code": "DEF"
+                "ue_1": {
+                    "ue_id": 5,
+                    "moy": 11.8,
+                    "code": "RED"
+                },
+                "ue_2": {
+                    "ue_id": 6,
+                    "moy": 10.8,
+                    "code": "ADM"
+                },
+                "moy": 11.3,
+                "code": "RED"
             }
         ],
         "ues": [
-            {"ue_id": 5, "code": "DEF", "ects": 0},
-            {"ue_id": 6, "code": "DEF", "ects": 0}
+            {
+                "ue_id": 5,
+                "code": "ADM",
+                "ects": 5
+            },
+            {
+                "ue_id": 6,
+                "code": "ADM",
+                "ects": 5
+            }
         ],
         "semestre": [],
         "annee": {
-            "code": "DEF",
+            "code": "RED",
             "ordre": 3,
             "annee_scolaire": 2023
         },
@@ -116,46 +51,35 @@
         "nb_competences": 6,
         "rcues": [
             {
-                "ue_1": {"ue_id": 5, "moy": 13.0, "code": "ADM"},
-                "ue_2": {"ue_id": 6, "moy": 12.5, "code": "ADM"},
-                "moy": 12.75,
-                "code": "ADM"
+                "ue_1": {
+                    "ue_id": 5,
+                    "moy": 10.0,
+                    "code": "AJ"
+                },
+                "ue_2": {
+                    "ue_id": 6,
+                    "moy": 11.6,
+                    "code": "RED"
+                },
+                "moy": 10.8,
+                "code": "AJ"
             }
         ],
         "ues": [
-            {"ue_id": 5, "code": "ADM", "ects": 5},
-            {"ue_id": 6, "code": "ADM", "ects": 5}
-        ],
-        "semestre": [],
-        "annee": {
-            "code": "ADM",
-            "ordre": 3,
-            "annee_scolaire": 2023
-        },
-        "autorisations": []
-    },
-    {
-        "etudid": "test_etud_006",
-        "code_nip": "nip006",
-        "code_ine": null,
-        "is_apc": true,
-        "etat": "I",
-        "nb_competences": 6,
-        "rcues": [
             {
-                "ue_1": {"ue_id": 5, "moy": 10.0, "code": "CMP"},
-                "ue_2": {"ue_id": 6, "moy": 9.5, "code": "ADM"},
-                "moy": 9.75,
-                "code": "CMP"
+                "ue_id": 5,
+                "code": "ADM",
+                "ects": 5
+            },
+            {
+                "ue_id": 6,
+                "code": "ADM",
+                "ects": 5
             }
-        ],
-        "ues": [
-            {"ue_id": 5, "code": "CMP", "ects": 5},
-            {"ue_id": 6, "code": "ADM", "ects": 5}
         ],
         "semestre": [],
         "annee": {
-            "code": "CMP",
+            "code": "AJ",
             "ordre": 3,
             "annee_scolaire": 2023
         },
@@ -170,73 +94,35 @@
         "nb_competences": 6,
         "rcues": [
             {
-                "ue_1": {"ue_id": 5, "moy": 8.0, "code": "PASD"},
-                "ue_2": {"ue_id": 6, "moy": 7.5, "code": "PASD"},
-                "moy": 7.75,
-                "code": "PASD"
+                "ue_1": {
+                    "ue_id": 5,
+                    "moy": 13.5,
+                    "code": "AJ"
+                },
+                "ue_2": {
+                    "ue_id": 6,
+                    "moy": 12.7,
+                    "code": "ADM"
+                },
+                "moy": 13.1,
+                "code": "AJ"
             }
         ],
         "ues": [
-            {"ue_id": 5, "code": "PASD", "ects": 5},
-            {"ue_id": 6, "code": "PASD", "ects": 5}
-        ],
-        "semestre": [],
-        "annee": {
-            "code": "PASD",
-            "ordre": 3,
-            "annee_scolaire": 2023
-        },
-        "autorisations": []
-    },
-    {
-        "etudid": "test_etud_008",
-        "code_nip": "nip008",
-        "code_ine": null,
-        "is_apc": true,
-        "etat": "I",
-        "nb_competences": 6,
-        "rcues": [
             {
-                "ue_1": {"ue_id": 5, "moy": 11.5, "code": "ADM"},
-                "ue_2": {"ue_id": 6, "moy": 11.0, "code": "ADM"},
-                "moy": 11.25,
-                "code": "ADM"
-            }
-        ],
-        "ues": [
-            {"ue_id": 5, "code": "ADM", "ects": 5},
-            {"ue_id": 6, "code": "ADM", "ects": 5}
-        ],
-        "semestre": [],
-        "annee": {
-            "code": "ADM",
-            "ordre": 3,
-            "annee_scolaire": 2023
-        },
-        "autorisations": []
-    },
-    {
-        "etudid": "test_etud_009",
-        "code_nip": "nip009",
-        "code_ine": null,
-        "is_apc": true,
-        "etat": "I",
-        "nb_competences": 6,
-        "rcues": [
+                "ue_id": 5,
+                "code": "ADM",
+                "ects": 5
+            },
             {
-                "ue_1": {"ue_id": 5, "moy": 6.0, "code": "RED"},
-                "ue_2": {"ue_id": 6, "moy": 5.5, "code": "RED"},
-                "moy": 5.75,
-                "code": "RED"
+                "ue_id": 6,
+                "code": "ADM",
+                "ects": 5
             }
-        ],
-        "ues": [
-            {"ue_id": 5, "code": "RED", "ects": 5},
-            {"ue_id": 6, "code": "RED", "ects": 5}
         ],
         "semestre": [],
         "annee": {
-            "code": "RED",
+            "code": "AJ",
             "ordre": 3,
             "annee_scolaire": 2023
         },
@@ -251,46 +137,35 @@
         "nb_competences": 6,
         "rcues": [
             {
-                "ue_1": {"ue_id": 5, "moy": 12.0, "code": "ADM"},
-                "ue_2": {"ue_id": 6, "moy": 11.5, "code": "ADM"},
-                "moy": 11.75,
-                "code": "ADM"
+                "ue_1": {
+                    "ue_id": 5,
+                    "moy": 12.6,
+                    "code": "CMP"
+                },
+                "ue_2": {
+                    "ue_id": 6,
+                    "moy": 11.0,
+                    "code": "RED"
+                },
+                "moy": 11.8,
+                "code": "RED"
             }
         ],
         "ues": [
-            {"ue_id": 5, "code": "ADM", "ects": 5},
-            {"ue_id": 6, "code": "ADM", "ects": 5}
-        ],
-        "semestre": [],
-        "annee": {
-            "code": "ADM",
-            "ordre": 3,
-            "annee_scolaire": 2023
-        },
-        "autorisations": []
-    },
-    {
-        "etudid": "test_etud_011",
-        "code_nip": "nip011",
-        "code_ine": null,
-        "is_apc": true,
-        "etat": "I",
-        "nb_competences": 6,
-        "rcues": [
             {
-                "ue_1": {"ue_id": 5, "moy": 9.0, "code": "AJ"},
-                "ue_2": {"ue_id": 6, "moy": 8.5, "code": "AJ"},
-                "moy": 8.75,
-                "code": "AJ"
+                "ue_id": 5,
+                "code": "ADM",
+                "ects": 5
+            },
+            {
+                "ue_id": 6,
+                "code": "ADM",
+                "ects": 5
             }
-        ],
-        "ues": [
-            {"ue_id": 5, "code": "AJ", "ects": 0},
-            {"ue_id": 6, "code": "AJ", "ects": 0}
         ],
         "semestre": [],
         "annee": {
-            "code": "AJ",
+            "code": "RED",
             "ordre": 3,
             "annee_scolaire": 2023
         },
@@ -305,15 +180,1923 @@
         "nb_competences": 6,
         "rcues": [
             {
-                "ue_1": {"ue_id": 5, "moy": 10.0, "code": "ADM"},
-                "ue_2": {"ue_id": 6, "moy": 9.5, "code": "ADM"},
-                "moy": 9.75,
+                "ue_1": {
+                    "ue_id": 5,
+                    "moy": 10.7,
+                    "code": "CMP"
+                },
+                "ue_2": {
+                    "ue_id": 6,
+                    "moy": 10.9,
+                    "code": "PASD"
+                },
+                "moy": 10.8,
+                "code": "AJ"
+            }
+        ],
+        "ues": [
+            {
+                "ue_id": 5,
+                "code": "ADM",
+                "ects": 5
+            },
+            {
+                "ue_id": 6,
+                "code": "ADM",
+                "ects": 5
+            }
+        ],
+        "semestre": [],
+        "annee": {
+            "code": "AJ",
+            "ordre": 3,
+            "annee_scolaire": 2023
+        },
+        "autorisations": []
+    },
+    {
+        "etudid": "test_etud_014",
+        "code_nip": "nip014",
+        "code_ine": null,
+        "is_apc": true,
+        "etat": "I",
+        "nb_competences": 6,
+        "rcues": [
+            {
+                "ue_1": {
+                    "ue_id": 5,
+                    "moy": 11.8,
+                    "code": "AJ"
+                },
+                "ue_2": {
+                    "ue_id": 6,
+                    "moy": 11.1,
+                    "code": "AJ"
+                },
+                "moy": 11.45,
+                "code": "AJ"
+            }
+        ],
+        "ues": [
+            {
+                "ue_id": 5,
+                "code": "ADM",
+                "ects": 5
+            },
+            {
+                "ue_id": 6,
+                "code": "ADM",
+                "ects": 5
+            }
+        ],
+        "semestre": [],
+        "annee": {
+            "code": "AJ",
+            "ordre": 3,
+            "annee_scolaire": 2023
+        },
+        "autorisations": []
+    },
+    {
+        "etudid": "test_etud_015",
+        "code_nip": "nip015",
+        "code_ine": null,
+        "is_apc": true,
+        "etat": "I",
+        "nb_competences": 6,
+        "rcues": [
+            {
+                "ue_1": {
+                    "ue_id": 5,
+                    "moy": 7.7,
+                    "code": "PASD"
+                },
+                "ue_2": {
+                    "ue_id": 6,
+                    "moy": 10.6,
+                    "code": "CMP"
+                },
+                "moy": 9.15,
+                "code": "AJ"
+            }
+        ],
+        "ues": [
+            {
+                "ue_id": 5,
+                "code": "ADM",
+                "ects": 5
+            },
+            {
+                "ue_id": 6,
+                "code": "ADM",
+                "ects": 5
+            }
+        ],
+        "semestre": [],
+        "annee": {
+            "code": "AJ",
+            "ordre": 3,
+            "annee_scolaire": 2023
+        },
+        "autorisations": []
+    },
+    {
+        "etudid": "test_etud_016",
+        "code_nip": "nip016",
+        "code_ine": null,
+        "is_apc": true,
+        "etat": "I",
+        "nb_competences": 6,
+        "rcues": [
+            {
+                "ue_1": {
+                    "ue_id": 5,
+                    "moy": 9.1,
+                    "code": "ADM"
+                },
+                "ue_2": {
+                    "ue_id": 6,
+                    "moy": 11.6,
+                    "code": "CMP"
+                },
+                "moy": 10.35,
+                "code": "AJ"
+            }
+        ],
+        "ues": [
+            {
+                "ue_id": 5,
+                "code": "ADM",
+                "ects": 5
+            },
+            {
+                "ue_id": 6,
+                "code": "ADM",
+                "ects": 5
+            }
+        ],
+        "semestre": [],
+        "annee": {
+            "code": "AJ",
+            "ordre": 3,
+            "annee_scolaire": 2023
+        },
+        "autorisations": []
+    },
+    {
+        "etudid": "test_etud_018",
+        "code_nip": "nip018",
+        "code_ine": null,
+        "is_apc": true,
+        "etat": "I",
+        "nb_competences": 6,
+        "rcues": [
+            {
+                "ue_1": {
+                    "ue_id": 5,
+                    "moy": 12.2,
+                    "code": "ADM"
+                },
+                "ue_2": {
+                    "ue_id": 6,
+                    "moy": 9.0,
+                    "code": "AJ"
+                },
+                "moy": 10.6,
+                "code": "PASD"
+            }
+        ],
+        "ues": [
+            {
+                "ue_id": 5,
+                "code": "ADM",
+                "ects": 5
+            },
+            {
+                "ue_id": 6,
+                "code": "ADM",
+                "ects": 5
+            }
+        ],
+        "semestre": [],
+        "annee": {
+            "code": "PASD",
+            "ordre": 3,
+            "annee_scolaire": 2023
+        },
+        "autorisations": []
+    },
+    {
+        "etudid": "test_etud_020",
+        "code_nip": "nip020",
+        "code_ine": null,
+        "is_apc": true,
+        "etat": "I",
+        "nb_competences": 6,
+        "rcues": [
+            {
+                "ue_1": {
+                    "ue_id": 5,
+                    "moy": 12.5,
+                    "code": "CMP"
+                },
+                "ue_2": {
+                    "ue_id": 6,
+                    "moy": 10.2,
+                    "code": "RED"
+                },
+                "moy": 11.35,
+                "code": "AJ"
+            }
+        ],
+        "ues": [
+            {
+                "ue_id": 5,
+                "code": "ADM",
+                "ects": 5
+            },
+            {
+                "ue_id": 6,
+                "code": "ADM",
+                "ects": 5
+            }
+        ],
+        "semestre": [],
+        "annee": {
+            "code": "AJ",
+            "ordre": 3,
+            "annee_scolaire": 2023
+        },
+        "autorisations": []
+    },
+    {
+        "etudid": "test_etud_021",
+        "code_nip": "nip021",
+        "code_ine": null,
+        "is_apc": true,
+        "etat": "I",
+        "nb_competences": 6,
+        "rcues": [
+            {
+                "ue_1": {
+                    "ue_id": 5,
+                    "moy": 9.2,
+                    "code": "ADM"
+                },
+                "ue_2": {
+                    "ue_id": 6,
+                    "moy": 8.8,
+                    "code": "RED"
+                },
+                "moy": 9.0,
+                "code": "AJ"
+            }
+        ],
+        "ues": [
+            {
+                "ue_id": 5,
+                "code": "ADM",
+                "ects": 5
+            },
+            {
+                "ue_id": 6,
+                "code": "ADM",
+                "ects": 5
+            }
+        ],
+        "semestre": [],
+        "annee": {
+            "code": "AJ",
+            "ordre": 3,
+            "annee_scolaire": 2023
+        },
+        "autorisations": []
+    },
+    {
+        "etudid": "test_etud_022",
+        "code_nip": "nip022",
+        "code_ine": null,
+        "is_apc": true,
+        "etat": "I",
+        "nb_competences": 6,
+        "rcues": [
+            {
+                "ue_1": {
+                    "ue_id": 5,
+                    "moy": 8.7,
+                    "code": "RED"
+                },
+                "ue_2": {
+                    "ue_id": 6,
+                    "moy": 9.2,
+                    "code": "AJ"
+                },
+                "moy": 8.95,
                 "code": "ADM"
             }
         ],
         "ues": [
-            {"ue_id": 5, "code": "ADM", "ects": 5},
-            {"ue_id": 6, "code": "ADM", "ects": 5}
+            {
+                "ue_id": 5,
+                "code": "ADM",
+                "ects": 5
+            },
+            {
+                "ue_id": 6,
+                "code": "ADM",
+                "ects": 5
+            }
+        ],
+        "semestre": [],
+        "annee": {
+            "code": "ADM",
+            "ordre": 3,
+            "annee_scolaire": 2023
+        },
+        "autorisations": []
+    },
+    {
+        "etudid": "test_etud_023",
+        "code_nip": "nip023",
+        "code_ine": null,
+        "is_apc": true,
+        "etat": "I",
+        "nb_competences": 6,
+        "rcues": [
+            {
+                "ue_1": {
+                    "ue_id": 5,
+                    "moy": 13.4,
+                    "code": "AJ"
+                },
+                "ue_2": {
+                    "ue_id": 6,
+                    "moy": 11.6,
+                    "code": "CMP"
+                },
+                "moy": 12.5,
+                "code": "PASD"
+            }
+        ],
+        "ues": [
+            {
+                "ue_id": 5,
+                "code": "ADM",
+                "ects": 5
+            },
+            {
+                "ue_id": 6,
+                "code": "ADM",
+                "ects": 5
+            }
+        ],
+        "semestre": [],
+        "annee": {
+            "code": "PASD",
+            "ordre": 3,
+            "annee_scolaire": 2023
+        },
+        "autorisations": []
+    },
+    {
+        "etudid": "test_etud_025",
+        "code_nip": "nip025",
+        "code_ine": null,
+        "is_apc": true,
+        "etat": "I",
+        "nb_competences": 6,
+        "rcues": [
+            {
+                "ue_1": {
+                    "ue_id": 5,
+                    "moy": 6.9,
+                    "code": "RED"
+                },
+                "ue_2": {
+                    "ue_id": 6,
+                    "moy": 12.8,
+                    "code": "AJ"
+                },
+                "moy": 9.85,
+                "code": "RED"
+            }
+        ],
+        "ues": [
+            {
+                "ue_id": 5,
+                "code": "ADM",
+                "ects": 5
+            },
+            {
+                "ue_id": 6,
+                "code": "ADM",
+                "ects": 5
+            }
+        ],
+        "semestre": [],
+        "annee": {
+            "code": "RED",
+            "ordre": 3,
+            "annee_scolaire": 2023
+        },
+        "autorisations": []
+    },
+    {
+        "etudid": "test_etud_029",
+        "code_nip": "nip029",
+        "code_ine": null,
+        "is_apc": true,
+        "etat": "I",
+        "nb_competences": 6,
+        "rcues": [
+            {
+                "ue_1": {
+                    "ue_id": 5,
+                    "moy": 7.1,
+                    "code": "ADM"
+                },
+                "ue_2": {
+                    "ue_id": 6,
+                    "moy": 10.9,
+                    "code": "RED"
+                },
+                "moy": 9.0,
+                "code": "CMP"
+            }
+        ],
+        "ues": [
+            {
+                "ue_id": 5,
+                "code": "ADM",
+                "ects": 5
+            },
+            {
+                "ue_id": 6,
+                "code": "ADM",
+                "ects": 5
+            }
+        ],
+        "semestre": [],
+        "annee": {
+            "code": "CMP",
+            "ordre": 3,
+            "annee_scolaire": 2023
+        },
+        "autorisations": []
+    },
+    {
+        "etudid": "test_etud_031",
+        "code_nip": "nip031",
+        "code_ine": null,
+        "is_apc": true,
+        "etat": "I",
+        "nb_competences": 6,
+        "rcues": [
+            {
+                "ue_1": {
+                    "ue_id": 5,
+                    "moy": 9.6,
+                    "code": "RED"
+                },
+                "ue_2": {
+                    "ue_id": 6,
+                    "moy": 6.2,
+                    "code": "CMP"
+                },
+                "moy": 7.9,
+                "code": "CMP"
+            }
+        ],
+        "ues": [
+            {
+                "ue_id": 5,
+                "code": "ADM",
+                "ects": 5
+            },
+            {
+                "ue_id": 6,
+                "code": "ADM",
+                "ects": 5
+            }
+        ],
+        "semestre": [],
+        "annee": {
+            "code": "CMP",
+            "ordre": 3,
+            "annee_scolaire": 2023
+        },
+        "autorisations": []
+    },
+    {
+        "etudid": "test_etud_034",
+        "code_nip": "nip034",
+        "code_ine": null,
+        "is_apc": true,
+        "etat": "I",
+        "nb_competences": 6,
+        "rcues": [
+            {
+                "ue_1": {
+                    "ue_id": 5,
+                    "moy": 7.4,
+                    "code": "AJ"
+                },
+                "ue_2": {
+                    "ue_id": 6,
+                    "moy": 10.1,
+                    "code": "CMP"
+                },
+                "moy": 8.75,
+                "code": "PASD"
+            }
+        ],
+        "ues": [
+            {
+                "ue_id": 5,
+                "code": "ADM",
+                "ects": 5
+            },
+            {
+                "ue_id": 6,
+                "code": "ADM",
+                "ects": 5
+            }
+        ],
+        "semestre": [],
+        "annee": {
+            "code": "PASD",
+            "ordre": 3,
+            "annee_scolaire": 2023
+        },
+        "autorisations": []
+    },
+    {
+        "etudid": "test_etud_035",
+        "code_nip": "nip035",
+        "code_ine": null,
+        "is_apc": true,
+        "etat": "I",
+        "nb_competences": 6,
+        "rcues": [
+            {
+                "ue_1": {
+                    "ue_id": 5,
+                    "moy": 13.7,
+                    "code": "AJ"
+                },
+                "ue_2": {
+                    "ue_id": 6,
+                    "moy": 6.9,
+                    "code": "AJ"
+                },
+                "moy": 10.3,
+                "code": "RED"
+            }
+        ],
+        "ues": [
+            {
+                "ue_id": 5,
+                "code": "ADM",
+                "ects": 5
+            },
+            {
+                "ue_id": 6,
+                "code": "ADM",
+                "ects": 5
+            }
+        ],
+        "semestre": [],
+        "annee": {
+            "code": "RED",
+            "ordre": 3,
+            "annee_scolaire": 2023
+        },
+        "autorisations": []
+    },
+    {
+        "etudid": "test_etud_036",
+        "code_nip": "nip036",
+        "code_ine": null,
+        "is_apc": true,
+        "etat": "I",
+        "nb_competences": 6,
+        "rcues": [
+            {
+                "ue_1": {
+                    "ue_id": 5,
+                    "moy": 6.9,
+                    "code": "CMP"
+                },
+                "ue_2": {
+                    "ue_id": 6,
+                    "moy": 6.1,
+                    "code": "ADM"
+                },
+                "moy": 6.5,
+                "code": "AJ"
+            }
+        ],
+        "ues": [
+            {
+                "ue_id": 5,
+                "code": "ADM",
+                "ects": 5
+            },
+            {
+                "ue_id": 6,
+                "code": "ADM",
+                "ects": 5
+            }
+        ],
+        "semestre": [],
+        "annee": {
+            "code": "AJ",
+            "ordre": 3,
+            "annee_scolaire": 2023
+        },
+        "autorisations": []
+    },
+    {
+        "etudid": "test_etud_037",
+        "code_nip": "nip037",
+        "code_ine": null,
+        "is_apc": true,
+        "etat": "I",
+        "nb_competences": 6,
+        "rcues": [
+            {
+                "ue_1": {
+                    "ue_id": 5,
+                    "moy": 13.7,
+                    "code": "CMP"
+                },
+                "ue_2": {
+                    "ue_id": 6,
+                    "moy": 12.1,
+                    "code": "RED"
+                },
+                "moy": 12.9,
+                "code": "AJ"
+            }
+        ],
+        "ues": [
+            {
+                "ue_id": 5,
+                "code": "ADM",
+                "ects": 5
+            },
+            {
+                "ue_id": 6,
+                "code": "ADM",
+                "ects": 5
+            }
+        ],
+        "semestre": [],
+        "annee": {
+            "code": "AJ",
+            "ordre": 3,
+            "annee_scolaire": 2023
+        },
+        "autorisations": []
+    },
+    {
+        "etudid": "test_etud_040",
+        "code_nip": "nip040",
+        "code_ine": null,
+        "is_apc": true,
+        "etat": "I",
+        "nb_competences": 6,
+        "rcues": [
+            {
+                "ue_1": {
+                    "ue_id": 5,
+                    "moy": 7.3,
+                    "code": "ADM"
+                },
+                "ue_2": {
+                    "ue_id": 6,
+                    "moy": 6.4,
+                    "code": "ADM"
+                },
+                "moy": 6.85,
+                "code": "ADM"
+            }
+        ],
+        "ues": [
+            {
+                "ue_id": 5,
+                "code": "ADM",
+                "ects": 5
+            },
+            {
+                "ue_id": 6,
+                "code": "ADM",
+                "ects": 5
+            }
+        ],
+        "semestre": [],
+        "annee": {
+            "code": "ADM",
+            "ordre": 3,
+            "annee_scolaire": 2023
+        },
+        "autorisations": []
+    },
+    {
+        "etudid": "test_etud_041",
+        "code_nip": "nip041",
+        "code_ine": null,
+        "is_apc": true,
+        "etat": "I",
+        "nb_competences": 6,
+        "rcues": [
+            {
+                "ue_1": {
+                    "ue_id": 5,
+                    "moy": 8.7,
+                    "code": "CMP"
+                },
+                "ue_2": {
+                    "ue_id": 6,
+                    "moy": 6.8,
+                    "code": "ADM"
+                },
+                "moy": 7.75,
+                "code": "RED"
+            }
+        ],
+        "ues": [
+            {
+                "ue_id": 5,
+                "code": "ADM",
+                "ects": 5
+            },
+            {
+                "ue_id": 6,
+                "code": "ADM",
+                "ects": 5
+            }
+        ],
+        "semestre": [],
+        "annee": {
+            "code": "RED",
+            "ordre": 3,
+            "annee_scolaire": 2023
+        },
+        "autorisations": []
+    },
+    {
+        "etudid": "test_etud_045",
+        "code_nip": "nip045",
+        "code_ine": null,
+        "is_apc": true,
+        "etat": "I",
+        "nb_competences": 6,
+        "rcues": [
+            {
+                "ue_1": {
+                    "ue_id": 5,
+                    "moy": 8.9,
+                    "code": "PASD"
+                },
+                "ue_2": {
+                    "ue_id": 6,
+                    "moy": 9.2,
+                    "code": "AJ"
+                },
+                "moy": 9.05,
+                "code": "PASD"
+            }
+        ],
+        "ues": [
+            {
+                "ue_id": 5,
+                "code": "ADM",
+                "ects": 5
+            },
+            {
+                "ue_id": 6,
+                "code": "ADM",
+                "ects": 5
+            }
+        ],
+        "semestre": [],
+        "annee": {
+            "code": "PASD",
+            "ordre": 3,
+            "annee_scolaire": 2023
+        },
+        "autorisations": []
+    },
+    {
+        "etudid": "test_etud_046",
+        "code_nip": "nip046",
+        "code_ine": null,
+        "is_apc": true,
+        "etat": "I",
+        "nb_competences": 6,
+        "rcues": [
+            {
+                "ue_1": {
+                    "ue_id": 5,
+                    "moy": 8.6,
+                    "code": "AJ"
+                },
+                "ue_2": {
+                    "ue_id": 6,
+                    "moy": 6.8,
+                    "code": "AJ"
+                },
+                "moy": 7.7,
+                "code": "ADM"
+            }
+        ],
+        "ues": [
+            {
+                "ue_id": 5,
+                "code": "ADM",
+                "ects": 5
+            },
+            {
+                "ue_id": 6,
+                "code": "ADM",
+                "ects": 5
+            }
+        ],
+        "semestre": [],
+        "annee": {
+            "code": "ADM",
+            "ordre": 3,
+            "annee_scolaire": 2023
+        },
+        "autorisations": []
+    },
+    {
+        "etudid": "test_etud_047",
+        "code_nip": "nip047",
+        "code_ine": null,
+        "is_apc": true,
+        "etat": "I",
+        "nb_competences": 6,
+        "rcues": [
+            {
+                "ue_1": {
+                    "ue_id": 5,
+                    "moy": 6.5,
+                    "code": "CMP"
+                },
+                "ue_2": {
+                    "ue_id": 6,
+                    "moy": 6.3,
+                    "code": "PASD"
+                },
+                "moy": 6.4,
+                "code": "ADM"
+            }
+        ],
+        "ues": [
+            {
+                "ue_id": 5,
+                "code": "ADM",
+                "ects": 5
+            },
+            {
+                "ue_id": 6,
+                "code": "ADM",
+                "ects": 5
+            }
+        ],
+        "semestre": [],
+        "annee": {
+            "code": "ADM",
+            "ordre": 3,
+            "annee_scolaire": 2023
+        },
+        "autorisations": []
+    },
+    {
+        "etudid": "test_etud_048",
+        "code_nip": "nip048",
+        "code_ine": null,
+        "is_apc": true,
+        "etat": "I",
+        "nb_competences": 6,
+        "rcues": [
+            {
+                "ue_1": {
+                    "ue_id": 5,
+                    "moy": 8.3,
+                    "code": "AJ"
+                },
+                "ue_2": {
+                    "ue_id": 6,
+                    "moy": 6.6,
+                    "code": "AJ"
+                },
+                "moy": 7.45,
+                "code": "RED"
+            }
+        ],
+        "ues": [
+            {
+                "ue_id": 5,
+                "code": "ADM",
+                "ects": 5
+            },
+            {
+                "ue_id": 6,
+                "code": "ADM",
+                "ects": 5
+            }
+        ],
+        "semestre": [],
+        "annee": {
+            "code": "RED",
+            "ordre": 3,
+            "annee_scolaire": 2023
+        },
+        "autorisations": []
+    },
+    {
+        "etudid": "test_etud_049",
+        "code_nip": "nip049",
+        "code_ine": null,
+        "is_apc": true,
+        "etat": "I",
+        "nb_competences": 6,
+        "rcues": [
+            {
+                "ue_1": {
+                    "ue_id": 5,
+                    "moy": 13.6,
+                    "code": "PASD"
+                },
+                "ue_2": {
+                    "ue_id": 6,
+                    "moy": 12.2,
+                    "code": "PASD"
+                },
+                "moy": 12.9,
+                "code": "AJ"
+            }
+        ],
+        "ues": [
+            {
+                "ue_id": 5,
+                "code": "ADM",
+                "ects": 5
+            },
+            {
+                "ue_id": 6,
+                "code": "ADM",
+                "ects": 5
+            }
+        ],
+        "semestre": [],
+        "annee": {
+            "code": "AJ",
+            "ordre": 3,
+            "annee_scolaire": 2023
+        },
+        "autorisations": []
+    },
+    {
+        "etudid": "test_etud_050",
+        "code_nip": "nip050",
+        "code_ine": null,
+        "is_apc": true,
+        "etat": "I",
+        "nb_competences": 6,
+        "rcues": [
+            {
+                "ue_1": {
+                    "ue_id": 5,
+                    "moy": 9.7,
+                    "code": "PASD"
+                },
+                "ue_2": {
+                    "ue_id": 6,
+                    "moy": 8.2,
+                    "code": "AJ"
+                },
+                "moy": 8.95,
+                "code": "AJ"
+            }
+        ],
+        "ues": [
+            {
+                "ue_id": 5,
+                "code": "ADM",
+                "ects": 5
+            },
+            {
+                "ue_id": 6,
+                "code": "ADM",
+                "ects": 5
+            }
+        ],
+        "semestre": [],
+        "annee": {
+            "code": "AJ",
+            "ordre": 3,
+            "annee_scolaire": 2023
+        },
+        "autorisations": []
+    },
+    {
+        "etudid": "test_etud_051",
+        "code_nip": "nip051",
+        "code_ine": null,
+        "is_apc": true,
+        "etat": "I",
+        "nb_competences": 6,
+        "rcues": [
+            {
+                "ue_1": {
+                    "ue_id": 5,
+                    "moy": 6.2,
+                    "code": "AJ"
+                },
+                "ue_2": {
+                    "ue_id": 6,
+                    "moy": 9.5,
+                    "code": "AJ"
+                },
+                "moy": 7.85,
+                "code": "RED"
+            }
+        ],
+        "ues": [
+            {
+                "ue_id": 5,
+                "code": "ADM",
+                "ects": 5
+            },
+            {
+                "ue_id": 6,
+                "code": "ADM",
+                "ects": 5
+            }
+        ],
+        "semestre": [],
+        "annee": {
+            "code": "RED",
+            "ordre": 3,
+            "annee_scolaire": 2023
+        },
+        "autorisations": []
+    },
+    {
+        "etudid": "test_etud_053",
+        "code_nip": "nip053",
+        "code_ine": null,
+        "is_apc": true,
+        "etat": "I",
+        "nb_competences": 6,
+        "rcues": [
+            {
+                "ue_1": {
+                    "ue_id": 5,
+                    "moy": 7.5,
+                    "code": "PASD"
+                },
+                "ue_2": {
+                    "ue_id": 6,
+                    "moy": 12.9,
+                    "code": "RED"
+                },
+                "moy": 10.2,
+                "code": "AJ"
+            }
+        ],
+        "ues": [
+            {
+                "ue_id": 5,
+                "code": "ADM",
+                "ects": 5
+            },
+            {
+                "ue_id": 6,
+                "code": "ADM",
+                "ects": 5
+            }
+        ],
+        "semestre": [],
+        "annee": {
+            "code": "AJ",
+            "ordre": 3,
+            "annee_scolaire": 2023
+        },
+        "autorisations": []
+    },
+    {
+        "etudid": "test_etud_054",
+        "code_nip": "nip054",
+        "code_ine": null,
+        "is_apc": true,
+        "etat": "I",
+        "nb_competences": 6,
+        "rcues": [
+            {
+                "ue_1": {
+                    "ue_id": 5,
+                    "moy": 10.7,
+                    "code": "ADM"
+                },
+                "ue_2": {
+                    "ue_id": 6,
+                    "moy": 6.5,
+                    "code": "RED"
+                },
+                "moy": 8.6,
+                "code": "RED"
+            }
+        ],
+        "ues": [
+            {
+                "ue_id": 5,
+                "code": "ADM",
+                "ects": 5
+            },
+            {
+                "ue_id": 6,
+                "code": "ADM",
+                "ects": 5
+            }
+        ],
+        "semestre": [],
+        "annee": {
+            "code": "RED",
+            "ordre": 3,
+            "annee_scolaire": 2023
+        },
+        "autorisations": []
+    },
+    {
+        "etudid": "test_etud_058",
+        "code_nip": "nip058",
+        "code_ine": null,
+        "is_apc": true,
+        "etat": "I",
+        "nb_competences": 6,
+        "rcues": [
+            {
+                "ue_1": {
+                    "ue_id": 5,
+                    "moy": 9.9,
+                    "code": "AJ"
+                },
+                "ue_2": {
+                    "ue_id": 6,
+                    "moy": 12.5,
+                    "code": "PASD"
+                },
+                "moy": 11.2,
+                "code": "CMP"
+            }
+        ],
+        "ues": [
+            {
+                "ue_id": 5,
+                "code": "ADM",
+                "ects": 5
+            },
+            {
+                "ue_id": 6,
+                "code": "ADM",
+                "ects": 5
+            }
+        ],
+        "semestre": [],
+        "annee": {
+            "code": "CMP",
+            "ordre": 3,
+            "annee_scolaire": 2023
+        },
+        "autorisations": []
+    },
+    {
+        "etudid": "test_etud_059",
+        "code_nip": "nip059",
+        "code_ine": null,
+        "is_apc": true,
+        "etat": "I",
+        "nb_competences": 6,
+        "rcues": [
+            {
+                "ue_1": {
+                    "ue_id": 5,
+                    "moy": 12.7,
+                    "code": "RED"
+                },
+                "ue_2": {
+                    "ue_id": 6,
+                    "moy": 8.1,
+                    "code": "RED"
+                },
+                "moy": 10.4,
+                "code": "CMP"
+            }
+        ],
+        "ues": [
+            {
+                "ue_id": 5,
+                "code": "ADM",
+                "ects": 5
+            },
+            {
+                "ue_id": 6,
+                "code": "ADM",
+                "ects": 5
+            }
+        ],
+        "semestre": [],
+        "annee": {
+            "code": "CMP",
+            "ordre": 3,
+            "annee_scolaire": 2023
+        },
+        "autorisations": []
+    },
+    {
+        "etudid": "test_etud_062",
+        "code_nip": "nip062",
+        "code_ine": null,
+        "is_apc": true,
+        "etat": "I",
+        "nb_competences": 6,
+        "rcues": [
+            {
+                "ue_1": {
+                    "ue_id": 5,
+                    "moy": 10.5,
+                    "code": "RED"
+                },
+                "ue_2": {
+                    "ue_id": 6,
+                    "moy": 11.7,
+                    "code": "ADM"
+                },
+                "moy": 11.1,
+                "code": "AJ"
+            }
+        ],
+        "ues": [
+            {
+                "ue_id": 5,
+                "code": "ADM",
+                "ects": 5
+            },
+            {
+                "ue_id": 6,
+                "code": "ADM",
+                "ects": 5
+            }
+        ],
+        "semestre": [],
+        "annee": {
+            "code": "AJ",
+            "ordre": 3,
+            "annee_scolaire": 2023
+        },
+        "autorisations": []
+    },
+    {
+        "etudid": "test_etud_066",
+        "code_nip": "nip066",
+        "code_ine": null,
+        "is_apc": true,
+        "etat": "I",
+        "nb_competences": 6,
+        "rcues": [
+            {
+                "ue_1": {
+                    "ue_id": 5,
+                    "moy": 7.0,
+                    "code": "ADM"
+                },
+                "ue_2": {
+                    "ue_id": 6,
+                    "moy": 7.2,
+                    "code": "CMP"
+                },
+                "moy": 7.1,
+                "code": "RED"
+            }
+        ],
+        "ues": [
+            {
+                "ue_id": 5,
+                "code": "ADM",
+                "ects": 5
+            },
+            {
+                "ue_id": 6,
+                "code": "ADM",
+                "ects": 5
+            }
+        ],
+        "semestre": [],
+        "annee": {
+            "code": "RED",
+            "ordre": 3,
+            "annee_scolaire": 2023
+        },
+        "autorisations": []
+    },
+    {
+        "etudid": "test_etud_067",
+        "code_nip": "nip067",
+        "code_ine": null,
+        "is_apc": true,
+        "etat": "I",
+        "nb_competences": 6,
+        "rcues": [
+            {
+                "ue_1": {
+                    "ue_id": 5,
+                    "moy": 8.2,
+                    "code": "RED"
+                },
+                "ue_2": {
+                    "ue_id": 6,
+                    "moy": 9.8,
+                    "code": "AJ"
+                },
+                "moy": 9.0,
+                "code": "AJ"
+            }
+        ],
+        "ues": [
+            {
+                "ue_id": 5,
+                "code": "ADM",
+                "ects": 5
+            },
+            {
+                "ue_id": 6,
+                "code": "ADM",
+                "ects": 5
+            }
+        ],
+        "semestre": [],
+        "annee": {
+            "code": "AJ",
+            "ordre": 3,
+            "annee_scolaire": 2023
+        },
+        "autorisations": []
+    },
+    {
+        "etudid": "test_etud_068",
+        "code_nip": "nip068",
+        "code_ine": null,
+        "is_apc": true,
+        "etat": "I",
+        "nb_competences": 6,
+        "rcues": [
+            {
+                "ue_1": {
+                    "ue_id": 5,
+                    "moy": 6.0,
+                    "code": "AJ"
+                },
+                "ue_2": {
+                    "ue_id": 6,
+                    "moy": 11.9,
+                    "code": "AJ"
+                },
+                "moy": 8.95,
+                "code": "RED"
+            }
+        ],
+        "ues": [
+            {
+                "ue_id": 5,
+                "code": "ADM",
+                "ects": 5
+            },
+            {
+                "ue_id": 6,
+                "code": "ADM",
+                "ects": 5
+            }
+        ],
+        "semestre": [],
+        "annee": {
+            "code": "RED",
+            "ordre": 3,
+            "annee_scolaire": 2023
+        },
+        "autorisations": []
+    },
+    {
+        "etudid": "test_etud_071",
+        "code_nip": "nip071",
+        "code_ine": null,
+        "is_apc": true,
+        "etat": "I",
+        "nb_competences": 6,
+        "rcues": [
+            {
+                "ue_1": {
+                    "ue_id": 5,
+                    "moy": 7.2,
+                    "code": "AJ"
+                },
+                "ue_2": {
+                    "ue_id": 6,
+                    "moy": 6.2,
+                    "code": "ADM"
+                },
+                "moy": 6.7,
+                "code": "RED"
+            }
+        ],
+        "ues": [
+            {
+                "ue_id": 5,
+                "code": "ADM",
+                "ects": 5
+            },
+            {
+                "ue_id": 6,
+                "code": "ADM",
+                "ects": 5
+            }
+        ],
+        "semestre": [],
+        "annee": {
+            "code": "RED",
+            "ordre": 3,
+            "annee_scolaire": 2023
+        },
+        "autorisations": []
+    },
+    {
+        "etudid": "test_etud_072",
+        "code_nip": "nip072",
+        "code_ine": null,
+        "is_apc": true,
+        "etat": "I",
+        "nb_competences": 6,
+        "rcues": [
+            {
+                "ue_1": {
+                    "ue_id": 5,
+                    "moy": 6.3,
+                    "code": "AJ"
+                },
+                "ue_2": {
+                    "ue_id": 6,
+                    "moy": 12.3,
+                    "code": "RED"
+                },
+                "moy": 9.3,
+                "code": "PASD"
+            }
+        ],
+        "ues": [
+            {
+                "ue_id": 5,
+                "code": "ADM",
+                "ects": 5
+            },
+            {
+                "ue_id": 6,
+                "code": "ADM",
+                "ects": 5
+            }
+        ],
+        "semestre": [],
+        "annee": {
+            "code": "PASD",
+            "ordre": 3,
+            "annee_scolaire": 2023
+        },
+        "autorisations": []
+    },
+    {
+        "etudid": "test_etud_074",
+        "code_nip": "nip074",
+        "code_ine": null,
+        "is_apc": true,
+        "etat": "I",
+        "nb_competences": 6,
+        "rcues": [
+            {
+                "ue_1": {
+                    "ue_id": 5,
+                    "moy": 12.2,
+                    "code": "ADM"
+                },
+                "ue_2": {
+                    "ue_id": 6,
+                    "moy": 13.9,
+                    "code": "RED"
+                },
+                "moy": 13.05,
+                "code": "ADM"
+            }
+        ],
+        "ues": [
+            {
+                "ue_id": 5,
+                "code": "ADM",
+                "ects": 5
+            },
+            {
+                "ue_id": 6,
+                "code": "ADM",
+                "ects": 5
+            }
+        ],
+        "semestre": [],
+        "annee": {
+            "code": "ADM",
+            "ordre": 3,
+            "annee_scolaire": 2023
+        },
+        "autorisations": []
+    },
+    {
+        "etudid": "test_etud_076",
+        "code_nip": "nip076",
+        "code_ine": null,
+        "is_apc": true,
+        "etat": "I",
+        "nb_competences": 6,
+        "rcues": [
+            {
+                "ue_1": {
+                    "ue_id": 5,
+                    "moy": 7.0,
+                    "code": "ADM"
+                },
+                "ue_2": {
+                    "ue_id": 6,
+                    "moy": 6.5,
+                    "code": "ADM"
+                },
+                "moy": 6.75,
+                "code": "PASD"
+            }
+        ],
+        "ues": [
+            {
+                "ue_id": 5,
+                "code": "ADM",
+                "ects": 5
+            },
+            {
+                "ue_id": 6,
+                "code": "ADM",
+                "ects": 5
+            }
+        ],
+        "semestre": [],
+        "annee": {
+            "code": "PASD",
+            "ordre": 3,
+            "annee_scolaire": 2023
+        },
+        "autorisations": []
+    },
+    {
+        "etudid": "test_etud_077",
+        "code_nip": "nip077",
+        "code_ine": null,
+        "is_apc": true,
+        "etat": "I",
+        "nb_competences": 6,
+        "rcues": [
+            {
+                "ue_1": {
+                    "ue_id": 5,
+                    "moy": 6.9,
+                    "code": "AJ"
+                },
+                "ue_2": {
+                    "ue_id": 6,
+                    "moy": 11.0,
+                    "code": "ADM"
+                },
+                "moy": 8.95,
+                "code": "ADM"
+            }
+        ],
+        "ues": [
+            {
+                "ue_id": 5,
+                "code": "ADM",
+                "ects": 5
+            },
+            {
+                "ue_id": 6,
+                "code": "ADM",
+                "ects": 5
+            }
+        ],
+        "semestre": [],
+        "annee": {
+            "code": "ADM",
+            "ordre": 3,
+            "annee_scolaire": 2023
+        },
+        "autorisations": []
+    },
+    {
+        "etudid": "test_etud_079",
+        "code_nip": "nip079",
+        "code_ine": null,
+        "is_apc": true,
+        "etat": "I",
+        "nb_competences": 6,
+        "rcues": [
+            {
+                "ue_1": {
+                    "ue_id": 5,
+                    "moy": 13.3,
+                    "code": "PASD"
+                },
+                "ue_2": {
+                    "ue_id": 6,
+                    "moy": 7.4,
+                    "code": "AJ"
+                },
+                "moy": 10.35,
+                "code": "RED"
+            }
+        ],
+        "ues": [
+            {
+                "ue_id": 5,
+                "code": "ADM",
+                "ects": 5
+            },
+            {
+                "ue_id": 6,
+                "code": "ADM",
+                "ects": 5
+            }
+        ],
+        "semestre": [],
+        "annee": {
+            "code": "RED",
+            "ordre": 3,
+            "annee_scolaire": 2023
+        },
+        "autorisations": []
+    },
+    {
+        "etudid": "test_etud_081",
+        "code_nip": "nip081",
+        "code_ine": null,
+        "is_apc": true,
+        "etat": "I",
+        "nb_competences": 6,
+        "rcues": [
+            {
+                "ue_1": {
+                    "ue_id": 5,
+                    "moy": 12.6,
+                    "code": "RED"
+                },
+                "ue_2": {
+                    "ue_id": 6,
+                    "moy": 11.9,
+                    "code": "AJ"
+                },
+                "moy": 12.25,
+                "code": "AJ"
+            }
+        ],
+        "ues": [
+            {
+                "ue_id": 5,
+                "code": "ADM",
+                "ects": 5
+            },
+            {
+                "ue_id": 6,
+                "code": "ADM",
+                "ects": 5
+            }
+        ],
+        "semestre": [],
+        "annee": {
+            "code": "AJ",
+            "ordre": 3,
+            "annee_scolaire": 2023
+        },
+        "autorisations": []
+    },
+    {
+        "etudid": "test_etud_082",
+        "code_nip": "nip082",
+        "code_ine": null,
+        "is_apc": true,
+        "etat": "I",
+        "nb_competences": 6,
+        "rcues": [
+            {
+                "ue_1": {
+                    "ue_id": 5,
+                    "moy": 6.8,
+                    "code": "AJ"
+                },
+                "ue_2": {
+                    "ue_id": 6,
+                    "moy": 8.5,
+                    "code": "PASD"
+                },
+                "moy": 7.65,
+                "code": "CMP"
+            }
+        ],
+        "ues": [
+            {
+                "ue_id": 5,
+                "code": "ADM",
+                "ects": 5
+            },
+            {
+                "ue_id": 6,
+                "code": "ADM",
+                "ects": 5
+            }
+        ],
+        "semestre": [],
+        "annee": {
+            "code": "CMP",
+            "ordre": 3,
+            "annee_scolaire": 2023
+        },
+        "autorisations": []
+    },
+    {
+        "etudid": "test_etud_085",
+        "code_nip": "nip085",
+        "code_ine": null,
+        "is_apc": true,
+        "etat": "I",
+        "nb_competences": 6,
+        "rcues": [
+            {
+                "ue_1": {
+                    "ue_id": 5,
+                    "moy": 10.7,
+                    "code": "PASD"
+                },
+                "ue_2": {
+                    "ue_id": 6,
+                    "moy": 9.4,
+                    "code": "RED"
+                },
+                "moy": 10.05,
+                "code": "PASD"
+            }
+        ],
+        "ues": [
+            {
+                "ue_id": 5,
+                "code": "ADM",
+                "ects": 5
+            },
+            {
+                "ue_id": 6,
+                "code": "ADM",
+                "ects": 5
+            }
+        ],
+        "semestre": [],
+        "annee": {
+            "code": "PASD",
+            "ordre": 3,
+            "annee_scolaire": 2023
+        },
+        "autorisations": []
+    },
+    {
+        "etudid": "test_etud_086",
+        "code_nip": "nip086",
+        "code_ine": null,
+        "is_apc": true,
+        "etat": "I",
+        "nb_competences": 6,
+        "rcues": [
+            {
+                "ue_1": {
+                    "ue_id": 5,
+                    "moy": 11.6,
+                    "code": "AJ"
+                },
+                "ue_2": {
+                    "ue_id": 6,
+                    "moy": 12.5,
+                    "code": "CMP"
+                },
+                "moy": 12.05,
+                "code": "ADM"
+            }
+        ],
+        "ues": [
+            {
+                "ue_id": 5,
+                "code": "ADM",
+                "ects": 5
+            },
+            {
+                "ue_id": 6,
+                "code": "ADM",
+                "ects": 5
+            }
+        ],
+        "semestre": [],
+        "annee": {
+            "code": "ADM",
+            "ordre": 3,
+            "annee_scolaire": 2023
+        },
+        "autorisations": []
+    },
+    {
+        "etudid": "test_etud_096",
+        "code_nip": "nip096",
+        "code_ine": null,
+        "is_apc": true,
+        "etat": "I",
+        "nb_competences": 6,
+        "rcues": [
+            {
+                "ue_1": {
+                    "ue_id": 5,
+                    "moy": 8.4,
+                    "code": "ADM"
+                },
+                "ue_2": {
+                    "ue_id": 6,
+                    "moy": 10.4,
+                    "code": "AJ"
+                },
+                "moy": 9.4,
+                "code": "ADM"
+            }
+        ],
+        "ues": [
+            {
+                "ue_id": 5,
+                "code": "ADM",
+                "ects": 5
+            },
+            {
+                "ue_id": 6,
+                "code": "ADM",
+                "ects": 5
+            }
+        ],
+        "semestre": [],
+        "annee": {
+            "code": "ADM",
+            "ordre": 3,
+            "annee_scolaire": 2023
+        },
+        "autorisations": []
+    },
+    {
+        "etudid": "test_etud_100",
+        "code_nip": "nip100",
+        "code_ine": null,
+        "is_apc": true,
+        "etat": "I",
+        "nb_competences": 6,
+        "rcues": [
+            {
+                "ue_1": {
+                    "ue_id": 5,
+                    "moy": 8.2,
+                    "code": "PASD"
+                },
+                "ue_2": {
+                    "ue_id": 6,
+                    "moy": 6.6,
+                    "code": "CMP"
+                },
+                "moy": 7.4,
+                "code": "ADM"
+            }
+        ],
+        "ues": [
+            {
+                "ue_id": 5,
+                "code": "ADM",
+                "ects": 5
+            },
+            {
+                "ue_id": 6,
+                "code": "ADM",
+                "ects": 5
+            }
         ],
         "semestre": [],
         "annee": {

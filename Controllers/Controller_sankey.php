@@ -2,63 +2,61 @@
 /**
  * Controller pour la visualisation Sankey des cohortes BUT
  */
-class SankeyController {
+class Controller_sankey extends Controller {
     
     /**
-     * Affiche la page du diagramme Sankey
+     * Action par défaut : affiche la page du diagramme Sankey
      */
-    public function index() {
-        // Configuration des fichiers JSON à charger (chemins exacts)
-        $config = [
-            'files' => [
-                '/Database/example/json/testdata/test_promo_2021_v2.json',
-            '/Database/example/json/testdata/test_promo_2022_v2.json',
-            '/Database/example/json/testdata/test_promo_2023_v2.json'
-            ],
-            'title' => 'Suivi de Cohorte d\'étudiants',
-            'formation' => 'BUT Informatique'
-        ];
+    public function action_default() {
+        // Charger les fichiers JSON directement depuis le serveur
+        $data2021 = $this->loadJsonFile('Database/example/json/testdata/test_promo_2021_v2.json');
+        $data2022 = $this->loadJsonFile('Database/example/json/testdata/test_promo_2022_v2.json');
+        $data2023 = $this->loadJsonFile('Database/example/json/testdata/test_promo_2023_v2.json');
         
-        // Passer les données à la vue
-        $this->render('sankey/index', $config);
+        $title = 'Suivi de Cohorte d\'étudiants';
+        $formation = 'BUT Informatique';
+        
+        // Passer les données directement à la vue
+        $this->render('sankey', [
+            'data2021' => $data2021,
+            'data2022' => $data2022,
+            'data2023' => $data2023,
+            'title' => $title,
+            'formation' => $formation
+        ]);
+    }
+    
+    /**
+     * Charger et parser un fichier JSON
+     */
+    private function loadJsonFile($filePath) {
+        if (file_exists($filePath)) {
+            return json_decode(file_get_contents($filePath), true);
+        }
+        return [];
     }
     
     /**
      * API pour récupérer les données d'une cohorte spécifique
-     * Optionnel : si tu veux charger les données côté serveur
      */
-    public function getCohorteData() {
+    public function action_getCohorteData() {
         header('Content-Type: application/json');
         
         $year = $_GET['year'] ?? null;
         
-        if (!$year || !in_array($year, ['2022', '2023', '2024'])) {
+        if (!$year || !in_array($year, ['2021', '2022', '2023'])) {
             http_response_code(400);
             echo json_encode(['error' => 'Année invalide']);
             return;
         }
         
-        $file = "/Database/example/json/decisions_jury_{$year}_fs_*.json";
+        $file = "/Database/example/json/testdata/test_promo_{$year}_v2.json";
         
         if (file_exists($file)) {
             echo file_get_contents($file);
         } else {
             http_response_code(404);
             echo json_encode(['error' => 'Fichier introuvable']);
-        }
-    }
-    
-    /**
-     * Méthode helper pour rendre une vue
-     */
-    private function render($view, $data = []) {
-        extract($data);
-        $viewFile = __DIR__ . "/../views/{$view}.php";
-        
-        if (file_exists($viewFile)) {
-            require $viewFile;
-        } else {
-            throw new Exception("Vue introuvable : {$view}");
         }
     }
 }
