@@ -15,10 +15,10 @@
 <body class="h-screen bg-[#0A1E2F] flex flex-col overflow-hidden text-[#FBEDD3]">
 
     <header class="relative flex flex-col items-center justify-center gap-2 py-6">
-        <a href="index.php?action=home" class="absolute left-8 top-8 group">
+        <a href="index.php?controller=accueil" class="absolute left-8 top-8 group z-10">
             <img src="img/Retour.png" alt="Retour" class="w-10 h-10 group-hover:scale-110 transition-transform">
         </a>
-        <h1 class="text-3xl font-bold tracking-wide"><?= htmlspecialchars($title ?? 'Suivi de Cohorte') ?></h1>
+        <h1 class="text-3xl font-bold tracking-wide">Suivi de Cohorte BUT</h1>
     </header>
 
     <main class="flex-1 overflow-y-auto px-10 pb-10 space-y-8">
