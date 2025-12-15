@@ -32,59 +32,61 @@
             </div>
         </section>
 
-        <section class="w-full max-w-7xl mx-auto">
-            <div class="flex items-center gap-3 mb-4">
-                <input type="checkbox" id="toggle-stats" checked class="accent-[#E3BF81] w-5 h-5 cursor-pointer">
-                <label for="toggle-stats" class="text-lg font-medium cursor-pointer">Afficher les indicateurs clés</label>
-            </div>
-
-            <div id="stats-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 transition-all duration-500">
-                <!-- Les statistiques seront ajoutées dynamiquement -->
-            </div>
-        </section>
-
-        <section class="w-full max-w-7xl mx-auto">
-            <h3 class="text-xl font-semibold mb-4">- Origine des étudiants - </h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm mb-6">
-                <div class="bg-blue-500/10 border border-blue-500/30 p-3 rounded-lg">
-                    <span class="font-bold text-blue-400">Parcoursup:</span> Admission via Parcoursup
+        <section class="w-full max-w-7xl mx-auto flex gap-8">
+            <div class="flex-1">
+                <div class="flex items-center gap-3 mb-4">
+                    <input type="checkbox" id="toggle-stats" checked class="accent-[#E3BF81] w-5 h-5 cursor-pointer">
+                    <label for="toggle-stats" class="text-lg font-medium cursor-pointer">Afficher les indicateurs clés</label>
                 </div>
-                <div class="bg-purple-500/10 border border-purple-500/30 p-3 rounded-lg">
-                    <span class="font-bold text-purple-400">Hors Parcoursup:</span> Autres modes d'admission
+
+                <div id="stats-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 transition-all duration-500">
+                    <!-- Les statistiques seront ajoutées dynamiquement -->
                 </div>
             </div>
 
-            <h3 class="text-xl font-semibold mb-4">- Légende des décisions jury - </h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
-                <div class="bg-green-500/10 border border-green-500/30 p-3 rounded-lg">
-                    <span class="font-bold text-green-400">ADM:</span> Admis - Passage validé
+            <div class="flex-1">
+                <h3 class="text-xl font-semibold mb-4">- Origine des étudiants - </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm mb-6">
+                    <div class="bg-blue-500/10 border border-blue-500/30 p-3 rounded-lg">
+                        <span class="font-bold text-blue-400">Parcoursup:</span> Admission via Parcoursup
+                    </div>
+                    <div class="bg-purple-500/10 border border-purple-500/30 p-3 rounded-lg">
+                        <span class="font-bold text-purple-400">Hors Parcoursup:</span> Autres modes d'admission
+                    </div>
                 </div>
-                <div class="bg-green-500/10 border border-green-500/30 p-3 rounded-lg">
-                    <span class="font-bold text-green-400">PASD:</span> Passage avec dettes
-                </div>
-                <div class="bg-green-500/10 border border-green-500/30 p-3 rounded-lg">
-                    <span class="font-bold text-green-400">ADSUP:</span> Admis supérieur
-                </div>
-                <div class="bg-green-500/10 border border-green-500/30 p-3 rounded-lg">
-                    <span class="font-bold text-green-400">CMP:</span> Compensé
-                </div>
-                <div class="bg-orange-500/10 border border-orange-500/30 p-3 rounded-lg">
-                    <span class="font-bold text-orange-400">AJ:</span> Ajourné - Redoublement
-                </div>
-                <div class="bg-orange-500/10 border border-orange-500/30 p-3 rounded-lg">
-                    <span class="font-bold text-orange-400">RED:</span> Redoublement autorisé
-                </div>
-                <div class="bg-orange-500/10 border border-orange-500/30 p-3 rounded-lg">
-                    <span class="font-bold text-orange-400">ADJ:</span> Ajourné avec possibilité jury
-                </div>
-                <div class="bg-red-500/10 border border-red-500/30 p-3 rounded-lg">
-                    <span class="font-bold text-red-400">NAR:</span> Non autorisé à redoubler (exclusion)
-                </div>
-                <div class="bg-red-500/10 border border-red-500/30 p-3 rounded-lg">
-                    <span class="font-bold text-red-400">DEF:</span> Défaillant (absent examens)
-                </div>
-                <div class="bg-red-500/10 border border-red-500/30 p-3 rounded-lg">
-                    <span class="font-bold text-red-400">DEM:</span> Démission volontaire
+
+                <h3 class="text-xl font-semibold mb-4">- Légende des décisions jury - </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
+                    <div class="bg-green-500/10 border border-green-500/30 p-3 rounded-lg">
+                        <span class="font-bold text-green-400">ADM:</span> Admis - Passage validé
+                    </div>
+                    <div class="bg-green-500/10 border border-green-500/30 p-3 rounded-lg">
+                        <span class="font-bold text-green-400">PASD:</span> Passage avec dettes
+                    </div>
+                    <div class="bg-green-500/10 border border-green-500/30 p-3 rounded-lg">
+                        <span class="font-bold text-green-400">ADSUP:</span> Admis supérieur
+                    </div>
+                    <div class="bg-green-500/10 border border-green-500/30 p-3 rounded-lg">
+                        <span class="font-bold text-green-400">CMP:</span> Compensé
+                    </div>
+                    <div class="bg-orange-500/10 border border-orange-500/30 p-3 rounded-lg">
+                        <span class="font-bold text-orange-400">AJ:</span> Ajourné - Redoublement
+                    </div>
+                    <div class="bg-orange-500/10 border border-orange-500/30 p-3 rounded-lg">
+                        <span class="font-bold text-orange-400">RED:</span> Redoublement autorisé
+                    </div>
+                    <div class="bg-orange-500/10 border border-orange-500/30 p-3 rounded-lg">
+                        <span class="font-bold text-orange-400">ADJ:</span> Ajourné avec possibilité jury
+                    </div>
+                    <div class="bg-red-500/10 border border-red-500/30 p-3 rounded-lg">
+                        <span class="font-bold text-red-400">NAR:</span> Non autorisé à redoubler (exclusion)
+                    </div>
+                    <div class="bg-red-500/10 border border-red-500/30 p-3 rounded-lg">
+                        <span class="font-bold text-red-400">DEF:</span> Défaillant (absent examens)
+                    </div>
+                    <div class="bg-red-500/10 border border-red-500/30 p-3 rounded-lg">
+                        <span class="font-bold text-red-400">DEM:</span> Démission volontaire
+                    </div>
                 </div>
             </div>
         </section>

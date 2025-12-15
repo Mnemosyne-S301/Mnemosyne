@@ -1,6 +1,6 @@
 /**
  * Module de visualisation Sankey pour le suivi de cohorte BUT
- * Gère le chargement, le traitement et l'affichage des données
+ * VERSION CORRIGÉE - Logique de calcul revue
  */
 
 const SankeyCohort = (function() {
@@ -24,12 +24,10 @@ const SankeyCohort = (function() {
         'DEF': '#DC2626',
         'DEM': '#B91C1C',
         'Diplômé': '#8B5CF6',
+        'En cours': '#60A5FA',
         'DEFAULT': '#6B7280'
     };
 
-    /**
-     * Convertit une couleur hexadécimale en RGBA
-     */
     function hexToRgba(hex, alpha = 1) {
         const r = parseInt(hex.slice(1, 3), 16);
         const g = parseInt(hex.slice(3, 5), 16);
@@ -37,9 +35,6 @@ const SankeyCohort = (function() {
         return `rgba(${r}, ${g}, ${b}, ${alpha})`;
     }
 
-    /**
-     * Traite les données brutes des trois années pour construire les flux
-     */
     function processCohortData(data2021, data2022, data2023) {
         const etudiants = new Map();
         const stats = {
@@ -49,23 +44,26 @@ const SankeyCohort = (function() {
             passages: 0,
             redoublements: 0,
             abandons: 0,
-            demissions: 0
+            demissions: 0,
+            diplomes: 0,
+            enCours: 0
         };
 
-        // Traiter les données 2021
         processYearData(data2021, 2021, etudiants, stats, 'total2021');
-        
-        // Traiter les données 2022
         processYearData(data2022, 2022, etudiants, stats, 'total2022');
-        
-        // Traiter les données 2023
         processYearData(data2023, 2023, etudiants, stats, 'total2023');
 
-        // Construire les liens entre nœuds
         const links = buildLinks(etudiants, stats);
-        
-        // Extraire tous les nœuds uniques
         const nodes = extractNodes(links);
+
+        console.log('=== STATISTIQUES FINALES ===');
+        console.log('Total étudiants uniques:', etudiants.size);
+        console.log('Passages:', stats.passages);
+        console.log('Redoublements:', stats.redoublements);
+        console.log('Abandons:', stats.abandons);
+        console.log('Démissions:', stats.demissions);
+        console.log('Diplômés:', stats.diplomes);
+        console.log('En cours:', stats.enCours);
 
         return { 
             nodes: Array.from(nodes), 
@@ -77,9 +75,6 @@ const SankeyCohort = (function() {
         };
     }
 
-    /**
-     * Traite les données d'une année spécifique
-     */
     function processYearData(data, year, etudiants, stats, statKey) {
         if (!data || !Array.isArray(data)) return;
 
@@ -101,111 +96,110 @@ const SankeyCohort = (function() {
     }
 
     /**
-     * Construit la map des liens entre nœuds
+     * LOGIQUE CORRIGÉE : Construction des liens sans double comptage
      */
     function buildLinks(etudiants, stats) {
-    const links = new Map();
-    
-    const addLink = (source, target) => {
-        if (source === target) return;
-        const key = `${source}→${target}`;
-        links.set(key, (links.get(key) || 0) + 1);
-    };
+        const links = new Map();
+        
+        const addLink = (source, target) => {
+            if (source === target) return;
+            const key = `${source}→${target}`;
+            links.set(key, (links.get(key) || 0) + 1);
+        };
 
-    etudiants.forEach(etudiant => {
-        etudiant.annees.sort((a, b) => a.annee - b.annee || a.ordre - b.ordre);
-        
-        // Déterminer l'origine : Parcoursup ou Hors Parcoursup
-        const firstStep = etudiant.annees[0];
-        let previous = (firstStep.ordre === 1 && firstStep.code === 'ADM') ? 'Parcoursup' : 'Hors Parcoursup';
-        
-        etudiant.annees.forEach((step, idx) => {
-            const niveau = `BUT${step.ordre}`;
+        etudiants.forEach((etudiant, etudId) => {
+            // Trier les années par ordre chronologique
+            etudiant.annees.sort((a, b) => a.annee - b.annee || a.ordre - b.ordre);
             
-            // Si c'est la première année, venir de l'origine déterminée
-            if (idx === 0) {
-                addLink(previous, niveau);
-            }
+            // Déterminer l'origine (première entrée)
+            const firstStep = etudiant.annees[0];
+            const origine = (firstStep.ordre === 1 && firstStep.code === 'ADM') 
+                ? 'Parcoursup' 
+                : 'Hors Parcoursup';
             
-            const code = step.code;
-            const isLastStep = idx === etudiant.annees.length - 1;
+            // Créer le lien depuis l'origine vers le premier niveau
+            const premierNiveau = `BUT${firstStep.ordre}`;
+            addLink(origine, premierNiveau);
             
-            // Déterminer la destination finale
-            if (code === 'DEM' || code === 'DEF') {
-                stats.demissions++;
-                addLink(niveau, code);
-            } else if (code === 'NAR') {
-                stats.abandons++;
-                addLink(niveau, code);
-            } else if (['RED', 'AJ', 'ADJ'].includes(code)) {
-                stats.redoublements++;
-                addLink(niveau, code);
-            } else if (['ADM', 'PASD', 'ADSUP', 'CMP'].includes(code)) {
-                if (!isLastStep) {
-                    // Il y a une année suivante dans les données
-                    const next = etudiant.annees[idx + 1];
-                    const nextNiveau = `BUT${next.ordre}`;
-                    stats.passages++;
-                    addLink(niveau, nextNiveau);
-                } else if (step.ordre >= 3) {
-                    // Dernière année = diplômé
-                    addLink(niveau, 'Diplômé');
-                } else {
-                    // Passage validé mais pas de données suivantes
+            // Parcourir chaque étape du parcours
+            for (let idx = 0; idx < etudiant.annees.length; idx++) {
+                const step = etudiant.annees[idx];
+                const niveau = `BUT${step.ordre}`;
+                const code = step.code;
+                const isLastStep = idx === etudiant.annees.length - 1;
+                
+                // CAS 1 : Abandon définitif (NAR, DEM, DEF)
+                if (['NAR', 'DEM', 'DEF'].includes(code)) {
+                    if (code === 'NAR') {
+                        stats.abandons++;
+                    } else {
+                        stats.demissions++;
+                    }
                     addLink(niveau, code);
+                    break; // L'étudiant quitte le cursus
+                }
+                
+                // CAS 2 : Redoublement (RED, AJ, ADJ)
+                if (['RED', 'AJ', 'ADJ'].includes(code)) {
+                    stats.redoublements++;
+                    
+                    // Si pas la dernière étape, il peut continuer après redoublement
+                    if (!isLastStep) {
+                        const next = etudiant.annees[idx + 1];
+                        const nextNiveau = `BUT${next.ordre}`;
+                        
+                        // Si même niveau, c'est un vrai redoublement visible
+                        if (next.ordre === step.ordre) {
+                            addLink(niveau, code);
+                            // Le lien du redoublement vers le même niveau sera créé au prochain tour
+                        } else {
+                            // Il a redoublé mais les données montrent qu'il passe au niveau suivant
+                            // (cas de validation ultérieure)
+                            addLink(niveau, nextNiveau);
+                        }
+                    } else {
+                        // Dernière donnée disponible = redoublant en cours
+                        addLink(niveau, code);
+                        stats.enCours++;
+                    }
+                    continue;
+                }
+                
+                // CAS 3 : Passage validé (ADM, PASD, ADSUP, CMP)
+                if (['ADM', 'PASD', 'ADSUP', 'CMP'].includes(code)) {
+                    if (!isLastStep) {
+                        // Il y a une étape suivante dans les données
+                        const next = etudiant.annees[idx + 1];
+                        const nextNiveau = `BUT${next.ordre}`;
+                        
+                        // Créer le lien vers le niveau suivant
+                        addLink(niveau, nextNiveau);
+                        stats.passages++;
+                    } else {
+                        // Dernière étape dans les données
+                        if (step.ordre >= 3) {
+                            // BUT3 validé = Diplômé
+                            addLink(niveau, 'Diplômé');
+                            stats.diplomes++;
+                        } else {
+                            // BUT1 ou BUT2 validé mais pas de suite = En cours (probablement données incomplètes)
+                            addLink(niveau, 'En cours');
+                            stats.enCours++;
+                        }
+                    }
                 }
             }
         });
-    });
 
-    return links;
-}
+        // Afficher les liens pour debug
+        console.log('=== LIENS CRÉÉS ===');
+        links.forEach((count, key) => {
+            console.log(`${key}: ${count} étudiants`);
+        });
 
-    /**
-     * Détermine la destination d'un étudiant selon sa décision jury
-     */
-    function determineDestination(step, idx, allSteps, stats) {
-        const code = step.code;
-        
-        // Cas d'abandon/démission
-        if (code === 'DEM') {
-            stats.demissions++;
-            return 'DEM';
-        }
-        if (code === 'DEF') {
-            stats.demissions++;
-            return 'DEF';
-        }
-        if (code === 'NAR') {
-            stats.abandons++;
-            return 'NAR';
-        }
-        
-        // Cas de redoublement
-        if (['RED', 'AJ', 'ADJ'].includes(code)) {
-            stats.redoublements++;
-            return code;
-        }
-        
-        // Cas de passage
-        if (['ADM', 'PASD', 'ADSUP', 'CMP'].includes(code)) {
-            if (idx < allSteps.length - 1) {
-                const next = allSteps[idx + 1];
-                stats.passages++;
-                return `BUT${next.ordre}`;
-            } else if (step.ordre >= 3) {
-                return 'Diplômé';
-            } else {
-                return code;
-            }
-        }
-        
-        return null;
+        return links;
     }
 
-    /**
-     * Extrait tous les nœuds uniques des liens
-     */
     function extractNodes(links) {
         const nodes = new Set();
         links.forEach((count, key) => {
@@ -216,35 +210,19 @@ const SankeyCohort = (function() {
         return nodes;
     }
 
-    /**
-     * Détermine la couleur d'un nœud selon son label
-     */
     function getNodeColor(label) {
-        if (label === 'Parcoursup') return COLORS.Parcoursup;
-        if (label === 'Hors Parcoursup') return COLORS['Hors Parcoursup'];
-        if (label === 'Diplômé') return COLORS.Diplômé;
-        
-        // Niveaux BUT
-        if (label === 'BUT1') return COLORS.BUT1;
-        if (label === 'BUT2') return COLORS.BUT2;
-        if (label === 'BUT3') return COLORS.BUT3;
-        
-        // Décisions jury
         return COLORS[label] || COLORS.DEFAULT;
     }
 
-    /**
-     * Détermine la couleur d'un lien selon sa destination
-     */
     function getLinkColor(target) {
         if (['NAR', 'DEF', 'DEM'].includes(target)) {
-            return hexToRgba(COLORS[target], 0.4);
+            return hexToRgba(COLORS[target] || COLORS.DEFAULT, 0.4);
         }
         if (['RED', 'AJ', 'ADJ'].includes(target)) {
-            return hexToRgba(COLORS[target], 0.4);
+            return hexToRgba(COLORS[target] || COLORS.DEFAULT, 0.4);
         }
         if (['ADM', 'PASD', 'ADSUP', 'CMP'].includes(target)) {
-            return hexToRgba(COLORS[target], 0.4);
+            return hexToRgba(COLORS[target] || COLORS.DEFAULT, 0.4);
         }
         if (target.includes('BUT')) {
             return hexToRgba(COLORS.Parcoursup, 0.4);
@@ -252,17 +230,16 @@ const SankeyCohort = (function() {
         if (target === 'Diplômé') {
             return hexToRgba(COLORS.Diplômé, 0.4);
         }
+        if (target === 'En cours') {
+            return hexToRgba(COLORS['En cours'], 0.4);
+        }
         return hexToRgba(COLORS.DEFAULT, 0.4);
     }
 
-    /**
-     * Génère le diagramme Sankey avec Plotly
-     */
     function renderChart(data) {
         const nodeLabels = data.nodes;
         const nodeIndices = new Map(nodeLabels.map((n, i) => [n, i]));
         
-        // Préparer les données des liens
         const sources = [];
         const targets = [];
         const values = [];
@@ -276,10 +253,8 @@ const SankeyCohort = (function() {
             colors.push(getLinkColor(tgt));
         });
 
-        // Préparer les couleurs des nœuds
         const nodeColors = nodeLabels.map(getNodeColor);
 
-        // Configuration du graphique
         const plotData = [{
             type: "sankey",
             orientation: "h",
@@ -317,85 +292,64 @@ const SankeyCohort = (function() {
         Plotly.newPlot('sankey-plot', plotData, layout, config);
     }
 
-    /**
-     * Affiche les statistiques clés
-     * TODO: À implémenter par quelqu'un d'autre
-     */
     function renderStats(stats) {
         const grid = document.getElementById('stats-grid');
         if (!grid) return;
 
-        // Code commenté pour référence future
-        /*
         const statsHTML = `
             <div class="bg-blue-500/10 border border-blue-500/30 p-4 rounded-lg">
                 <p class="text-sm text-gray-400">Total étudiants</p>
-                <p class="text-3xl font-bold text-blue-400">${stats.totalEtudiants}</p>
+                <p class="text-3xl font-bold text-blue-400">${stats.totalEtudiants || 0}</p>
             </div>
             <div class="bg-green-500/10 border border-green-500/30 p-4 rounded-lg">
                 <p class="text-sm text-gray-400">Passages</p>
-                <p class="text-3xl font-bold text-green-400">${stats.passages}</p>
+                <p class="text-3xl font-bold text-green-400">${stats.passages || 0}</p>
             </div>
             <div class="bg-orange-500/10 border border-orange-500/30 p-4 rounded-lg">
                 <p class="text-sm text-gray-400">Redoublements</p>
-                <p class="text-3xl font-bold text-orange-400">${stats.redoublements}</p>
+                <p class="text-3xl font-bold text-orange-400">${stats.redoublements || 0}</p>
+            </div>
+            <div class="bg-purple-500/10 border border-purple-500/30 p-4 rounded-lg">
+                <p class="text-sm text-gray-400">Diplômés</p>
+                <p class="text-3xl font-bold text-purple-400">${stats.diplomes || 0}</p>
             </div>
             <div class="bg-red-500/10 border border-red-500/30 p-4 rounded-lg">
                 <p class="text-sm text-gray-400">Abandons</p>
-                <p class="text-3xl font-bold text-red-400">${stats.abandons + stats.demissions}</p>
+                <p class="text-3xl font-bold text-red-400">${(stats.abandons || 0) + (stats.demissions || 0)}</p>
+            </div>
+            <div class="bg-yellow-500/10 border border-yellow-500/30 p-4 rounded-lg">
+                <p class="text-sm text-gray-400">En cours</p>
+                <p class="text-3xl font-bold text-yellow-400">${stats.enCours || 0}</p>
             </div>
         `;
         
         grid.innerHTML = statsHTML;
-        */
     }
 
-    /**
-     * Initialisation principale
-     */
     async function init() {
         const loader = document.getElementById('loader');
         
         try {
-            // Récupérer la configuration depuis la variable globale
             const files = window.SANKEY_CONFIG || [];
-            
-            console.log('Configuration chargée:', files);
             
             if (files.length === 0) {
                 throw new Error('Aucun fichier de données configuré');
             }
 
-            // Charger tous les fichiers en parallèle
-            console.log('Début du chargement des fichiers...');
             const [data2021, data2022, data2023] = await Promise.all(
-                files.map(f => {
-                    console.log('Chargement de:', f);
-                    return fetch(f).then(r => {
-                        console.log(`Réponse pour ${f}:`, r.status, r.ok);
-                        if (!r.ok) throw new Error(`Erreur HTTP ${r.status} pour ${f}`);
-                        return r.json();
-                    });
-                })
+                files.map(f => fetch(f).then(r => {
+                    if (!r.ok) throw new Error(`Erreur HTTP ${r.status} pour ${f}`);
+                    return r.json();
+                }))
             );
             
-            console.log('Données chargées:', {
-                data2021: data2021?.length,
-                data2022: data2022?.length,
-                data2023: data2023?.length
-            });
-            
-            // Traiter les données
             const processed = processCohortData(data2021, data2022, data2023);
             
-            // Masquer le loader
             loader.classList.add('hidden');
             
-            // Afficher le graphique et les stats
             renderChart(processed);
-            // renderStats(processed.stats); // TODO: À implémenter ultérieurement
+            renderStats(processed.stats);
             
-            // Gérer le toggle des statistiques
             setupStatsToggle();
 
         } catch (err) {
@@ -404,22 +358,21 @@ const SankeyCohort = (function() {
         }
     }
 
-    /**
-     * Configure l'interrupteur d'affichage des statistiques
-     */
     function setupStatsToggle() {
         const toggle = document.getElementById('toggle-stats');
         const statsGrid = document.getElementById('stats-grid');
         
         if (toggle && statsGrid) {
             toggle.addEventListener('change', (e) => {
-                statsGrid.classList.toggle('opacity-0', !e.target.checked);
-                statsGrid.classList.toggle('pointer-events-none', !e.target.checked);
+                if (e.target.checked) {
+                    statsGrid.classList.remove('opacity-0', 'pointer-events-none');
+                } else {
+                    statsGrid.classList.add('opacity-0', 'pointer-events-none');
+                }
             });
         }
     }
 
-    // API publique du module
     return {
         init,
         processCohortData,
@@ -429,5 +382,4 @@ const SankeyCohort = (function() {
 
 })();
 
-// Lancement automatique au chargement de la page
 document.addEventListener('DOMContentLoaded', SankeyCohort.init);
