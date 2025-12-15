@@ -36,8 +36,8 @@ const SankeyCohort = (function() {
     const CODES_PASSAGE_DIFFICILE = ['PASD', 'CMP'];
     // Codes qui indiquent un redoublement
     const CODES_REDOUBLEMENT = ['RED', 'AJ', 'ADJ'];
-    // Codes qui indiquent un abandon définitif
-    const CODES_ABANDON = ['NAR', 'DEM'];
+    // Codes qui indiquent un abandon ou situation spéciale
+    const CODES_ABANDON_DEFINITIF = ['NAR', 'DEM', 'DEF'];
 
     function hexToRgba(hex, alpha = 1) {
         const r = parseInt(hex.slice(1, 3), 16);
@@ -149,8 +149,8 @@ const SankeyCohort = (function() {
                 const isLastStep = i === etudiant.annees.length - 1;
                 const nextStep = i < etudiant.annees.length - 1 ? etudiant.annees[i + 1] : null;
                 
-                if (CODES_ABANDON.includes(step.code)) {
-                    addLink(niveauActuel, 'Abandon');
+                if (CODES_ABANDON_DEFINITIF.includes(step.code)) {
+                    addLink(niveauActuel, step.code);
                     stats.abandons++;
                     hasAbandon = true;
                     break;
@@ -171,16 +171,15 @@ const SankeyCohort = (function() {
                             stats.enCours++;
                         }
                     } else if (step.code === 'RED') {
-                        // Redoublement : affichage spécifique et repartent dans la même année
+                        // Redoublement : affichage spécifique sans retour
                         addLink(niveauActuel, 'RED');
-                        addLink('RED', niveauActuel);
                         stats.enCours++;
                     } else if (step.code === 'AJ' || step.code === 'ADJ') {
-                        // Ajournés : affichage spécifique mais ne repartent pas
+                        // Ajournés : affichage spécifique sans retour
                         addLink(niveauActuel, step.code);
                         stats.enCours++;
-                    } else if (step.code === 'DEF') {
-                        addLink(niveauActuel, 'Abandon');
+                    } else if (CODES_ABANDON_DEFINITIF.includes(step.code)) {
+                        addLink(niveauActuel, step.code);
                         stats.abandons++;
                     } else {
                         // Autres cas : comptés mais pas d'affichage dans le diagramme
@@ -194,8 +193,8 @@ const SankeyCohort = (function() {
                         }
                     }
                     
-                    if (step.code === 'DEF' && (!nextStep || nextStep.annee - step.annee > 1)) {
-                        addLink(niveauActuel, 'Abandon');
+                    if (CODES_ABANDON_DEFINITIF.includes(step.code) && (!nextStep || nextStep.annee - step.annee > 1)) {
+                        addLink(niveauActuel, step.code);
                         stats.abandons++;
                         hasAbandon = true;
                         break;
@@ -229,8 +228,8 @@ const SankeyCohort = (function() {
             'BUT1', 'BUT2', 'BUT3',
             'ADM', 'PASD', 'ADSUP', 'CMP',
             'RED', 'AJ', 'ADJ',
-            'NAR', 'DEM',
-            'Diplômé', 'En cours', 'Abandon'
+            'NAR', 'DEF', 'DEM',
+            'Diplômé', 'En cours'
         ];
         
         nodeOrder.forEach(n => {
