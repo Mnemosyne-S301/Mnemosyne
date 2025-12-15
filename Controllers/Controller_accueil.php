@@ -1,6 +1,6 @@
 <?php
 
-class Controller_acceuil extends Controller {
+class Controller_accueil extends Controller {
 
     /* ajouter les autres méthodes ici sous la forme action_quelquechose */
     
