@@ -52,7 +52,7 @@ class Service_stats {
 
         // Initialisation des clés pour garantir qu'elles existent, même avec une valeur de 0.
         // La valeur '6' est une valeur de test non pertinente ici et pourrait être source de confusion.
-        $res['ue_6'] = 6;
+        $res['ue_6'] = 0;
         $res['ue_5'] = 0;
         $res['ue_4'] = 0;
         $res['ue_3'] = 0;
