@@ -75,7 +75,7 @@
 
                         <!-- Légende des décisions jury -->
                         <div>
-                            <h3 class="text-lg font-semibold mb-3">Légende des décisions jury</h3>
+                            <h3 class="text-lg font-semibold mb-3">Codes des décisions jury</h3>
                             <div class="flex flex-col gap-2 text-sm">
                                 <div class="bg-green-500/10 border border-green-500/30 p-2 rounded-lg">
                                     <span class="font-bold text-green-400">ADM:</span> Admis
