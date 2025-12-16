@@ -18,7 +18,7 @@
 
         <!-- Logo principal -->
         <img id="logo"
-             src="/Statics/img/logo.png"
+             src="/Content/image/logo.png"
              alt="Logo Mnemosyne"
              class="w-72 h-72 object-contain" />
 
@@ -34,7 +34,7 @@
     <main class="flex items-center justify-center flex-1">
 
         <!-- Formulaire principal -->
-        <form action="/"
+        <form action="/sankey/default"
               method="post"
               class="flex flex-col gap-4 w-96">
 
@@ -101,14 +101,15 @@
         <!-- ============================
              BOUTON ADMIN (collé en bas)
         ============================= -->
-        <input id="logo_admin"
-               type="image"
-               src="/Statics/img/connexion_admin.png"
-               formaction="/"
-               class="fixed bottom-0 right-0 w-32 h-32
-                      rounded-tl-3xl object-cover cursor-pointer
-                      backdrop-blur-md bg-[#FFFFFF0A] shadow-2xl
-                      transition-all duration-300 hover:scale-105 hover:opacity-90" />
+        <a href="/admin/default">
+            <input id="logo_admin"
+                type="image"
+                src="/Content/image/connexion_admin.png"
+                class="fixed bottom-0 right-0 w-32 h-32
+                        rounded-tl-3xl object-cover cursor-pointer
+                        backdrop-blur-md bg-[#FFFFFF0A] shadow-2xl
+                        transition-all duration-300 hover:scale-105 hover:opacity-90" />
+        </a>
 
     </main>
 

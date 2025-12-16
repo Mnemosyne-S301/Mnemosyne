@@ -125,6 +125,6 @@
     </script>
     
     <!-- Charger le fichier JavaScript externe -->
-    <script src="Views/Content/js/sankey-logic.js"></script>
+    <script src="/Content/script/sankey-logic.js"></script>
 </body>
 </html>

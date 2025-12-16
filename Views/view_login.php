@@ -16,7 +16,7 @@
         </div>
     </nav>
     <div class="flex flex-col items-center justify-center min-h-screen">
-        <img src="/Statics/img/logo.png" alt="Logo Mnemosyne" class="mb-16 w-64 h-64">
+        <img src="/Content/image/logo.png" alt="Logo Mnemosyne" class="mb-16 w-64 h-64">
         <div class="bg-[#102436] p-8 rounded-lg shadow-lg w-full max-w-md">
             <h2 class="text-2xl font-bold mb-6 text-center text-white">Connexion Admin</h2>
             <form action="/login" method="POST" class="space-y-4">

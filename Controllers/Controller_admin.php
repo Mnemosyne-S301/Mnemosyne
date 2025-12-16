@@ -7,7 +7,7 @@ class Controller_admin extends Controller {
 
     
     public function action_default() {
-        return $this->render("view_admin.php",);
+        return $this->render("admin",);
 
         /* Méthode abstraite à reimplementer sinon ça marchera pas */
     }
