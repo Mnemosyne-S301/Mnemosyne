@@ -10,7 +10,7 @@
 <body class="bg-[#0A1E2F]">
     <nav>
         <div class="flex items-center justify-between p-4 bg-[#0E2233] shadow-lg">
-            <a href="/" class="text-white text-xl font-bold flex items-center">
+            <a href="/accueil/default" class="text-white text-xl font-bold flex items-center">
                 <i class="fas fa-home mr-2"></i> Accueil
             </a>
             <button class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-2 focus:ring-gray-600 rounded-lg px-4 py-2">Synchroniser</button>
@@ -30,5 +30,5 @@
     <form class="mx-8 my-12 w-1/2">
     </form>
 </body>
-<script src="../Js/AjouterFiltre.js"></script>
+<script src="/Content/script/AjouterFiltre.js"></script>
 </html>
