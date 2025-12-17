@@ -10,7 +10,7 @@
 <body class="bg-[#0A1E2F]">
     <nav>
         <div class="flex items-center justify-between p-4 bg-[#0E2233] shadow-lg">
-            <a href="/" class="text-white text-xl font-bold flex items-center">
+            <a href="./view_accueil.php" class="text-white text-xl font-bold flex items-center">
                 <i class="fas fa-home mr-2"></i> Accueil
             </a>
         </div>
