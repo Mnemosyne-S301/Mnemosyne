@@ -101,7 +101,7 @@
         <!-- ============================
              BOUTON ADMIN (collé en bas)
         ============================= -->
-        <a href="/admin/default">
+        <a href="./view_login.php">
             <input id="logo_admin"
                 type="image"
                 src="/Content/image/connexion_admin.png"
