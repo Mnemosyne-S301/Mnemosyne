@@ -175,7 +175,7 @@ protected function getToken () {// on s'authentifie a l api scodoc avec la metho
         $formsemestres = $this->get("formsemestres/query?formation_id=$id");
         $instances=[];
         foreach ($formsemestres as $donnees_formsemestres) {
-            $instances[]=new Formsemestres($donnees_formsemestres);
+            $instances[]=new Formsemestre($donnees_formsemestres);
         }
         return $instances;
     }
@@ -188,6 +188,7 @@ protected function getToken () {// on s'authentifie a l api scodoc avec la metho
     public function findall_ue(){ // y'a pas de route api qui renvoie tous les ues donc alternative mais a revoir 
         $formations = $this->get("formations");
         $instances=[];
+
         foreach ($formations as $formation) {
             $export=$this->get("formation/" . $formation["formation_id"] . "/export");
             if (isset($export["ues"])) {
@@ -195,10 +196,12 @@ protected function getToken () {// on s'authentifie a l api scodoc avec la metho
                     $instances[]=new UE($ue);
             
         }
-        return $instances;
+        
     }
    }
+   return $instances;
 }
+
 
 
     public function findUEByCode(string $code){ // y'a pas de route api qui renvoie tous les ues donc alternative mais a revoir 
@@ -231,9 +234,9 @@ protected function getToken () {// on s'authentifie a l api scodoc avec la metho
         
         $formsemestres= $this->get("formsemestres/query");
         $instances=[];
+
         foreach ($formsemestres as $formsemestre) {
-            $decisions= $this->get("formsemestre/" . $formsemestre["formsemestre_id"] . "/decision
-            _jury");
+            $decisions= $this->get("formsemestre/" . $formsemestre["formsemestre_id"] . "/decisions_jury");
             foreach ($decisions as $donnees_decision) {
                 $instances[]=new Decision($donnees_decision);
         }
@@ -255,10 +258,51 @@ protected function getToken () {// on s'authentifie a l api scodoc avec la metho
 
 
 
+/*====================================
+            RCUES   
+=====================================*/
 
-    
 
+public function findall_rcue(): array
+{
+    $formations = $this->get("formations");
+    $instances = [];
 
+    foreach ($formations as $formation) {
+
+        // On filtre les BUT
+        if (
+            !isset($formation["type_titre"]) ||
+            strtoupper($formation["type_titre"]) !== "BUT"
+        ) {
+            continue;
+        }
+
+        $formation_id = $formation["formation_id"];
+
+        // Récupération référentiel
+        $referentiel = $this->get("formation/" . $formation_id . "/referentiel_competences");
+
+        if (!isset($referentiel["competences"])) {
+            continue;
+        }
+
+        // Parcours compétences BUT
+        foreach ($referentiel["competences"] as $competence) {
+
+            $data = [
+                "nomCompetence"     => $competence["titre"] ?? "",
+                "niveau"            => count($competence["composantes"] ?? []),
+                "anneeformation_id" => $competence["ordre"] ?? null,
+                "formation_id"      => $formation_id
+            ];
+
+            $instances[] = new RCUE($data);
+        }
+    }
+
+    return $instances;
+}
     
 
 
