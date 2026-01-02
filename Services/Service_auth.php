@@ -34,24 +34,15 @@ class Service_auth {
     public function logout()  {
          session_destroy();}
 
+public function isAdmin(){
+    return $this->isLogged() && isset($_SESSION['role']) && $_SESSION["role"]==="admin";
+}
 
 
 
-    public function hashMdp(String $password) : string {
-        return  password_hash($password, PASSWORD_BCRYPT);}
 
     
-    public function createUser ( string $username, string $password)  {
-        $password= password_hash($password, PASSWORD_BCRYPT);
-        if ($this->dao->findbyname($username)) {
-            echo "Cet utiulisateur existe deja ";
-            return false;}
-        else {   
-        return $this->dao->createUser($username, $password);
 
-    }
-
-}
 }
 
 
