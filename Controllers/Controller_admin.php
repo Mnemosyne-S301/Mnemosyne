@@ -1,6 +1,6 @@
 <?php
-require_once __DIR__ . "/../Services/Service_auth";
-require_once __DIR__ . "/../Services/Service_admin";
+require_once __DIR__ . "/../Services/Service_auth.php";
+require_once __DIR__ . "/../Services/Service_admin.php";
 class Controller_admin extends Controller {
 
     /* ajouter les autres méthodes ici sous la forme action_quelquechose */

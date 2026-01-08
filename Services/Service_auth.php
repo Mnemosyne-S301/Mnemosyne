@@ -1,5 +1,5 @@
-<<?php 
-require_once "UserDAO.php";
+<?php 
+require_once __DIR__ . "/../Models/UserDAO.php";
 
 class Service_auth {
     private UserDAO $dao ;   
@@ -11,24 +11,15 @@ class Service_auth {
 
     public function login($username, $password)  {
         
-        $user= $this->dao->findbyname($username);
-        if ($user==null) {return false;}
-        else {
-            if ( password_verify($password, $user->getMdp())){
-               
-               return $user ;
-
-            }
-            else {return false;}
-        }
+        $user= $this->dao->authenticate($username,$password);
+        if ($user){return $user;}
+        else {return false ;}
     }
 
     public function isLogged() : bool {
-        if (isset($_SESSION["ADMIN"]) && $_SESSION["ADMIN"] == true) {
+      return  isset($_SESSION["logged"]) && $_SESSION["logged"] === true;
 
-            return true ;} 
-        return false;
-
+     
         }
 
     public function logout()  {

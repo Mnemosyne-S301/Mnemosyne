@@ -1,5 +1,5 @@
-<<?php 
-require_once "User.php";
+<?php 
+require_once __DIR__ . "/User.php";
 
 class UserDAO {
     private PDO $pdo;   
@@ -12,7 +12,7 @@ class UserDAO {
 
 public  function findAll() : array {
     $pdo=DB::get();
-    $requete = $pdo->prepare("SELECT * FROM users ");
+    $requete = $pdo->prepare("SELECT id,username,role  FROM users ");
     
     $requete->execute() ;
     $data=$requete->fetchAll() ;
@@ -33,7 +33,7 @@ public  function findAll() : array {
 
 public  function findbyname(string $username) : ?User {
     $pdo=DB::get();
-    $requete = $pdo->prepare("SELECT * FROM users WHERE username=:username");
+    $requete = $pdo->prepare("SELECT id,username,role FROM users WHERE username=:username");
     $requete->bindParam(":username", $username, PDO::PARAM_STR) ;
     $requete->execute() ;
     $data=$requete->fetch() ;
@@ -49,7 +49,7 @@ public  function findbyname(string $username) : ?User {
 
 public function findbyrole(string $role){
     $pdo=DB::get();
-    $requete = $pdo->prepare("SELECT * FROM users WHERE role=:role");
+    $requete = $pdo->prepare("SELECT id,username,role FROM users WHERE role=:role");
     $requete->bindParam(":role", $role, PDO::PARAM_STR) ;
     $requete->execute() ;
     $data=$requete->fetchAll(PDO::FETCH_ASSOC) ;
@@ -65,9 +65,10 @@ public function findbyrole(string $role){
 
 public function createUser(string $username, string $password, string $role)  {
     $pdo=DB::get();
+    $hash=password_hash($password,PASSWORD_BCRYPT);
     $requete = $pdo->prepare("INSERT INTO users (username,password,role) VALUES (:username, :password,:role)");
     $requete->bindParam(":username", $username, PDO::PARAM_STR) ;
-    $requete->bindParam(":password", $password, PDO::PARAM_STR) ;
+    $requete->bindParam(":password", $hash, PDO::PARAM_STR) ;
     $requete->bindParam(":role", $role, PDO::PARAM_STR) ;
 
     return $requete->execute() ;
@@ -79,7 +80,19 @@ public function deleteById(int $id){
     $requete->bindParam(":id", $id, PDO::PARAM_INT) ;
     return $requete->execute() ;
 }
-    
+public function authenticate(string $username, string $password): ?User {
+    $pdo = DB::get();
+    $stmt = $pdo->prepare("SELECT id, username, role, password FROM users WHERE username = :u");
+    $stmt->execute([":u" => $username]);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$row) return null;
+    if (!password_verify($password, $row["password"])) return null;
+
+    unset($row["password"]);
+    return new User($row);
+} 
+
 }
 
 
