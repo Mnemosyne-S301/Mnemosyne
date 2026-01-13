@@ -6,12 +6,13 @@
 DELIMITER //
 
 -- Suppression des anciennes procédures (pour les mettre à jour facilement)
-DROP PROCEDURE IF EXISTS actualise_nb_eleve_par_formation //
-DROP PROCEDURE IF EXISTS actualise_res_ue_par_annee_par_eleve //
-DROP PROCEDURE IF EXISTS actualise_nb_ue_valide_par_annee_par_eleve //
-DROP PROCEDURE IF EXISTS actualise_repartition_notes_par_parcours //
-DROP PROCEDURE IF EXISTS actualise_nb_rcue_valide_par_annee_par_eleve //
-DROP PROCEDURE IF EXISTS actualise_repartition_rcue_par_parcours //
+DROP PROCEDURE IF EXISTS actualise_nb_eleve_par_formation
+DROP PROCEDURE IF EXISTS actualise_nb_ue_par_formation_par_semestre
+DROP PROCEDURE IF EXISTS actualise_res_ue_par_annee_par_eleve
+DROP PROCEDURE IF EXISTS actualise_nb_ue_valide_par_annee_par_eleve
+DROP PROCEDURE IF EXISTS actualise_repartition_notes_par_parcours
+DROP PROCEDURE IF EXISTS actualise_nb_rcue_valide_par_annee_par_eleve
+DROP PROCEDURE IF EXISTS actualise_repartition_rcue_par_parcours 
 
 
 -- ==============================================================================
@@ -23,7 +24,13 @@ BEGIN
     -- Nettoyer la table avant de la remplir
     TRUNCATE TABLE nb_eleve_par_formation; 
 
-    INSERT INTO nb_eleve_par_formation (dep, formation, parcours, annee_scolaire, nombre_etudiants)
+    INSERT INTO nb_eleve_par_formation (
+        dep,
+        formation, 
+        parcours, 
+        annee_scolaire, 
+        nombre_etudiants
+    )
     
     SELECT
         departement.description AS dep,
@@ -49,7 +56,47 @@ BEGIN
         effectuerannee.annee_scolaire; -- GROUPE PAR ANNEE
 END//
 
+CREATE PROCEDURE actualise_nb_ue_par_formation_par_semestre()
+BEGIN
+    -- On vide la table avant de la recalculer
+    TRUNCATE TABLE nb_ue_par_formation_semestre;
 
+    -- Insertion des nouvelles statistiques
+    INSERT INTO nb_ue_par_formation_semestre(
+        dep, 
+        formation, 
+        semestre, 
+        parcours, 
+        annee_scolaire, 
+        nb_ue
+    )
+    SELECT
+        departement.description AS dep,
+        formation.titre AS formation,
+        FormSemestre.formsemestre_num AS semestre,
+        parcours.libelle AS parcours,
+        EffectuerAnnee.annee_scolaire,
+        COUNT(DISTINCT UE.ue_id) AS nb_ue
+    FROM scolarite.departement
+    INNER JOIN scolarite.formation
+        ON departement.dep_id = formation.dep_id
+    INNER JOIN scolarite.parcours
+        ON formation.formation_id = parcours.formation_id
+    INNER JOIN scolarite.anneeformation
+        ON parcours.parcours_id = anneeformation.parcours_id
+    INNER JOIN scolarite.EffectuerAnnee
+        ON anneeformation.anneeformation_id = EffectuerAnnee.anneeformation_id
+    INNER JOIN scolarite.FormSemestre
+        ON anneeformation.anneeformation_id = FormSemestre.anneeformation_id
+    INNER JOIN scolarite.UE
+        ON FormSemestre.formsemestre_id = UE.formsemestre_id
+    GROUP BY 
+        departement.description,
+        formation.titre,
+        FormSemestre.formsemestre_num,
+        parcours.libelle,
+        EffectuerAnnee.annee_scolaire;
+END//
 -- ==============================================================================
 -- PARTIE 2 : ANALYSE DES UE
 -- ==============================================================================

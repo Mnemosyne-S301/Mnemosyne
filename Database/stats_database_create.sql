@@ -5,6 +5,7 @@
 
 -- 1. NETTOYAGE
 DROP TABLE IF EXISTS nb_eleve_par_formation;
+DROP TABLE IF EXISTS nb_ue_par_formation_semestre;
 DROP TABLE IF EXISTS res_ue_par_annee_par_eleve;
 DROP TABLE IF EXISTS nb_ue_valide_par_annee_par_eleve;
 DROP TABLE IF EXISTS repartition_notes_par_parcours;
@@ -30,6 +31,17 @@ CREATE TABLE nb_eleve_par_formation (
     UNIQUE KEY idx_unique_promo (dep, formation, parcours, annee_scolaire)
 );
 
+CREATE TABLE nb_ue_par_formation_semestre(
+    id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    dep VARCHAR(255),
+    formation VARCHAR(255),
+    parcours VARCHAR(255),
+    annee_scolaire INT,
+    semestre_num INT,
+    nb_ue INT
+    UNIQUE KEY idx_unique_ue(dep,formation,id_formsemetre)
+    
+);
 
 -- ==============================================================================
 -- PARTIE 2 : ANALYSE DES UE (UNITES D'ENSEIGNEMENT)
