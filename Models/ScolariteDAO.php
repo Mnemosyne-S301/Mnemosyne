@@ -539,5 +539,27 @@ class ScolariteDAO
         $stmt->execute($allEffectuerUEValues);
     }
 
+    public function resetDatabase(){
+        $tables =['EffectuerUE',
+        'EffectuerRCUE',
+        'EffectuerAnnee',
+        'UE',
+        'FormSemestre',
+        'RCUE',
+        'AnneeFormation',
+        'Parcours',
+        'Formation',
+        'CodeUE',
+        'CodeRCUE',
+        'CodeAnnee',
+        'Etudiant',
+        'Departement'
+    ];
+    foreach($tables as $table){
+        $this->conn->exec("DELETE FROM $table;");
+    }
+
+    }
+
 }
 ?>

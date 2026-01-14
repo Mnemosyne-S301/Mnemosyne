@@ -22,8 +22,8 @@ class Departement{
         return $this->dep_id;
     }
 
-    public function getacronym(): string {
-        return $this->acronym;
+    public function getaccronyme(): string {
+        return $this->accronyme;
     }
 
     public function getDescription(): string {
