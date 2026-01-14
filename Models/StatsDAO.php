@@ -99,6 +99,19 @@ class StatsDAO {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function getNbUeParFormationParSemestre($formation,$semestre){
+        $query="SELECT nb_ue
+                    FROM nb_ue_par_formation_semestre
+                    WHERE formation =:formation
+                    AND semestre=:semestre";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindValue(':formation',$formation,PDO::PARAM_STR);
+        $stmt->bindValue(':semestre',$semestre,PDO::PARAM_STR);
+
+        $stmt->excute();
+        return $stmt->fetchColumn();
+}
+
     /**
      * Récupère la répartition des UE validées (ADMIS) pour un parcours donné.
      *
