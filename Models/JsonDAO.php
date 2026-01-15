@@ -4,6 +4,7 @@ require_once __DIR__ . "/Etudiant.php";
 require_once __DIR__ . "/Departement.php";
 require_once __DIR__ . "/Formsemestre.php";
 require_once __DIR__ . "/Decision.php";
+require_once __DIR__ . "/Formation.php";
 
 $JSON_PATH = __DIR__ . "/../Database/example/json";
 
@@ -188,6 +189,45 @@ class JsonDAO
 
         return $allDecisionInstances;
     }
+
+    public function findall_formation()
+    {
+        global $JSON_PATH;
+        $formation_filename = "formations.json";
+        $formation_file_path = $JSON_PATH . '/' . $formation_filename;
+
+        $formation_content = file_get_contents($formation_file_path);
+        $formation_data = json_decode($formation_content, true);
+        $allFormationInstances = [];
+
+        foreach($formation_data as $formation)
+        {
+            $formation_array = array(
+                'formation_id' => $formation['formation_id'],
+                'accronyme' => $formation['acronyme'], // accronyme un seul c , erreur dans le MEA et Modele relationnel etc. (flemme de corriger ça mnt, à faire)
+                'titre' => $formation['titre'],
+                'version' => $formation['version'],
+                'formation_code' => $formation['formation_code'],
+                'type_parcours' => $formation['type_parcours'],
+                'titre_officiel' => $formation['titre_officiel'],
+                'commentaire' => $formation['commentaire'],
+                'code_specialite' => $formation['code_specialite'],
+                'dep_id' => $formation['departement']['id']
+            );
+
+            // instanciate the object
+            $allDecisionInstances[] = new Formation($formation_array);
+        }
+        
+        return $allDecisionInstances;
+    }
+
+    /*
+    public function findall_parcours()
+    {
+        TO DO ...
+    }
+    */
 
     /*
     public function findformation_by_id(string $id);

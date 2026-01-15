@@ -25,12 +25,12 @@ CREATE TABLE Departement(
 CREATE TABLE Formation(
     formation_id SERIAL PRIMARY KEY,
     accronyme VARCHAR(50) NOT NULL,
-    titre VARCHAR(50) NOT NULL,
+    titre VARCHAR(100) NOT NULL,
     version TINYINT UNSIGNED,
     formation_code VARCHAR(50) NOT NULL,
-    type_parcours TINYINT UNSIGNED,
-    titre_officiel VARCHAR(50) NOT NULL,
-    commentaire VARCHAR(50) DEFAULT NULL,
+    type_parcours SMALLINT UNSIGNED,
+    titre_officiel VARCHAR(150) NOT NULL,
+    commentaire VARCHAR(100) DEFAULT NULL,
     code_specialite VARCHAR(50) DEFAULT NULL,
     dep_id INTEGER,
     FOREIGN KEY (dep_id) REFERENCES Departement(dep_id) ON DELETE CASCADE
@@ -88,7 +88,7 @@ CREATE TABLE UE(
 
 CREATE TABLE Etudiant(
     etudiant_id SERIAL PRIMARY KEY,
-    code_nip VARCHAR(50) NOT NULL,
+    code_nip VARCHAR(100) NOT NULL,
     etat VARCHAR(50) -- pareil, je sais pas ce que c'est
 );
 

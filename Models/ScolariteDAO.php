@@ -83,7 +83,7 @@ class ScolariteDAO
             $allDepartementsValues[] = $dept['dep_id'];
             $allDepartementsValues[] = $dept['accronyme'];
             $allDepartementsValues[] = $dept['description'];
-            $allDepartementsValues[] = $dept['visible'];
+            $allDepartementsValues[] = (int)$dept['visible'];   // cast bool to int for SQL issue
             $allDepartementsValues[] = $dept['date_creation'];
             $allDepartementsValues[] = $dept['nom_dep'];
         }
