@@ -175,7 +175,7 @@ protected function getToken () {// on s'authentifie a l api scodoc avec la metho
         $formsemestres = $this->get("formsemestres/query?formation_id=$id");
         $instances=[];
         foreach ($formsemestres as $donnees_formsemestres) {
-            $instances[]=new Formsemestres($donnees_formsemestres);
+            $instances[]=new Formsemestre($donnees_formsemestres);
         }
         return $instances;
     }
@@ -195,9 +195,10 @@ protected function getToken () {// on s'authentifie a l api scodoc avec la metho
                     $instances[]=new UE($ue);
             
         }
-        return $instances;
+        
     }
    }
+   return $instances;
 }
 
 
@@ -232,8 +233,7 @@ protected function getToken () {// on s'authentifie a l api scodoc avec la metho
         $formsemestres= $this->get("formsemestres/query");
         $instances=[];
         foreach ($formsemestres as $formsemestre) {
-            $decisions= $this->get("formsemestre/" . $formsemestre["formsemestre_id"] . "/decision
-            _jury");
+            $decisions= $this->get("formsemestre/" . $formsemestre["formsemestre_id"] . "/decisions_jury");
             foreach ($decisions as $donnees_decision) {
                 $instances[]=new Decision($donnees_decision);
         }

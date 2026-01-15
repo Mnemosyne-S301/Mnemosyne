@@ -142,3 +142,13 @@ CREATE TABLE EffectuerAnnee(
     FOREIGN KEY (etudiant_id) REFERENCES Etudiant(etudiant_id) ON DELETE CASCADE,
     FOREIGN KEY (codeannee_id) REFERENCES CodeAnnee(codeannee_id) ON DELETE CASCADE
 );
+
+CREATE TABLE Users (
+    id INT NOT NULL AUTO_INCREMENT,
+    username VARCHAR(50) NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    role VARCHAR(50) NOT NULL,
+    PRIMARY KEY (id)
+);
+
+

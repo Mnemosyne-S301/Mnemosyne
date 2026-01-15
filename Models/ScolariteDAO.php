@@ -539,5 +539,28 @@ class ScolariteDAO
         $stmt->execute($allEffectuerUEValues);
     }
 
+     public function resetDatabase(){
+        $this->conn->exec("SET FOREIGN_KEY_CHECKS=0;");
+        $tables =['EffectuerUE',
+        'EffectuerRCUE',
+        'EffectuerAnnee',
+        'UE',
+        'FormSemestre',
+        'RCUE',
+        'AnneeFormation',
+        'Parcours',
+        'Formation',
+        'CodeUE',
+        'CodeRCUE',
+        'CodeAnnee',
+        'Etudiant',
+        'Departement'
+    ];
+    foreach($tables as $table){
+        $this->conn->exec("TRUNCATE FROM $table;");
+    }
+    $this->conn->exec("SET FOREIGN_KEY_CHECKS=1;");
+    }
+
 }
 ?>

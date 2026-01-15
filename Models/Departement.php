@@ -23,7 +23,7 @@ class Departement{
     }
 
     public function getacronym(): string {
-        return $this->acronym;
+        return $this->accronyme;
     }
 
     public function getDescription(): string {
