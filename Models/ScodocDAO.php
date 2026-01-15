@@ -89,9 +89,6 @@ protected function getToken () {// on s'authentifie a l api scodoc avec la metho
 
 
 
-/*====================================
-    ETUDIANTS
-=====================================*/
 
     public function findall_etudiant(): array {
         $etudiants=$this->get("etudiants/courants");
@@ -112,9 +109,6 @@ protected function getToken () {// on s'authentifie a l api scodoc avec la metho
 
     }
 
-/*====================================
-            DEPARTEMENTS
-=====================================*/
 
 
     public function findall_departement() {
@@ -132,9 +126,6 @@ protected function getToken () {// on s'authentifie a l api scodoc avec la metho
         
     }
 
-/*====================================
-            FORMATIONS
-=====================================*/
   public function findall_formation () {
             $formations= $this->get("formations");
         $instances=[];
@@ -149,9 +140,6 @@ protected function getToken () {// on s'authentifie a l api scodoc avec la metho
         return new Formation($donnnes_formation);
     }
 
-/*====================================
-            FORMSEMESTRES
-=====================================*/
 
     public function findall_formsemestre(){
         $formsemestres= $this->get("formsemestres/query");
@@ -182,9 +170,6 @@ protected function getToken () {// on s'authentifie a l api scodoc avec la metho
 
 
 
-/*====================================
-            UES
-=====================================*/
     public function findall_ue(){ // y'a pas de route api qui renvoie tous les ues donc alternative mais a revoir 
         $formations = $this->get("formations");
         $instances=[];
@@ -222,13 +207,9 @@ protected function getToken () {// on s'authentifie a l api scodoc avec la metho
 
 
 
-/*====================================
-            DECISIONS
-=====================================*/
-
   
 
-    public function findall_decision() { // onj doit passer par toute les formations d abbord 
+    public function findall_decision() { // on doit passer par toute les formations d abbord 
         
         $formsemestres= $this->get("formsemestres/query");
         $instances=[];
@@ -255,13 +236,63 @@ protected function getToken () {// on s'authentifie a l api scodoc avec la metho
 
 
 
-
-    
-
-
-    
+public function findReferentielCompetencesByFormation(string $formationId): array {
+    return $this->get("formation/$formationId/referentiel_competences");
+}
 
 
+
+
+
+    public function findFormsemestresByAnnee(int $annee): array {
+    return $this->get("formsemestres/query?annee_scolaire=" . $annee);
+}
+
+
+public function findBUTFormationIds(): array {
+    $formations = $this->get("formations");
+    $ids = [];
+
+    foreach ($formations as $f) {
+        $isBUT = (isset($f['type_titre']) && $f['type_titre'] === 'BUT')
+              || (isset($f['titre']) && stripos($f['titre'], 'BUT') === 0);
+
+        if (!$isBUT) continue;
+
+        $id = $f['formation_id'] ?? $f['id'] ?? null;
+        if ($id !== null) $ids[] = (int)$id;
+    }
+    return $ids;
+}
+
+public function findDecisionsBUTByAnnee(int $annee, array $butFormationIds): array {
+    $formsemestres = $this->findFormsemestresByAnnee($annee);
+    $all = [];
+
+    foreach ($formsemestres as $fs) {
+        $formationId = $fs['formation_id']
+            ?? ($fs['formation']['formation_id'] ?? null)
+            ?? null;
+
+        if ($formationId === null) continue;
+        if (!in_array($formationId, $butFormationIds, true)) continue;
+
+        $formsemestreId = $fs['id'] ?? $fs['formsemestre_id'] ?? null;
+        if ($formsemestreId === null) continue;
+
+        $decisions = $this->get("formsemestre/$formsemestreId/decisions_jury");
+
+        // IMPORTANT : on garde aussi contexte (annee + formsemestre_id + formation_id)
+        $all[] = [
+            "annee_scolaire"   => $annee,
+            "formsemestre_id"  => (int)$formsemestreId,
+            "formation_id"     => (int)$formationId,
+            "decisions"        => $decisions,
+        ];
+    }
+
+    return $all;
+}
 
 
 

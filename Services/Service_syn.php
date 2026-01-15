@@ -12,7 +12,7 @@ require_once __DIR__. "/Formsemestre.php";
 require_once __DIR__. "/Decision.php";
 
 
-
+// il manque RCUE, effectuer ue et effectuer rcue, recup donnee par annee
 
 class Service_syn {
     private ScodocDAO $SourceDAO;
@@ -35,18 +35,28 @@ class Service_syn {
             $etudiants = $this->SourceDAO->findall_etudiant();
             $formations = $this->SourceDAO->findall_formation();
             $formsemestres= $this->SourceDAO->findall_formsemestre();
+
+
+
             $ues= $this->SourceDAO->findall_ue();
             $rcues= $this->SourceDAO->findall_rcue();
             $decisions= $this->SourceDAO->findall_decision();
 
 
-            $this->insertionDepartements($departements);
-            $this->insertionEtudiants($etudiants);
-            $this->insertionFormations($formations);
-            $this->insertionFormsemestres($formsemestres);
-            $this->insertionUEs($ues);
-            $this->insertionRCUEs($rcues);
-            
+            $this->DestDAO->addDepartement($this->objsToRows($departements));
+            $this->DestDAO->addFormation($this->objsToRows($formations));
+            $this->DestDAO->addFormSemestre($this->objsToRows($formsemestres));
+            $this->DestDAO->addEtudiant($this->objsToRows($etudiants));
+
+
+
+            $codes = $this->defaultCodes();
+            $this->DestDAO->addCodeAnnee($codes);
+            $this->DestDAO->addCodeUE($codes);
+            $this->DestDAO->addCodeRCUE($codes);
+
+            $butFormationIds = $this->SourceDAO->findBUTFormationIds();
+
 
             $this->PDO->commit();
             echo "Transaction faite !";
@@ -63,77 +73,24 @@ class Service_syn {
 
     }
 
-    public function insertionDepartements($departements){
-        $rows=[];
-
-        foreach($departements as $departement){
-            $rows[]= $departement->toDict();
-        }
-
-            if(!empty($rows)){
-                $this->DestDAO->addDepartement($rows);
-            }
-
-
-    }
-
-
-
-    public function insertionEtudiants($etudiants){
-        $rows=[];
-        foreach($etudiants as $etudiant){
-            $rows[]= $etudiant->toDict();
-        }
-            if(!empty($rows)){
-                $this->DestDAO->addEtudiant($rows);
-            }
-
-        }
-
-
-    
-
-    public function insertionFormations ($formations){
-        $rows=[];
-        foreach($formations as $formation){
-            $rows[]= $formation->toDict();
-        }
-        if(!empty($rows)){  
-            $this->DestDAO->addFormation($rows);
-        }
-    }
-
-    public function insertionRCUEs($rcues){
-        $rows=[];
-        foreach($rcues as $rcue){
-            $rows[]= $rcue->toDict();
-        }
-        if(!empty($rows)){
-            $this->DestDAO->addRCUE($rows);
-        }
-    }
-    public function insertionUEs($ues){ // il faut cree model UE
-        $rows=[];
-        foreach($ues as $ue){
-            $rows[]= $ue->toDict();
-        }
-        if(!empty($rows)){
-            $this->DestDAO->addUE($rows);
-        }
-    }
-
-    public function insertionFormsemestres($formsemestres){
-        $rows=[];
-        foreach($formsemestres as $formsemestre){
-            $rows[]= $formsemestre->toDict();
-        }
-        if(!empty($rows)){
-            $this->DestDAO->addFormSemestre ($rows);
-        }
-    }
-
-
   
+
+
+  private function objsToRows(array $objects): array {
+        $rows = [];
+        foreach ($objects as $o) $rows[] = $o->toDict();
+        return $rows;
+    }
+
+    private function defaultCodes(): array {
+        return [
+            ['code'=>'ADM', 'signification'=>'Admis'],
+            ['code'=>'AJ',  'signification'=>'Ajourné'],
+            ['code'=>'ADMC','signification'=>'Admis par compensation'],
+            ['code'=>'DEF', 'signification'=>'Défaillant'],
+            ['code'=>'ABS', 'signification'=>'Absent'],
+        ];
+    }
 
 
 }
