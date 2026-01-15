@@ -150,7 +150,9 @@ const SankeyCohort = (function() {
                 const nextStep = i < etudiant.annees.length - 1 ? etudiant.annees[i + 1] : null;
                 
                 if (CODES_ABANDON_DEFINITIF.includes(step.code)) {
-                    addLink(niveauActuel, step.code);
+                    // Créer un nœud de sortie spécifique au niveau (ex: NAR_BUT1)
+                    const sortieNode = `${step.code}_${niveauActuel}`;
+                    addLink(niveauActuel, sortieNode);
                     stats.abandons++;
                     hasAbandon = true;
                     break;
@@ -171,15 +173,16 @@ const SankeyCohort = (function() {
                             stats.enCours++;
                         }
                     } else if (step.code === 'RED') {
-                        // Redoublement : affichage spécifique sans retour
-                        addLink(niveauActuel, 'RED');
+                        // Redoublement : affichage spécifique par niveau
+                        addLink(niveauActuel, `RED_${niveauActuel}`);
                         stats.enCours++;
                     } else if (step.code === 'AJ' || step.code === 'ADJ') {
-                        // Ajournés : affichage spécifique sans retour
-                        addLink(niveauActuel, step.code);
+                        // Ajournés : affichage spécifique par niveau
+                        addLink(niveauActuel, `${step.code}_${niveauActuel}`);
                         stats.enCours++;
                     } else if (CODES_ABANDON_DEFINITIF.includes(step.code)) {
-                        addLink(niveauActuel, step.code);
+                        // Abandons : affichage spécifique par niveau
+                        addLink(niveauActuel, `${step.code}_${niveauActuel}`);
                         stats.abandons++;
                     } else {
                         // Autres cas : comptés mais pas d'affichage dans le diagramme
@@ -189,12 +192,12 @@ const SankeyCohort = (function() {
                     if (CODES_REDOUBLEMENT.includes(step.code) && nextStep) {
                         const nextNiveau = `BUT${nextStep.ordre}`;
                         if (nextNiveau === niveauActuel) {
-                            addLink(niveauActuel, step.code);
+                            addLink(niveauActuel, `${step.code}_${niveauActuel}`);
                         }
                     }
                     
                     if (CODES_ABANDON_DEFINITIF.includes(step.code) && (!nextStep || nextStep.annee - step.annee > 1)) {
-                        addLink(niveauActuel, step.code);
+                        addLink(niveauActuel, `${step.code}_${niveauActuel}`);
                         stats.abandons++;
                         hasAbandon = true;
                         break;
@@ -223,12 +226,19 @@ const SankeyCohort = (function() {
         });
         
         const orderedNodes = [];
+        // Ordre de base pour les nœuds principaux
         const nodeOrder = [
             'Parcoursup', 'Hors Parcoursup',
             'BUT1', 'BUT2', 'BUT3',
             'ADM', 'PASD', 'ADSUP', 'CMP',
-            'RED', 'AJ', 'ADJ',
-            'NAR', 'DEF', 'DEM',
+            // Redoublements par niveau
+            'RED_BUT1', 'RED_BUT2', 'RED_BUT3',
+            'AJ_BUT1', 'AJ_BUT2', 'AJ_BUT3',
+            'ADJ_BUT1', 'ADJ_BUT2', 'ADJ_BUT3',
+            // Abandons par niveau
+            'NAR_BUT1', 'NAR_BUT2', 'NAR_BUT3',
+            'DEF_BUT1', 'DEF_BUT2', 'DEF_BUT3',
+            'DEM_BUT1', 'DEM_BUT2', 'DEM_BUT3',
             'Diplômé', 'En cours'
         ];
         
@@ -236,21 +246,120 @@ const SankeyCohort = (function() {
             if (nodes.has(n)) orderedNodes.push(n);
         });
         
+        // Ajouter les nœuds restants qui ne sont pas dans l'ordre prédéfini
+        nodes.forEach(n => {
+            if (!orderedNodes.includes(n)) orderedNodes.push(n);
+        });
+        
         return orderedNodes;
     }
 
     function getNodeColor(label) {
+        // Gérer les nœuds composés (ex: NAR_BUT1)
+        if (label.includes('_')) {
+            const baseCode = label.split('_')[0];
+            return COLORS[baseCode] || COLORS.DEFAULT;
+        }
         return COLORS[label] || COLORS.DEFAULT;
     }
 
     function getLinkColor(target) {
-        const base = COLORS[target] || COLORS.DEFAULT;
+        // Gérer les nœuds composés (ex: NAR_BUT1)
+        let colorKey = target;
+        if (target.includes('_')) {
+            colorKey = target.split('_')[0];
+        }
+        const base = COLORS[colorKey] || COLORS.DEFAULT;
         return hexToRgba(base, 0.4);
+    }
+
+    function getDisplayLabel(nodeId) {
+        // Convertir l'identifiant interne en label d'affichage
+        // Ex: NAR_BUT1 -> NAR, RED_BUT2 -> RED
+        if (nodeId.includes('_BUT')) {
+            return nodeId.split('_')[0];
+        }
+        return nodeId;
+    }
+
+    function getNodePositions(nodeLabels) {
+        // Définir les positions x et y pour chaque nœud
+        // x: position horizontale (0 = gauche, 1 = droite)
+        // y: position verticale (0 = haut, 1 = bas)
+        
+        // Positions de base pour les nœuds principaux
+        const basePositions = {
+            // Origines (colonne 0)
+            'Parcoursup': { x: 0.01, y: 0.3 },
+            'Hors Parcoursup': { x: 0.01, y: 0.7 },
+            
+            // Niveaux BUT - positions de référence
+            'BUT1': { x: 0.25, y: 0.4 },
+            'BUT2': { x: 0.50, y: 0.4 },
+            'BUT3': { x: 0.75, y: 0.4 },
+            
+            // Diplômé (fin)
+            'Diplômé': { x: 0.99, y: 0.3 },
+            'En cours': { x: 0.99, y: 0.5 },
+        };
+        
+        // Les sorties de chaque année vont VERS l'année suivante
+        // BUT1 → sorties vers BUT2, BUT2 → sorties vers BUT3, BUT3 → sorties vers Diplômé
+        const sortieDestinations = {
+            'BUT1': basePositions['BUT2'].x,   // Sorties BUT1 vont vers la colonne de BUT2
+            'BUT2': basePositions['BUT3'].x,   // Sorties BUT2 vont vers la colonne de BUT3
+            'BUT3': basePositions['Diplômé'].x, // Sorties BUT3 vont vers la colonne de Diplômé
+        };
+        
+        // Décalages verticaux pour les différents types de sortie
+        const sortieOffsets = {
+            'RED': 0.55,
+            'AJ': 0.65,
+            'ADJ': 0.75,
+            'NAR': 0.80,
+            'DEM': 0.88,
+            'DEF': 0.95,
+        };
+        
+        const positions = { ...basePositions };
+        
+        // Générer dynamiquement les positions des sorties basées sur les destinations
+        ['BUT1', 'BUT2', 'BUT3'].forEach(but => {
+            const destX = sortieDestinations[but];
+            
+            Object.entries(sortieOffsets).forEach(([code, yOffset]) => {
+                const nodeId = `${code}_${but}`;
+                positions[nodeId] = { x: destX, y: yOffset };
+            });
+        });
+        
+        const xPositions = [];
+        const yPositions = [];
+        
+        nodeLabels.forEach((label, index) => {
+            if (positions[label]) {
+                xPositions.push(positions[label].x);
+                yPositions.push(positions[label].y);
+            } else {
+                // Position par défaut pour les nœuds non définis
+                // Les placer progressivement à droite
+                xPositions.push(0.5 + (index * 0.02));
+                yPositions.push(0.5);
+            }
+        });
+        
+        return { x: xPositions, y: yPositions };
     }
 
     function renderChart(data) {
         const nodeLabels = data.nodes;
         const nodeIndices = new Map(nodeLabels.map((n, i) => [n, i]));
+        
+        // Labels d'affichage (simplifiés)
+        const displayLabels = nodeLabels.map(getDisplayLabel);
+        
+        // Positions des nœuds
+        const nodePositions = getNodePositions(nodeLabels);
         
         const sources = [];
         const targets = [];
@@ -277,11 +386,14 @@ const SankeyCohort = (function() {
         const plotData = [{
             type: "sankey",
             orientation: "h",
+            arrangement: "freeform",
             node: { 
                 pad: 30,
                 thickness: 20,
-                label: nodeLabels,
+                label: displayLabels,
                 color: nodeColors,
+                x: nodePositions.x,
+                y: nodePositions.y,
                 line: { color: "white", width: 1 },
                 hovertemplate: '%{label}<br>%{value} étudiants<extra></extra>'
             },
