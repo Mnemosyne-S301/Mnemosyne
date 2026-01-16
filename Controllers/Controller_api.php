@@ -10,6 +10,17 @@ class Controller_api extends Controller {
     }
 
     /**
+     * Récupère un paramètre depuis POST ou GET
+     * 
+     * @param string $name Nom du paramètre
+     * @param mixed $default Valeur par défaut si le paramètre n'existe pas
+     * @return mixed La valeur du paramètre ou la valeur par défaut
+     */
+    private function getParameter($name, $default = null) {
+        return $_POST[$name] ?? $_GET[$name] ?? $default;
+    }
+
+    /**
      * Endpoint API pour appliquer des filtres sur les étudiants
      * Méthode POST attendue avec les paramètres :
      * - formation (string) : nom de la formation
@@ -24,12 +35,31 @@ class Controller_api extends Controller {
         $service = new Service_filtres();
         
         // Récupérer les paramètres de la requête
+        $formation = $this->getParameter('formation', '');
+        $annee = $this->getParameter('annee', '');
+        $critere = $this->getParameter('critere', '');
+        $seuilRaw = $this->getParameter('seuil');
+        $statut = $this->getParameter('statut', 'réussite');
+        
+        // Valider et convertir le seuil
+        $seuil = null;
+        if ($seuilRaw !== null) {
+            if (!is_numeric($seuilRaw)) {
+                echo json_encode([
+                    'success' => false,
+                    'errors' => ['Le seuil doit être un nombre valide']
+                ]);
+                return;
+            }
+            $seuil = (int)$seuilRaw;
+        }
+        
         $params = [
-            'formation' => $_POST['formation'] ?? $_GET['formation'] ?? '',
-            'annee' => $_POST['annee'] ?? $_GET['annee'] ?? '',
-            'critere' => $_POST['critere'] ?? $_GET['critere'] ?? '',
-            'seuil' => isset($_POST['seuil']) ? (int)$_POST['seuil'] : (isset($_GET['seuil']) ? (int)$_GET['seuil'] : null),
-            'statut' => $_POST['statut'] ?? $_GET['statut'] ?? 'réussite'
+            'formation' => $formation,
+            'annee' => $annee,
+            'critere' => $critere,
+            'seuil' => $seuil,
+            'statut' => $statut
         ];
         
         // Valider les paramètres
@@ -77,12 +107,32 @@ class Controller_api extends Controller {
         
         $service = new Service_filtres();
         
+        // Récupérer les paramètres de la requête
+        $formation = $this->getParameter('formation', '');
+        $annee = $this->getParameter('annee', '');
+        $critere = $this->getParameter('critere', '');
+        $seuilRaw = $this->getParameter('seuil');
+        $statut = $this->getParameter('statut', 'réussite');
+        
+        // Valider et convertir le seuil
+        $seuil = null;
+        if ($seuilRaw !== null) {
+            if (!is_numeric($seuilRaw)) {
+                echo json_encode([
+                    'success' => false,
+                    'errors' => ['Le seuil doit être un nombre valide']
+                ]);
+                return;
+            }
+            $seuil = (int)$seuilRaw;
+        }
+        
         $params = [
-            'formation' => $_POST['formation'] ?? $_GET['formation'] ?? '',
-            'annee' => $_POST['annee'] ?? $_GET['annee'] ?? '',
-            'critere' => $_POST['critere'] ?? $_GET['critere'] ?? '',
-            'seuil' => isset($_POST['seuil']) ? (int)$_POST['seuil'] : (isset($_GET['seuil']) ? (int)$_GET['seuil'] : null),
-            'statut' => $_POST['statut'] ?? $_GET['statut'] ?? 'réussite'
+            'formation' => $formation,
+            'annee' => $annee,
+            'critere' => $critere,
+            'seuil' => $seuil,
+            'statut' => $statut
         ];
         
         $validation = $service->validerParametresFiltre($params);

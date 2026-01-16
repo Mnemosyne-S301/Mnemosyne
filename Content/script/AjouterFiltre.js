@@ -109,10 +109,10 @@ function appliquerFiltres(formation, annee) {
     
     // TODO: Envoyer les filtres au backend via AJAX/Fetch
     // Example:
-    // fetch('/api/filtres/appliquer', {
+    // fetch('/index.php?controller=api&action=appliquer_filtre', {
     //     method: 'POST',
-    //     headers: { 'Content-Type': 'application/json' },
-    //     body: JSON.stringify({ formation, annee, filtres })
+    //     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    //     body: new URLSearchParams({ formation, annee, critere: filtres[0].critere, statut: filtres[0].statut })
     // })
     // .then(response => response.json())
     // .then(data => console.log("Résultats:", data))

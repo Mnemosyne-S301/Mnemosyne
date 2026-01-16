@@ -14,6 +14,11 @@ class Service_filtres {
     private StatsDAO $dao;
 
     /**
+     * @var int Seuil de réussite par défaut (nombre minimum d'UE validées pour être considéré en réussite)
+     */
+    private const SEUIL_REUSSITE_DEFAUT = 4;
+
+    /**
      * Constructeur.
      * Initialise le Service en récupérant l'unique instance du StatsDAO (Singleton).
      */
@@ -29,13 +34,24 @@ class Service_filtres {
      * @param string $critere Le type de critère ("en formation", "ayant plus de", "ayant moins de")
      * @param int|null $seuil Le seuil d'UE validées (pour "ayant plus de" ou "ayant moins de")
      * @param string $statut Le statut recherché ("réussite" ou "échec")
+     * @param int|null $seuilReussite Seuil personnalisé de réussite (null = utiliser le seuil par défaut)
      * @return array Tableau des étudiants filtrés
      */
-    public function appliquerFiltre($formation, $annee, $critere, $seuil = null, $statut = "réussite") {
+    public function appliquerFiltre($formation, $annee, $critere, $seuil = null, $statut = "réussite", $seuilReussite = null) {
         $resultats = [];
         
-        // Récupérer les données de répartition des UE pour la formation et l'année
+        // Utiliser le seuil de réussite configuré ou le défaut
+        if ($seuilReussite === null) {
+            $seuilReussite = self::SEUIL_REUSSITE_DEFAUT;
+        }
+        
+        // Récupérer les données de répartition des UE pour la formation
         $repartition = $this->dao->getNbRepartitionUEADMISParFormation($formation);
+        
+        if (empty($repartition)) {
+            // Aucune donnée pour cette formation
+            return $resultats;
+        }
         
         foreach ($repartition as $ligne) {
             // Vérifier que l'année correspond
@@ -69,8 +85,6 @@ class Service_filtres {
             }
             
             // Appliquer le filtre de statut (réussite/échec)
-            // Considérons que 4+ UE validées = réussite, <4 = échec (à adapter selon les règles métier)
-            $seuilReussite = 4;
             if ($statut === "réussite" && $nbUE < $seuilReussite) {
                 $inclure = false;
             } elseif ($statut === "échec" && $nbUE >= $seuilReussite) {
