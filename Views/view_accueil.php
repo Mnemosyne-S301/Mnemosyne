@@ -49,7 +49,8 @@
                 </label>
 
                 <!-- Sélecteur de formation -->
-                <select class="appearance-none block w-full bg-neutral-secondary-medium text-[#999999]
+                <select name=formation 
+                        class="appearance-none block w-full bg-neutral-secondary-medium text-[#999999]
                                border-default-medium text-heading text-sm rounded-lg
                                focus:ring-brand focus:border-brand px-3 py-2.5 shadow-xs
                                text-fg-disabled bg-[#88888880]">

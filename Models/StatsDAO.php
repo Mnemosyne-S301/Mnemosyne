@@ -181,4 +181,37 @@ class StatsDAO {
         return (int) $stmt->fetchColumn();
     }
 
+    public function getCohorteParAnneeEtFormation(int $anneeScolaire, string $formationAccronyme): array
+{
+    $sql = "
+        SELECT
+            e.etudiant_id AS etudid,
+            e.etat AS etat,
+            af.ordre AS ordre,
+            ca.code AS code,
+            ea.annee_scolaire AS annee_scolaire
+        FROM scolarite.effectuerannee ea
+        INNER JOIN scolarite.etudiant e 
+            ON e.etudiant_id = ea.etudiant_id
+        INNER JOIN scolarite.anneeformation af 
+            ON af.anneeformation_id = ea.anneeformation_id
+        INNER JOIN scolarite.parcours p 
+            ON p.parcours_id = af.parcours_id
+        INNER JOIN scolarite.formation f 
+            ON f.formation_id = p.formation_id
+        INNER JOIN scolarite.codeannee ca 
+            ON ca.codeannee_id = ea.codeannee_id
+        WHERE ea.annee_scolaire = :annee
+          AND f.accronyme = :formation
+    ";
+
+    $stmt = $this->conn->prepare($sql);
+    $stmt->bindValue(':annee', $anneeScolaire, PDO::PARAM_INT);
+    $stmt->bindValue(':formation', $formationAccronyme, PDO::PARAM_STR);
+    $stmt->execute();
+
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+
 }
