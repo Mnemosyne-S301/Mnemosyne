@@ -39,7 +39,7 @@ CREATE TABLE Formation(
 CREATE TABLE Parcours(
     parcours_id SERIAL PRIMARY KEY,
     code VARCHAR(50) NOT NULL,
-    libelle VARCHAR(50) NOT NULL,
+    libelle VARCHAR(100) NOT NULL,
     formation_id BIGINT UNSIGNED,
     FOREIGN KEY (formation_id) REFERENCES Formation(formation_id) ON DELETE CASCADE
 );

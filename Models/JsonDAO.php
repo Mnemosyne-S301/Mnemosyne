@@ -5,6 +5,8 @@ require_once __DIR__ . "/Departement.php";
 require_once __DIR__ . "/Formsemestre.php";
 require_once __DIR__ . "/Decision.php";
 require_once __DIR__ . "/Formation.php";
+require_once __DIR__ . "/Parcours.php";
+require_once __DIR__ . "/AnneeFormation.php";
 
 $JSON_PATH = __DIR__ . "/../Database/example/json";
 
@@ -222,12 +224,141 @@ class JsonDAO
         return $allDecisionInstances;
     }
 
-    /*
+    
     public function findall_parcours()
     {
-        TO DO ...
+        global $JSON_PATH;
+        $allFiles = $this->__getAllJsonFiles();
+        $allParcoursInstances = [];
+
+        foreach($allFiles as $filename)
+        {
+            if(preg_match("/^referentiel_competences_BUT_[0-9]{2,3}/", $filename)) // verifie qu'on lit bien que les referentiel competences ici
+            {
+                $current_file_path = $JSON_PATH . "/" . $filename;
+                $current_file_content = file_get_contents($current_file_path);
+                $current_formation = json_decode($current_file_content, true);
+
+                if(empty($current_formation))
+                {
+                    continue; // skip l'iteration actuelle
+                }
+
+                preg_match("/^referentiel_competences_BUT_([0-9]{2,3})/", $filename, $matches);
+                $current_formation_id = (int)$matches[1];
+
+                $i = 0;
+                foreach($current_formation['parcours'] as $current_parcours) // parcours du dictionnaire contenant tout les parcours
+                {
+                    $i++;
+                    $current_parcours_array = array(
+                        'parcours_id'   =>  ($current_formation_id * 10) + $i, // qu'on me pardonne, c'est pas propre, faudrait les cles primaires sur la BD, a faire plus tard (pas le tps)
+                        'code'          =>  $current_parcours['code'],
+                        'libelle'       =>  $current_parcours['libelle'],
+                        'formation_id'  => $current_formation_id
+                    );
+
+                    $allParcoursInstances[] = new Parcours($current_parcours_array);
+                }
+                
+            }
+        }
+        
+        return $allParcoursInstances;
     }
-    */
+
+    public function findall_anneeFormation()
+    {
+        global $JSON_PATH;
+        $allFiles = $this->__getAllJsonFiles();
+        $allAnneeFormationInstances = [];
+
+        foreach($allFiles as $filename)
+        {
+            if(preg_match("/^referentiel_competences_BUT_[0-9]{2,3}/", $filename)) // verifie qu'on lit bien que les referentiel competences ici
+            {
+                $current_file_path = $JSON_PATH . "/" . $filename;
+                $current_file_content = file_get_contents($current_file_path);
+                $current_formation = json_decode($current_file_content, true);
+
+                if(empty($current_formation))
+                {
+                    continue; // skip l'iteration actuelle
+                }
+
+                preg_match("/^referentiel_competences_BUT_([0-9]{2,3})/", $filename, $matches);
+                $current_formation_id = (int)$matches[1];
+
+                $i = 0;
+                foreach($current_formation['parcours'] as $current_parcours) // parcours du dictionnaire contenant tout les parcours
+                {
+                    $i++;
+                    $current_parcours_id = ($current_formation_id * 10) + $i; // qu'on me pardonne, pas propre, à changer
+                    
+                    foreach($current_parcours['annees'] as $current_anneeFormation)
+                    {
+                        $current_anneeFormation_array = array(
+                            'ordre' => $current_anneeFormation['ordre'],
+                            'parcours_id' => $current_parcours_id
+                        );
+
+                        // instanciate the object
+                        $allAnneeFormationInstances[] = new AnneeFormation($current_anneeFormation_array);
+                    }
+                }
+                
+            }
+        }
+        return $allAnneeFormationInstances;
+    }
+
+    public function findall_rcue()
+    {
+        global $JSON_PATH;
+        $allFiles = $this->__getAllJsonFiles();
+        $allAnneeFormationInstances = [];
+
+        foreach($allFiles as $filename)
+        {
+            if(preg_match("/^referentiel_competences_BUT_[0-9]{2,3}/", $filename)) // verifie qu'on lit bien que les referentiel competences ici
+            {
+                $current_file_path = $JSON_PATH . "/" . $filename;
+                $current_file_content = file_get_contents($current_file_path);
+                $current_formation = json_decode($current_file_content, true);
+
+                if(empty($current_formation))
+                {
+                    continue; // skip l'iteration actuelle
+                }
+
+                preg_match("/^referentiel_competences_BUT_([0-9]{2,3})/", $filename, $matches);
+                $current_formation_id = (int)$matches[1];
+
+                $i = 0;
+                foreach($current_formation['parcours'] as $current_parcours) // parcours du dictionnaire contenant tout les parcours
+                {
+                    $i++;
+                    $current_parcours_id = ($current_formation_id * 10) + $i; // qu'on me pardonne, pas propre, à changer
+                    
+                    foreach($current_parcours['annees'] as $current_anneeFormation)
+                    {
+                        // on considera ici qu'une competence est une rcue, et inversement
+                        // ATTENTION parcours clé valeur cette fois-ci
+                        foreach($current_anneeFormation['comptences'] as $current_competence_name => $current_competence)
+                        {
+                            $current_competence_array = array(
+                                'nomCompetence' => $current_competence_name,
+                                'niveau' => $current_competence['niveau'],
+                                'anneeformation_id' => /* A REPRENDRE ICI */
+//----------------------------------------------------^^^^^^^^^^^^^^^^^^^^^^
+                            );
+                        }
+                    }
+                }
+                
+            }
+        }
+    }
 
     /*
     public function findformation_by_id(string $id);

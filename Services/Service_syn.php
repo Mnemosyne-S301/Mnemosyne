@@ -63,5 +63,33 @@ class Service_syn
         // remplissage de la base de donnée
         self::$scolariteDAO->addFormation($all_formation_dict);
     }
+
+    public function sync_parcours()
+    {
+        $all_parcours = self::$sourcedataDAO->findall_parcours();
+
+        $all_parcours_dict = [];
+        foreach($all_parcours as $p)
+        {
+            $all_parcours_dict[] = $p->toDict();
+        }
+
+        // remplissage de la base de donnée
+        self::$scolariteDAO->addParcours($all_parcours_dict);
+    }
+
+    public function sync_anneeFormation()
+    {
+        $all_anneeFormation = self::$sourcedataDAO->findall_anneeFormation();
+
+        $all_anneeFormation_dict = [];
+        foreach($all_anneeFormation as $af)
+        {
+            $all_anneeFormation_dict[] = $af->toDict();
+        }
+
+        // remplissage de la base de donnée
+        self::$scolariteDAO->addAnneeFormation($all_anneeFormation_dict);
+    }
 }
 ?>
