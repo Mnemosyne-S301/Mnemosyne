@@ -16,7 +16,7 @@
 
     <header class="relative flex flex-col items-center justify-center gap-2 py-6">
         <a href="index.php?controller=accueil" class="absolute left-8 top-8 group z-10">
-            <img src="img/Retour.png" alt="Retour" class="w-10 h-10 group-hover:scale-110 transition-transform">
+            <img src="Content/image/logo.png" alt="Accueil" class="w-10 h-10 group-hover:scale-110 transition-transform">
         </a>
         <h1 class="text-3xl font-bold tracking-wide">Suivi de Cohorte BUT</h1>
     </header>
