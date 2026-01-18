@@ -25,12 +25,11 @@ class Service_auth {
     }
 
     public function isLogged() : bool {
-        if (isset($_SESSION["ADMIN"]) && $_SESSION["ADMIN"] == true) {
-
-            return true ;} 
-        return false;
-
+        if (isset($_SESSION["logged"]) && $_SESSION["logged"] == true) {
+            return true;
         }
+        return false;
+    }
 
     public function logout()  {
          session_destroy();}

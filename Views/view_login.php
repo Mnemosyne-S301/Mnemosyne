@@ -19,7 +19,7 @@
         <img src="/Content/image/logo.png" alt="Logo Mnemosyne" class="mb-16 w-64 h-64">
         <div class="bg-[#102436] p-8 rounded-lg shadow-lg w-full max-w-md">
             <h2 class="text-2xl font-bold mb-6 text-center text-white">Connexion Admin</h2>
-            <form action="/login" method="POST" class="space-y-4">
+            <form action="index.php?controller=auth&action=login" method="POST" class="space-y-4">
                 <div>
                     <label for="username" class="block text-white mb-1">Nom d'utilisateur</label>
                     <input type="text" id="username" name="username" placeholder="Admin" required class="placeholder-gray-700 bg-[#999999] w-full px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-600">

@@ -10,7 +10,7 @@ private static function getConnectionDB() {
 
     if (is_null(self::$pdo)) {
 
-      require __DIR__ . '/config.php';
+    require __DIR__ . '/../config/config.php';
       try { 
         self::$pdo =new PDO(
             

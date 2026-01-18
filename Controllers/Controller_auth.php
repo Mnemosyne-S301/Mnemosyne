@@ -23,7 +23,7 @@ class Controller_auth extends Controller {
     }
 
 
-    public function login() {
+    public function action_login() {
         session_start();
         $msg_error = "";
         if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -50,7 +50,7 @@ class Controller_auth extends Controller {
 
 
 }
-    public function logout() {
+    public function action_logout() {
         
         session_unset();
         session_destroy();
