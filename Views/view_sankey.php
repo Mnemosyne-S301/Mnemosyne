@@ -24,6 +24,46 @@
     <main class="flex-1 overflow-y-auto px-10 pb-10 space-y-8">
         
         <section class="w-full">
+            <!-- Sélecteurs de formation et source de données -->
+            <div class="flex items-center justify-center gap-6 mb-4 flex-wrap">
+                <!-- Sélecteur de formation -->
+                <div class="flex items-center gap-2">
+                    <label for="formation-select" class="text-sm font-medium">Formation :</label>
+                    <select id="formation-select" class="bg-[#0A1E2F] border border-[#E3BF81] text-[#FBEDD3] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#E3BF81]">
+                        <option value="INFO" <?= ($formation ?? 'INFO') === 'INFO' ? 'selected' : '' ?>>BUT Informatique</option>
+                        <option value="GEA" <?= ($formation ?? '') === 'GEA' ? 'selected' : '' ?>>BUT GEA</option>
+                        <option value="RT" <?= ($formation ?? '') === 'RT' ? 'selected' : '' ?>>BUT R&T</option>
+                        <option value="GEII" <?= ($formation ?? '') === 'GEII' ? 'selected' : '' ?>>BUT GEII</option>
+                        <option value="CJ" <?= ($formation ?? '') === 'CJ' ? 'selected' : '' ?>>BUT Carrières Juridiques</option>
+                        <option value="SD" <?= ($formation ?? '') === 'SD' ? 'selected' : '' ?>>BUT Science des Données</option>
+                    </select>
+                </div>
+                
+                <!-- Sélecteur d'année de départ -->
+                <div class="flex items-center gap-2">
+                    <label for="annee-select" class="text-sm font-medium">Cohorte :</label>
+                    <select id="annee-select" class="bg-[#0A1E2F] border border-[#E3BF81] text-[#FBEDD3] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#E3BF81]">
+                        <?php for ($y = 2021; $y <= 2024; $y++): ?>
+                            <option value="<?= $y ?>" <?= ($anneeDepart ?? 2021) == $y ? 'selected' : '' ?>><?= $y ?></option>
+                        <?php endfor; ?>
+                    </select>
+                </div>
+                
+                <!-- Sélecteur de source de données -->
+                <div class="flex items-center gap-2">
+                    <label for="source-select" class="text-sm font-medium">Source :</label>
+                    <select id="source-select" class="bg-[#0A1E2F] border border-[#E3BF81] text-[#FBEDD3] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#E3BF81]">
+                        <option value="json" <?= ($source ?? 'json') === 'json' ? 'selected' : '' ?>>Fichiers JSON Test</option>
+                        <option value="bdd" <?= ($source ?? '') === 'bdd' ? 'selected' : '' ?>>Base de données</option>
+                    </select>
+                </div>
+                
+                <!-- Bouton recharger -->
+                <button id="reload-data" class="px-4 py-2 bg-[#E3BF81] text-[#0A1E2F] rounded-lg font-semibold hover:bg-[#d4a85c] transition-colors">
+                    Recharger
+                </button>
+            </div>
+            
             <!-- Contrôle par niveau BUT avec boutons -->
             <div class="flex items-center justify-center gap-4 mb-6 flex-wrap">
                 <span class="text-lg font-semibold">Filtrer par niveau :</span>
@@ -117,17 +157,44 @@
 
     <!-- Configuration des données -->
     <script>
-        // Les données sont passées directement par le contrôleur
-        window.SANKEY_DATA = {
-            data2021: <?php echo isset($data2021) ? json_encode($data2021) : '[]'; ?>,
-            data2022: <?php echo isset($data2022) ? json_encode($data2022) : '[]'; ?>,
-            data2023: <?php echo isset($data2023) ? json_encode($data2023) : '[]'; ?>
-        };
+        // Les données sont passées directement par le contrôleur via le service
+        <?php
+        $anneeDepart = $sankeyData['annee_depart'] ?? 2021;
+        $annees = $sankeyData['annees'] ?? [$anneeDepart, $anneeDepart + 1, $anneeDepart + 2];
+        $data = $sankeyData['data'] ?? [];
         
-        console.log('Données chargées depuis le contrôleur');
-        console.log('2021:', window.SANKEY_DATA.data2021.length, 'étudiants');
-        console.log('2022:', window.SANKEY_DATA.data2022.length, 'étudiants');
-        console.log('2023:', window.SANKEY_DATA.data2023.length, 'étudiants');
+        // Construire l'objet de données complet en PHP
+        $sankeyJsData = [
+            'annee_depart' => $anneeDepart,
+            'annees' => $annees
+        ];
+        foreach ($annees as $annee) {
+            $sankeyJsData['data' . $annee] = $data[(string)$annee] ?? [];
+        }
+        ?>
+        window.SANKEY_DATA = <?php echo json_encode($sankeyJsData); ?>;
+        window.SANKEY_SOURCE = '<?php echo $source ?? 'json'; ?>';
+            
+        console.log('Données chargées depuis:', window.SANKEY_SOURCE === 'json' ? 'Fichiers JSON' : 'Base de données');
+        console.log('Année de départ:', window.SANKEY_DATA.annee_depart);
+        window.SANKEY_DATA.annees.forEach((annee, i) => {
+            const dataKey = 'data' + annee;
+            console.log(`Année ${i + 1} (${annee}):`, window.SANKEY_DATA[dataKey]?.length || 0, 'étudiants');
+        });
+        
+        // Gestionnaire pour le bouton de rechargement
+        document.getElementById('reload-data')?.addEventListener('click', function() {
+            const formation = document.getElementById('formation-select').value;
+            const annee = document.getElementById('annee-select').value;
+            const source = document.getElementById('source-select').value;
+            
+            const url = new URL(window.location.href);
+            url.searchParams.set('formation', formation);
+            url.searchParams.set('anneeDepart', annee);
+            url.searchParams.set('source', source);
+            
+            window.location.href = url.toString();
+        });
     </script>
     
     <!-- Charger le fichier JavaScript externe -->

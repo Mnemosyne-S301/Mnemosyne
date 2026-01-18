@@ -1,10 +1,14 @@
 <?php 
-require_once("Services/Service_auth");
+require_once __DIR__ . "/../Services/Service_auth.php";
+
 class Controller_auth extends Controller { 
 
     private Service_auth $service_auth;
-    public function __construct( Service_auth $service_auth ) {
-        $this->service_auth = $service_auth;}
+    
+    public function __construct() {
+        $this->service_auth = new Service_auth();
+        parent::__construct();
+    }
 
     public function action_default() {
 

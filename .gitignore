@@ -1,0 +1,14 @@
+# Configuration locale (ne pas commit les credentials)
+config/config.php
+
+# Environnement Python
+.venv/
+__pycache__/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db

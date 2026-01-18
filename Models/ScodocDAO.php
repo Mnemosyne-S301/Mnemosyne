@@ -241,7 +241,49 @@ public function findReferentielCompetencesByFormation(string $formationId): arra
 }
 
 
-
+public function findall_rcue(): array {
+    // RCUEs are derived from formations' referentiel de compétences
+    $formations = $this->get("formations");
+    $instances = [];
+    $seen = []; // To avoid duplicates
+    
+    foreach ($formations as $formation) {
+        $formationId = $formation['formation_id'] ?? $formation['id'] ?? null;
+        if ($formationId === null) continue;
+        
+        try {
+            $referentiel = $this->get("formation/$formationId/referentiel_competences");
+            
+            if (isset($referentiel['competences'])) {
+                foreach ($referentiel['competences'] as $competence) {
+                    $nomCompetence = $competence['titre'] ?? $competence['nom'] ?? '';
+                    
+                    // Get niveaux for this competence
+                    $niveaux = $competence['niveaux'] ?? [];
+                    foreach ($niveaux as $niveau) {
+                        $niveauNum = $niveau['niveau'] ?? $niveau['ordre'] ?? null;
+                        $anneeFormationId = $niveau['annee_formation_id'] ?? $formationId;
+                        
+                        $key = "$nomCompetence-$niveauNum-$anneeFormationId";
+                        if (!isset($seen[$key])) {
+                            $seen[$key] = true;
+                            $instances[] = new RCUE([
+                                'nomCompetence' => $nomCompetence,
+                                'niveau' => $niveauNum,
+                                'anneeformation_id' => $anneeFormationId
+                            ]);
+                        }
+                    }
+                }
+            }
+        } catch (Exception $e) {
+            // Some formations may not have referentiel_competences, skip them
+            continue;
+        }
+    }
+    
+    return $instances;
+}
 
 
     public function findFormsemestresByAnnee(int $annee): array {

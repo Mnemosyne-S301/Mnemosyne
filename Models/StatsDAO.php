@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/../config/config.php';
+
 /**
  * Classe d'accès aux données (DAO) pour les statistiques.
  * Gère la connexion à la base de données et la récupération des informations
@@ -24,8 +26,7 @@ class StatsDAO {
      */
     private function __construct()
     {
-        $this->conn = new PDO('mysql:host=localhost;dbname=Stats', 'root', '1234');
-        // l'utilisateur ici est phpserv avec comme mot de passe mdptest . Pensez enventuellement à changer ça selon votre configuration.
+        $this->conn = new PDO('mysql:host=' . DB_HOST . ';dbname=' . STATS_DB_NAME, DB_USER, STATS_DB_PASS);
     }
 
     /**
@@ -181,37 +182,60 @@ class StatsDAO {
         return (int) $stmt->fetchColumn();
     }
 
+    /**
+     * Mapping des acronymes simplifiés vers les patterns de recherche en base
+     */
+    private function getFormationPattern(string $acronyme): string
+    {
+        $mapping = [
+            'INFO' => '%INFO%',
+            'GEA' => '%GEA%',
+            'GEII' => '%GEII%',
+            'RT' => '%R&T%',
+            'CJ' => '%CJ%',
+            'SD' => '%SD%',
+            'STID' => '%STID%',
+        ];
+        
+        return $mapping[strtoupper($acronyme)] ?? '%' . $acronyme . '%';
+    }
+
     public function getCohorteParAnneeEtFormation(int $anneeScolaire, string $formationAccronyme): array
-{
-    $sql = "
-        SELECT
-            e.etudiant_id AS etudid,
-            e.etat AS etat,
-            af.ordre AS ordre,
-            ca.code AS code,
-            ea.annee_scolaire AS annee_scolaire
-        FROM scolarite.effectuerannee ea
-        INNER JOIN scolarite.etudiant e 
-            ON e.etudiant_id = ea.etudiant_id
-        INNER JOIN scolarite.anneeformation af 
-            ON af.anneeformation_id = ea.anneeformation_id
-        INNER JOIN scolarite.parcours p 
-            ON p.parcours_id = af.parcours_id
-        INNER JOIN scolarite.formation f 
-            ON f.formation_id = p.formation_id
-        INNER JOIN scolarite.codeannee ca 
-            ON ca.codeannee_id = ea.codeannee_id
-        WHERE ea.annee_scolaire = :annee
-          AND f.accronyme = :formation
-    ";
+    {
+        // Utiliser une connexion à la base scolarite (pas stats)
+        $connScolarite = new PDO('mysql:host=' . DB_HOST . ';dbname=' . DB_NAME . ';charset=utf8mb4', DB_USER, DB_PASS);
+        
+        $pattern = $this->getFormationPattern($formationAccronyme);
+        
+        $sql = "
+            SELECT
+                e.etudiant_id AS etudid,
+                e.etat AS etat,
+                af.ordre AS ordre,
+                ca.code AS code,
+                ea.annee_scolaire AS annee_scolaire
+            FROM EffectuerAnnee ea
+            INNER JOIN Etudiant e 
+                ON e.etudiant_id = ea.etudiant_id
+            INNER JOIN AnneeFormation af 
+                ON af.anneeformation_id = ea.anneeformation_id
+            INNER JOIN Parcours p 
+                ON p.parcours_id = af.parcours_id
+            INNER JOIN Formation f 
+                ON f.formation_id = p.formation_id
+            INNER JOIN CodeAnnee ca 
+                ON ca.codeannee_id = ea.codeannee_id
+            WHERE ea.annee_scolaire = :annee
+              AND f.accronyme LIKE :formation
+        ";
 
-    $stmt = $this->conn->prepare($sql);
-    $stmt->bindValue(':annee', $anneeScolaire, PDO::PARAM_INT);
-    $stmt->bindValue(':formation', $formationAccronyme, PDO::PARAM_STR);
-    $stmt->execute();
+        $stmt = $connScolarite->prepare($sql);
+        $stmt->bindValue(':annee', $anneeScolaire, PDO::PARAM_INT);
+        $stmt->bindValue(':formation', $pattern, PDO::PARAM_STR);
+        $stmt->execute();
 
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
-}
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 
 
 }

@@ -1,5 +1,6 @@
-<<?php 
-require_once "UserDAO.php";
+<?php 
+require_once __DIR__ . "/../Models/UserDAO.php";
+require_once __DIR__ . "/../Models/DB.php";
 
 class Service_auth {
     private UserDAO $dao ;   

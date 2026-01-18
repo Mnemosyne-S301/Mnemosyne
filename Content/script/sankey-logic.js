@@ -46,12 +46,13 @@ const SankeyCohort = (function() {
         return `rgba(${r}, ${g}, ${b}, ${alpha})`;
     }
 
-    function processCohortData(data2021, data2022, data2023) {
+    function processCohortData(dataByYear) {
         const etudiants = new Map();
 
-        processYearData(data2021, 2021, etudiants);
-        processYearData(data2022, 2022, etudiants);
-        processYearData(data2023, 2023, etudiants);
+        // Traiter dynamiquement toutes les années disponibles
+        Object.entries(dataByYear).forEach(([year, data]) => {
+            processYearData(data, parseInt(year), etudiants);
+        });
 
         console.log(`=== ${etudiants.size} étudiants uniques trouvés ===`);
 
@@ -149,13 +150,14 @@ const SankeyCohort = (function() {
                 const isLastStep = i === etudiant.annees.length - 1;
                 const nextStep = i < etudiant.annees.length - 1 ? etudiant.annees[i + 1] : null;
                 
+                // Vérifier si c'est un abandon définitif
                 if (CODES_ABANDON_DEFINITIF.includes(step.code)) {
                     // Créer un nœud de sortie spécifique au niveau (ex: NAR_BUT1)
                     const sortieNode = `${step.code}_${niveauActuel}`;
                     addLink(niveauActuel, sortieNode);
                     stats.abandons++;
                     hasAbandon = true;
-                    break;
+                    break; // Sortir de la boucle car l'étudiant a abandonné
                 }
                 
                 if (i > 0 && niveauStep !== niveauActuel) {
@@ -196,11 +198,16 @@ const SankeyCohort = (function() {
                         }
                     }
                     
-                    if (CODES_ABANDON_DEFINITIF.includes(step.code) && (!nextStep || nextStep.annee - step.annee > 1)) {
-                        addLink(niveauActuel, `${step.code}_${niveauActuel}`);
-                        stats.abandons++;
-                        hasAbandon = true;
-                        break;
+                    // Note: Les abandons définitifs sont déjà gérés plus haut dans la boucle
+                    // Ce bloc gère les cas où un étudiant disparaît entre deux années (gap > 1 an)
+                    if (!nextStep || nextStep.annee - step.annee > 1) {
+                        // Étudiant disparu sans code d'abandon explicite
+                        if (!hasAbandon && !CODES_VALIDATION.includes(step.code) && !CODES_PASSAGE_DIFFICILE.includes(step.code)) {
+                            addLink(niveauActuel, `Abandon_${niveauActuel}`);
+                            stats.abandons++;
+                            hasAbandon = true;
+                            break;
+                        }
                     }
                 }
             }
@@ -438,6 +445,18 @@ const SankeyCohort = (function() {
         }, 50);
     }
 
+    // Extraire les années disponibles depuis SANKEY_DATA
+    function extractAvailableYears(data) {
+        const years = {};
+        Object.keys(data).forEach(key => {
+            const match = key.match(/^data(\d{4})$/);
+            if (match && Array.isArray(data[key])) {
+                years[match[1]] = data[key];
+            }
+        });
+        return years;
+    }
+
     async function init() {
         const loader = document.getElementById('loader');
         
@@ -446,20 +465,23 @@ const SankeyCohort = (function() {
             const data = window.SANKEY_DATA;
             console.log('SANKEY_DATA:', data);
             
-            if (!data || !data.data2021 || !data.data2022 || !data.data2023) {
+            const availableYears = extractAvailableYears(data);
+            const yearKeys = Object.keys(availableYears);
+            
+            if (!data || yearKeys.length === 0) {
                 throw new Error('Données non disponibles');
             }
 
-            console.log('Données valides, traitement en cours...');
+            console.log(`Années disponibles: ${yearKeys.join(', ')}`);
             loader.innerHTML = '<p class="animate-pulse text-xl">Analyse des parcours...</p>';
             
-            const processed = processCohortData(data.data2021, data.data2022, data.data2023);
+            const processed = processCohortData(availableYears);
             
             loader.classList.add('hidden');
             renderChart(processed);
             
             setupLegendToggle();
-            setupBUTFilters(data);
+            setupBUTFilters(availableYears);
 
         } catch (err) {
             console.error('Erreur lors du chargement:', err);
@@ -467,7 +489,7 @@ const SankeyCohort = (function() {
         }
     }
 
-    function setupBUTFilters(allData) {
+    function setupBUTFilters(availableYears) {
         const buttons = document.querySelectorAll('.but-filter');
         
         buttons.forEach(btn => {
@@ -487,25 +509,21 @@ const SankeyCohort = (function() {
                 if (level === 'all') {
                     // Afficher toutes les années
                     e.target.classList.add('bg-[#E3BF81]', 'text-[#0A1E2F]');
-                    processYearData(allData.data2021, 2021, etudiants);
-                    processYearData(allData.data2022, 2022, etudiants);
-                    processYearData(allData.data2023, 2023, etudiants);
+                    Object.entries(availableYears).forEach(([year, data]) => {
+                        processYearData(data, parseInt(year), etudiants);
+                    });
                 } else {
                     // Filtrer par niveau BUT
                     const numLevel = parseInt(level);
                     const colors = { 1: '#60A5FA', 2: '#93C5FD', 3: '#DBEAFE' };
                     e.target.classList.add(`bg-[${colors[numLevel]}]`, 'text-white');
                     
-                    const filteredData = {};
-                    [2021, 2022, 2023].forEach(year => {
-                        filteredData[year] = allData[`data${year}`].filter(etud => 
+                    Object.entries(availableYears).forEach(([year, data]) => {
+                        const filteredData = data.filter(etud => 
                             etud.annee && etud.annee.ordre === numLevel
                         );
+                        processYearData(filteredData, parseInt(year), etudiants);
                     });
-                    
-                    processYearData(filteredData[2021], 2021, etudiants);
-                    processYearData(filteredData[2022], 2022, etudiants);
-                    processYearData(filteredData[2023], 2023, etudiants);
                 }
                 
                 // Animation fade-out avant la mise à jour

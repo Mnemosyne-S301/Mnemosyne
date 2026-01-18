@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/../config/config.php';
+
 class ScolariteDAO
 {
     private $conn; // contains the PDO instance
@@ -7,8 +9,13 @@ class ScolariteDAO
 
     private function __construct()
     {
-        $this->conn = new PDO('mysql:host=localhost;dbname=Scolarite', 'phpserv', 'mdptest');
-        // l'utilisateur ici est phpserv avec comme mot de passe mdptest . Pensez enventuellement à changer ça selon votre configuration.
+        $this->conn = new PDO(
+            'mysql:host=' . DB_HOST . ';dbname=' . DB_NAME . ';charset=utf8mb4', 
+            DB_USER, 
+            DB_PASS,
+            [PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4"]
+        );
+        $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     }
 
     public static function getModel()
