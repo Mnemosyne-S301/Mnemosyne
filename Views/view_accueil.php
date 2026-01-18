@@ -34,9 +34,12 @@
     <main class="flex items-center justify-center flex-1">
 
         <!-- Formulaire principal -->
-        <form action="/sankey/default"
-              method="post"
+        <form action="index.php"
+              method="get"
               class="flex flex-col gap-4 w-96">
+            
+            <!-- Champ caché pour le contrôleur -->
+            <input type="hidden" name="controller" value="sankey">
 
             <!-- ----------------------------
                  Champ : Choix de formation
@@ -70,21 +73,20 @@
 
                 <!-- Label -->
                 <label class="font-semibold text-[#FBEDD3]">
-                    Années:
+                    Cohorte de départ:
                 </label>
 
                 <!-- Sélecteur d'années (PHP générant les options) -->
-                <select name="annee"
+                <select name="anneeDepart"
                         class="appearance-none block text-[#999999] w-full bg-neutral-secondary-medium
                                border-default-medium text-heading text-sm rounded-lg
                                focus:ring-brand focus:border-brand px-3 py-2.5 shadow-xs
                                text-fg-disabled bg-[#88888880]">
 
                     <?php
-                        // Génère les années 2020-2021 jusqu’à 2025-2026
-                        for ($y = 2020; $y <= 2025; $y++) {
-                            $date = $y . '-' . ($y + 1);
-                            echo '<option value="' . $date . '">' . $date . '</option>';
+                        // Génère les années 2021 jusqu'à 2024 (années avec données disponibles)
+                        for ($y = 2021; $y <= 2024; $y++) {
+                            echo '<option value="' . $y . '">' . $y . '-' . ($y + 1) . '</option>';
                         }
                     ?>
                 </select>

@@ -3,13 +3,13 @@ require_once  __DIR__ ."/../Models/ScodocDAO.php";
 require_once  __DIR__ ."/../Models/ScolariteDAO.php";
 require_once __DIR__ ."/../Models/DB.php";
 
-require_once __DIR__. "/Etudiant.php";
-require_once __DIR__. "/Formation.php";
-require_once __DIR__. "/Departement.php";
-require_once __DIR__. "/UE.php";
-require_once __DIR__. "/RCUE.php"; 
-require_once __DIR__. "/Formsemestre.php";
-require_once __DIR__. "/Decision.php";
+require_once __DIR__. "/../Models/Etudiant.php";
+require_once __DIR__. "/../Models/Formation.php";
+require_once __DIR__. "/../Models/Departement.php";
+require_once __DIR__. "/../Models/UE.php";
+require_once __DIR__. "/../Models/RCUE.php"; 
+require_once __DIR__. "/../Models/Formsemestre.php";
+require_once __DIR__. "/../Models/Decision.php";
 
 
 // il manque RCUE, effectuer ue et effectuer rcue, recup donnee par annee

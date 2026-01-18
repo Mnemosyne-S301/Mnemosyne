@@ -27,29 +27,21 @@ class Controller_sankey extends Controller {
     
     /**
      * Action par défaut : affiche la page du diagramme Sankey
+     * Les données sont chargées via l'API en JavaScript
      */
     public function action_default() {
         // Récupérer les paramètres ou utiliser les valeurs par défaut
         $anneeDepart = isset($_GET['anneeDepart']) ? (int)substr(trim($_GET['anneeDepart']), 0, 4) : 2021;
-        $formation = isset($_GET['formation']) ? trim($_GET['formation']) : 'INFO';
-        // Option pour choisir la source de données : 'json' ou 'bdd' (par défaut 'json' car BDD non peuplée)
+        $formation = isset($_GET['formation']) ? strtoupper(trim($_GET['formation'])) : 'INFO';
         $source = isset($_GET['source']) ? strtolower(trim($_GET['source'])) : 'json';
         
         $title = 'Suivi de Cohorte d\'étudiants';
-        $formationLabel = 'BUT Informatique';
         
-        // Récupérer les données selon la source choisie
-        if ($source === 'json') {
-            $sankeyData = $this->getSankeyDataFromJson($anneeDepart, $formation);
-        } else {
-            $sankeyData = $this->service->getSankeyCohorteDepuisAnnee($anneeDepart, $formation);
-        }
-        
-        // Passer les données directement à la vue
+        // Passer uniquement la configuration à la vue
+        // Les données seront chargées via l'API en JavaScript
         $this->render('sankey', [
-            'sankeyData' => $sankeyData,
             'title' => $title,
-            'formation' => $formationLabel,
+            'formation' => $formation,
             'anneeDepart' => $anneeDepart,
             'source' => $source
         ]);

@@ -157,47 +157,104 @@
 
     <!-- Configuration des données -->
     <script>
-        // Les données sont passées directement par le contrôleur via le service
-        <?php
-        $anneeDepart = $sankeyData['annee_depart'] ?? 2021;
-        $annees = $sankeyData['annees'] ?? [$anneeDepart, $anneeDepart + 1, $anneeDepart + 2];
-        $data = $sankeyData['data'] ?? [];
+        // Configuration initiale depuis PHP
+        window.SANKEY_CONFIG = {
+            formation: '<?php echo $formation ?? 'INFO'; ?>',
+            anneeDepart: <?php echo $anneeDepart ?? 2021; ?>,
+            source: '<?php echo $source ?? 'json'; ?>'
+        };
         
-        // Construire l'objet de données complet en PHP
-        $sankeyJsData = [
-            'annee_depart' => $anneeDepart,
-            'annees' => $annees
-        ];
-        foreach ($annees as $annee) {
-            $sankeyJsData['data' . $annee] = $data[(string)$annee] ?? [];
+        // Variable globale pour les données (sera remplie par l'API)
+        window.SANKEY_DATA = null;
+        window.SANKEY_SOURCE = window.SANKEY_CONFIG.source;
+
+        /**
+         * Charge les données depuis l'API
+         */
+        async function loadSankeyData(formation, anneeDepart, source) {
+            const loadingEl = document.getElementById('sankey-plot');
+            if (loadingEl) {
+                loadingEl.innerHTML = '<div class="flex items-center justify-center h-full"><span class="text-xl">Chargement des données...</span></div>';
+            }
+
+            try {
+                const url = `index.php?controller=api&action=sankey&formation=${formation}&anneeDepart=${anneeDepart}&source=${source}`;
+                console.log('Appel API:', url);
+                
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error(`Erreur HTTP: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                // Transformer les données pour le format attendu par sankey-logic.js
+                const sankeyData = {
+                    annee_depart: data.annee_depart,
+                    annees: data.annees
+                };
+                
+                // Ajouter les données par année (data2021, data2022, etc.)
+                data.annees.forEach(annee => {
+                    sankeyData['data' + annee] = data.data[annee] || [];
+                });
+
+                window.SANKEY_DATA = sankeyData;
+                window.SANKEY_SOURCE = source;
+
+                console.log('Données chargées depuis:', source === 'json' ? 'Fichiers JSON' : 'Base de données');
+                console.log('Année de départ:', sankeyData.annee_depart);
+                sankeyData.annees.forEach((annee, i) => {
+                    const dataKey = 'data' + annee;
+                    console.log(`Année ${i + 1} (${annee}):`, sankeyData[dataKey]?.length || 0, 'étudiants');
+                });
+
+                // Initialiser le diagramme Sankey
+                if (typeof SankeyCohort !== 'undefined') {
+                    SankeyCohort.init();
+                }
+
+            } catch (error) {
+                console.error('Erreur lors du chargement:', error);
+                if (loadingEl) {
+                    loadingEl.innerHTML = `<div class="flex items-center justify-center h-full text-red-400"><span class="text-xl">Erreur: ${error.message}</span></div>`;
+                }
+            }
         }
-        ?>
-        window.SANKEY_DATA = <?php echo json_encode($sankeyJsData); ?>;
-        window.SANKEY_SOURCE = '<?php echo $source ?? 'json'; ?>';
-            
-        console.log('Données chargées depuis:', window.SANKEY_SOURCE === 'json' ? 'Fichiers JSON' : 'Base de données');
-        console.log('Année de départ:', window.SANKEY_DATA.annee_depart);
-        window.SANKEY_DATA.annees.forEach((annee, i) => {
-            const dataKey = 'data' + annee;
-            console.log(`Année ${i + 1} (${annee}):`, window.SANKEY_DATA[dataKey]?.length || 0, 'étudiants');
-        });
-        
-        // Gestionnaire pour le bouton de rechargement
-        document.getElementById('reload-data')?.addEventListener('click', function() {
+
+        // Gestionnaire pour le bouton de rechargement (sans recharger la page)
+        document.getElementById('reload-data')?.addEventListener('click', async function() {
             const formation = document.getElementById('formation-select').value;
             const annee = document.getElementById('annee-select').value;
             const source = document.getElementById('source-select').value;
             
+            // Mettre à jour l'URL sans recharger
             const url = new URL(window.location.href);
             url.searchParams.set('formation', formation);
             url.searchParams.set('anneeDepart', annee);
             url.searchParams.set('source', source);
+            history.pushState({}, '', url);
             
-            window.location.href = url.toString();
+            // Charger les nouvelles données via l'API
+            await loadSankeyData(formation, annee, source);
+        });
+
+        // Chargement initial des données au démarrage
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSankeyData(
+                window.SANKEY_CONFIG.formation,
+                window.SANKEY_CONFIG.anneeDepart,
+                window.SANKEY_CONFIG.source
+            );
         });
     </script>
     
     <!-- Charger le fichier JavaScript externe -->
-    <script src="/Content/script/sankey-logic.js"></script>
+    <script src="Content/script/sankey-logic.js"></script>
 </body>
 </html>
