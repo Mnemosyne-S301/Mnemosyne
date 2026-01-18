@@ -7,6 +7,7 @@ require_once __DIR__ . "/Decision.php";
 require_once __DIR__ . "/Formation.php";
 require_once __DIR__ . "/Parcours.php";
 require_once __DIR__ . "/AnneeFormation.php";
+require_once __DIR__ . "/RCUE.php";
 
 $JSON_PATH = __DIR__ . "/../Database/example/json";
 
@@ -316,7 +317,7 @@ class JsonDAO
     {
         global $JSON_PATH;
         $allFiles = $this->__getAllJsonFiles();
-        $allAnneeFormationInstances = [];
+        $allCompetenceInstances = [];
 
         foreach($allFiles as $filename)
         {
@@ -344,20 +345,29 @@ class JsonDAO
                     {
                         // on considera ici qu'une competence est une rcue, et inversement
                         // ATTENTION parcours clé valeur cette fois-ci
-                        foreach($current_anneeFormation['comptences'] as $current_competence_name => $current_competence)
+                        foreach($current_anneeFormation['competences'] as $current_competence_name => $current_competence)
                         {
                             $current_competence_array = array(
                                 'nomCompetence' => $current_competence_name,
                                 'niveau' => $current_competence['niveau'],
-                                'anneeformation_id' => /* A REPRENDRE ICI */
-//----------------------------------------------------^^^^^^^^^^^^^^^^^^^^^^
+                                'ordre_anneeFormation' => $current_anneeFormation['ordre'],
+                                'code_parcours' => $current_parcours['code'],
+                                'formation_id' => $current_formation_id
                             );
+                            /* Les champs 'ordre_anneeFormation' , 'code_parcours' et 'formation_id' servent
+                             * à identifier un UNIQUE anneeFormation. On peut donc en déduire le 'anneeFormation_id'. 
+                             * On aurait pas pu l'obtenir autrement car type SERIAL, connu que par la base de donnée.
+                             */
+
+                            // instanciate the objet
+                            $allCompetenceInstances[] = new RCUE($current_competence_array);
                         }
                     }
                 }
                 
             }
         }
+        return $allCompetenceInstances;
     }
 
     /*

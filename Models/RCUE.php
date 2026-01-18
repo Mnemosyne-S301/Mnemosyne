@@ -3,12 +3,16 @@
 class RCUE {
     private String $nomCompetence;
     private int $niveau;
-    private int $anneeformation_id;
+    private int $ordre_anneeFormation;
+    private String $code_parcours;
+    private int $formation_id;
 
     public function __construct(array $dict) {
-        $this->nomCompetence = $dict['nom_competence'];
+        $this->nomCompetence = $dict['nomCompetence'];
         $this->niveau = $dict['niveau'];
-        $this->anneeformation_id = $dict['annee_formation_id'];
+        $this->ordre_anneeFormation = $dict['ordre_anneeFormation'];
+        $this->code_parcours = $dict['code_parcours'];
+        $this->formation_id = $dict['formation_id'];
     }
 
     /* GETTERS */
@@ -21,20 +25,27 @@ class RCUE {
         return $this->niveau;
     }
 
-    public function getAnneeFormationId(): int {
-        return $this->anneeformation_id;
+    public function getOrdreAnneeFormation(): int {
+        return $this->ordre_anneeFormation;
+    }
+
+    public function getCodeParcours(): String {
+        return $this->code_parcours;
+    }
+
+    public function getFormationId(): int {
+        return $this->formation_id;
     }
 
     /* OTHER METHODS */
 
-    /**
-     * Convertit l'objet en tableau associatif
-     */
     public function toDict(): array {
         return array(
-            'nom_competence' => $this->nomCompetence,
+            'nomCompetence' => $this->nomCompetence,
             'niveau' => $this->niveau,
-            'annee_formation_id' => $this->anneeformation_id
+            'ordre_anneeFormation' => $this->ordre_anneeFormation,
+            'code_parcours' => $this->code_parcours,
+            'formation_id' => $this->formation_id
         );
     }
 }

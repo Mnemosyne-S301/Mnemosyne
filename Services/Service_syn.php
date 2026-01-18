@@ -91,5 +91,19 @@ class Service_syn
         // remplissage de la base de donnée
         self::$scolariteDAO->addAnneeFormation($all_anneeFormation_dict);
     }
+
+    public function sync_rcue()
+    {
+        $all_rcue = self::$sourcedataDAO->findall_rcue();
+
+        $all_rcue_dict = [];
+        foreach($all_rcue as $rcue)
+        {
+            $all_rcue_dict[] = $rcue->toDict();
+        }
+
+        // remplissage de la base de donnée
+        self::$scolariteDAO->addRCUE($all_rcue_dict);
+    }
 }
 ?>

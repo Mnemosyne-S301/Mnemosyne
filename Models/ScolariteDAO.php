@@ -207,13 +207,20 @@ class ScolariteDAO
     public function addRCUE(array $rcues)
     {
         // query writting
-        $query = "INSERT INTO RCUE(nomCompetence, niveau, anneeformation_id) VALUES ";
+        $query = "INSERT INTO RCUE(nomCompetence, niveau, anneeformation_id) ";
         for ($i = 0; $i < count($rcues); $i++)
         {
-            $query = $query . "(?, ?, ?)";
+            $query = $query . " SELECT ? AS nomCompetence, ? AS niveau, anneeformation_id
+                                FROM AnneeFormation AS AF
+                                INNER JOIN Parcours AS P USING(parcours_id)
+                                INNER JOIN Formation AS F USING(formation_id)
+                                WHERE AF.ordre = ?
+                                AND P.code = ?
+                                AND F.formation_id = ?
+                            ";
             if ($i < count($rcues) - 1)
             {
-                $query = $query . ", ";
+                $query = $query . " UNION ALL ";
             }
         }
         $query = $query . ";";
@@ -224,7 +231,9 @@ class ScolariteDAO
         {
             $allRCUEValues[] = $rcue['nomCompetence'];
             $allRCUEValues[] = $rcue['niveau'];
-            $allRCUEValues[] = $rcue['anneeformation_id'];
+            $allRCUEValues[] = $rcue['ordre_anneeFormation'];
+            $allRCUEValues[] = $rcue['code_parcours'];
+            $allRCUEValues[] = $rcue['formation_id'];
         }
 
         // execution de la requete
