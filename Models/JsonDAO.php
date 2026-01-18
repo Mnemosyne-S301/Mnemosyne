@@ -8,6 +8,7 @@ require_once __DIR__ . "/Formation.php";
 require_once __DIR__ . "/Parcours.php";
 require_once __DIR__ . "/AnneeFormation.php";
 require_once __DIR__ . "/RCUE.php";
+require_once __DIR__ . "/UE.php";
 
 $JSON_PATH = __DIR__ . "/../Database/example/json";
 
@@ -135,6 +136,7 @@ class JsonDAO
                         $current_code_parcours = $current_formsemestre['parcours'][0]['code'];
                         // le parcours du formsemestre est le premier dans le cas
                         // ou il y en a plusieurs (choix arbitraire)
+                        /**** FIN LOGIQUE METIER ****************/
 
                         // création du dico nous même
                         $current_formsemestre_array = array(
@@ -382,6 +384,74 @@ class JsonDAO
             }
         }
         return $allCompetenceInstances;
+    }
+
+    public function findall_ue()
+    {
+        global $JSON_PATH;
+        $allFiles = $this->__getAllJsonFiles();
+        $allUeInstances = [];
+
+        foreach($allFiles as $filename)
+        {
+            if(preg_match("/^decisions_jury_[0-9]{4}_fs_[0-9]{3,4}_/", $filename)) // verifie qu'on lit bien que les referentiel competences ici
+            {
+                $current_file_path = $JSON_PATH . "/" . $filename;
+                $current_file_content = file_get_contents($current_file_path);
+                $current_data = json_decode($current_file_content, true);
+
+                if(empty($current_data))
+                {
+                    continue; // skip l'iteration actuelle
+                }
+
+                // recherche id formsemestre dans le nom de fichier
+                preg_match("/^decisions_jury_([0-9]{4})_fs_([0-9]{3,4})_/", $filename, $matches);
+                $current_annee_scolaire = $matches[1];
+                $current_formsemstre_id = $matches[2]; 
+                
+                // recherche des competences du premier parcours (choix par defaut) du l'annee de ce formsemestre
+                // pas du tout optimise, dsl la complexite (plus le temps)
+                $current_formsemestre_competences = [];
+                $formsemestre_file_path = $JSON_PATH . '/formsemestres_' . $current_annee_scolaire . '.json';
+                $formsemestre_file_content = file_get_contents($formsemestre_file_path);
+                $formsemestre_file_data = json_decode($formsemestre_file_content, true);
+                foreach($formsemestre_file_data as $formsemestre)
+                {
+                    if((int)$formsemestre['id'] == (int)$current_formsemstre_id)
+                    {
+                        $current_formsemetre_ordre_annee = intdiv((int)$formsemestre['semestre_id'] + 1, 2);
+                        // cf. un fichier formsemestre_XXXX.json pour comprendre (pas propre, je sais)
+                        $competences = $formsemestre['parcours'][0]['annees'][$current_formsemetre_ordre_annee]['competences'];
+                        foreach($competences as $nom_competence => $competence)
+                        {
+                            $current_formsemestre_competences[] = $nom_competence;
+                        }
+                    }
+                }
+
+                var_dump($current_formsemestre_competences);
+                $current_decision = $current_data[0]; // on prend qu'un echantillon pour recuperer les UE
+                $current_ues = $current_decision['ues'];
+                $i = 0;
+                foreach($current_ues as $ue)
+                {
+                    $current_ue_array = array(
+                        'ue_id' => $ue['ue_id'],
+                        'formsemestre_id' => $current_formsemstre_id,
+                        'nomCompetence' => $current_formsemestre_competences[$i] ?? ""
+                    );
+
+                    // instanciate the object
+                    $current_ue = new UE($current_ue_array);
+                    $allUeInstances[] = $current_ue;
+
+                    $i++;
+                }
+                
+            }
+        }
+        return $allUeInstances;
     }
 
     /*
