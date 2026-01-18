@@ -124,16 +124,30 @@ class JsonDAO
                     {                                                                                       
                         $allFormsemestresId[] = $current_formsemstre_id;
 
+                        /*** IMPLEMENTATION LOGIQUE METIER ICI ****/
+                        // on ne garde que les BUT 
+                        if(!str_contains($current_formsemestre['titre'], "BUT"))
+                        {
+                            continue; // skip this iteration
+                        }
+                        $current_ordre_anneeFormation = intdiv((int)$current_formsemestre['semestre_id'] + 1, 2);
+                        // x_annee = (x_semestre + 1) // 2  ; division euclidienne
+                        $current_code_parcours = $current_formsemestre['parcours'][0]['code'];
+                        // le parcours du formsemestre est le premier dans le cas
+                        // ou il y en a plusieurs (choix arbitraire)
+
                         // création du dico nous même
                         $current_formsemestre_array = array(
                             'formsemestre_id'       => $current_formsemestre['id'],
                             'titre'                 => $current_formsemestre['titre'],
                             'semestre_num'          => $current_formsemestre['semestre_id'],
-                            'date_debut'            => $current_formsemestre['date_debut'],
-                            'date_fin'              => $current_formsemestre['date_fin'],
+                            'date_debut'            => $current_formsemestre['date_debut_iso'],
+                            'date_fin'              => $current_formsemestre['date_fin_iso'],
                             'titre_long'            => $current_formsemestre['titre_num'],
                             'etape_apo'             => $current_formsemestre['etape_apo'],
-                            'anneeformation_id'     => $current_formsemestre['formation']['formation_id']
+                            'ordre_anneeFormation'  => $current_ordre_anneeFormation,
+                            'code_parcours'         => $current_code_parcours,
+                            'formation_id'          => $current_formsemestre['formation']['formation_id']
                         );
 
                         // instanciate the object

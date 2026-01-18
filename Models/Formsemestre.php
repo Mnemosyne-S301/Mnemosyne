@@ -7,9 +7,11 @@ class Formsemestre {
     private string $date_fin;
     private string $titre_long;
     private string $etape_apo;
-    private int $anneeformation_id;
+    private int $ordre_anneeFormation;
+    private string $code_parcours;
+    private int $formation_id;
 
-    public function __construct($dict){
+    public function __construct(array $dict) {
         $this->formsemestre_id = $dict['formsemestre_id'];
         $this->titre = $dict['titre'];
         $this->semestre_num = $dict['semestre_num'];
@@ -17,7 +19,9 @@ class Formsemestre {
         $this->date_fin = $dict['date_fin'];
         $this->titre_long = $dict['titre_long'];
         $this->etape_apo = $dict['etape_apo'];
-        $this->anneeformation_id = $dict['anneeformation_id'];
+        $this->ordre_anneeFormation = $dict['ordre_anneeFormation'];
+        $this->code_parcours = $dict['code_parcours'];
+        $this->formation_id = $dict['formation_id'];
     }
 
     /* GETTERS */
@@ -50,8 +54,16 @@ class Formsemestre {
         return $this->etape_apo;
     }
 
-    public function getAnneeformationId(): int {
-        return $this->anneeformation_id;
+    public function getOrdreAnneeFormation(): int {
+        return $this->ordre_anneeFormation;
+    }
+
+    public function getCodeParcours(): int {
+        return $this->code_parcours;
+    }
+
+    public function getFormationId(): int {
+        return $this->formation_id;
     }
 
     /* OTHER METHODS */
@@ -65,7 +77,9 @@ class Formsemestre {
             'date_fin' => $this->date_fin,
             'titre_long' => $this->titre_long,
             'etape_apo' => $this->etape_apo,
-            'anneeformation_id' => $this->anneeformation_id
+            'ordre_anneeFormation' => $this->ordre_anneeFormation,
+            'code_parcours' => $this->code_parcours,
+            'formation_id' => $this->formation_id
         );
     }
 }

@@ -244,13 +244,19 @@ class ScolariteDAO
     public function addFormSemestre(array $formSemestres)
     {
         // query writting
-        $query = "INSERT INTO FormSemestre(formsemestre_id, titre, semestre_num, date_debut, date_fin, titre_long, etape_apo, anneeformation_id) VALUES ";
+        $query = "INSERT INTO FormSemestre(formsemestre_id, titre, semestre_num, date_debut, date_fin, titre_long, etape_apo, anneeformation_id) ";
         for ($i = 0; $i < count($formSemestres); $i++)
         {
-            $query = $query . "(?, ?, ?, ?, ?, ?, ?, ?)";
+            $query = $query . " SELECT ? AS formsemestre_id, ? AS titre, ? AS semestre_num, ? AS date_debut, ? AS date_fin, ? AS titre_long, ? AS etape_apo, anneeformation_id
+                                FROM AnneeFormation AS AF 
+                                INNER JOIN Parcours AS P USING(parcours_id)
+                                WHERE AF.ordre = ?
+                                AND P.code = ?
+                                AND P.formation_id = ?
+                            ";
             if ($i < count($formSemestres) - 1)
             {
-                $query = $query . ", ";
+                $query = $query . " UNION ALL ";
             }
         }
         $query = $query . ";";
@@ -266,7 +272,9 @@ class ScolariteDAO
             $allFormSemestreValues[] = $fs['date_fin'];
             $allFormSemestreValues[] = $fs['titre_long'];
             $allFormSemestreValues[] = $fs['etape_apo'];
-            $allFormSemestreValues[] = $fs['anneeformation_id'];
+            $allFormSemestreValues[] = $fs['ordre_anneeFormation'];
+            $allFormSemestreValues[] = $fs['code_parcours'];
+            $allFormSemestreValues[] = $fs['formation_id'];
         }
 
         // execution de la requete

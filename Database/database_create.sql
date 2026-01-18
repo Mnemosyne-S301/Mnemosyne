@@ -60,11 +60,11 @@ CREATE TABLE AnneeFormation(
 
 CREATE TABLE FormSemestre(
     formsemestre_id INTEGER PRIMARY KEY,
-    titre VARCHAR(50) NOT NULL,
+    titre VARCHAR(100) NOT NULL,
     semestre_num TINYINT UNSIGNED,
     date_debut DATE,
     date_fin DATE,
-    titre_long VARCHAR(50),
+    titre_long VARCHAR(100),
     etape_apo VARCHAR(50),
     anneeformation_id BIGINT UNSIGNED,
     FOREIGN KEY (anneeformation_id) REFERENCES AnneeFormation(anneeformation_id) ON DELETE CASCADE

@@ -78,6 +78,41 @@ class Service_syn
         self::$scolariteDAO->addParcours($all_parcours_dict);
     }
 
+
+    /** Permet d'ajouter un parcours pas défaut au formation ne possédant de parcours. Pour que la base de donnée de Mnemosyne fonctionne,
+     * chaque formation doit au minimum avoir un parcours. Ce parcours par défaut peut être utile dans le cas de la première année d'une
+     * formation où aucun parcours n'a encore été choisi, par exemple. 
+     * Les valeurs de ce parcours par défaut sont écrite en dures dans le code. 
+     */
+    /*
+    public function add_default_parcours()
+    {
+        $all_formation = self::$sourcedataDAO->findall_formation();
+        $all_formation_id = []; 
+        $all_default_parcours = [];
+
+        // on récupère uniquement les id, reste pas necessaire
+        foreach($all_formation as $formation)
+        {
+            $all_formation_id[] = $formation->getFormationId();
+        }
+
+        foreach($all_formation_id as $formation_id)
+        {
+            $current_default_parcours = array(
+                'parcours_id' => ($formation_id) * 10, // PAS PROPRE À CHANGER (deso) (cf. JsonDAO.php ligne 256)
+                'code' => 'DEFAULT',
+                'libelle' => 'Parcours par defaut',
+                'formation_id' => $formation_id 
+            );
+            $all_default_parcours[] = $current_default_parcours;
+        }
+
+        // remplissage de la base de donnée
+        self::$scolariteDAO->addParcours($all_default_parcours);
+    }
+    */
+
     public function sync_anneeFormation()
     {
         $all_anneeFormation = self::$sourcedataDAO->findall_anneeFormation();
@@ -104,6 +139,20 @@ class Service_syn
 
         // remplissage de la base de donnée
         self::$scolariteDAO->addRCUE($all_rcue_dict);
+    }
+
+    public function sync_formsemestre()
+    {
+        $all_formsemestre = self::$sourcedataDAO->findall_formsemestre();
+
+        $all_formsemestre_dict = [];
+        foreach($all_formsemestre as $f)
+        {
+            $all_formsemestre_dict[] = $f->toDict();
+        }
+
+        // remplissage de la base de donnée
+        self::$scolariteDAO->addFormSemestre($all_formsemestre_dict);
     }
 }
 ?>
