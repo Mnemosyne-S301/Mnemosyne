@@ -202,11 +202,14 @@ class StatsDAO {
 
     public function getCohorteParAnneeEtFormation(int $anneeScolaire, string $formationAccronyme): array
     {
-        // Utiliser une connexion à la base scolarite (pas stats)
-        $connScolarite = new PDO('mysql:host=' . DB_HOST . ';dbname=' . DB_NAME . ';charset=utf8mb4', DB_USER, DB_PASS);
-        
+        try {
+            // Utiliser une connexion à la base scolarite (pas stats)
+            $connScolarite = new PDO('mysql:host=' . DB_HOST . ';dbname=' . DB_NAME . ';charset=utf8mb4', DB_USER, DB_PASS);
+        } catch (PDOException $e) {
+            error_log('[ERREUR SQL] Connexion scolarite : ' . $e->getMessage());
+            throw new Exception('Erreur connexion base scolarite : ' . $e->getMessage());
+        }
         $pattern = $this->getFormationPattern($formationAccronyme);
-        
         $sql = "
             SELECT
                 e.etudiant_id AS etudid,
@@ -228,13 +231,16 @@ class StatsDAO {
             WHERE ea.annee_scolaire = :annee
               AND f.accronyme LIKE :formation
         ";
-
-        $stmt = $connScolarite->prepare($sql);
-        $stmt->bindValue(':annee', $anneeScolaire, PDO::PARAM_INT);
-        $stmt->bindValue(':formation', $pattern, PDO::PARAM_STR);
-        $stmt->execute();
-
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        try {
+            $stmt = $connScolarite->prepare($sql);
+            $stmt->bindValue(':annee', $anneeScolaire, PDO::PARAM_INT);
+            $stmt->bindValue(':formation', $pattern, PDO::PARAM_STR);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log('[ERREUR SQL] Requete getCohorteParAnneeEtFormation : ' . $e->getMessage());
+            throw new Exception('Erreur SQL getCohorteParAnneeEtFormation : ' . $e->getMessage());
+        }
     }
 
 

@@ -54,6 +54,7 @@
                     <label for="source-select" class="text-sm font-medium">Source :</label>
                     <select id="source-select" class="bg-[#0A1E2F] border border-[#E3BF81] text-[#FBEDD3] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#E3BF81]">
                         <option value="json" <?= ($source ?? 'json') === 'json' ? 'selected' : '' ?>>Fichiers JSON Test</option>
+                        <option value="testdata" <?= ($source ?? '') === 'testdata' ? 'selected' : '' ?>>Fichiers JSON Testdata</option>
                         <option value="bdd" <?= ($source ?? '') === 'bdd' ? 'selected' : '' ?>>Base de données</option>
                     </select>
                 </div>
@@ -89,6 +90,11 @@
                             <p class="animate-pulse text-xl">Analyse des flux de cohorte...</p>
                         </div>
                         <div id="sankey-plot" class="w-full h-full"></div>
+                    </div>
+                    <!-- Section stats Sankey -->
+                    <div id="sankey-stats" class="mt-8 p-6 bg-[#1A2B3C] rounded-xl shadow-lg border border-[#E3BF81]/20 flex flex-col gap-2 text-lg">
+                        <div class="font-bold text-[#E3BF81] text-xl mb-2">Statistiques de la cohorte</div>
+                        <div id="sankey-stats-content" class="flex flex-wrap gap-8"></div>
                     </div>
                 </div>
 
@@ -172,9 +178,24 @@
          * Charge les données depuis l'API
          */
         async function loadSankeyData(formation, anneeDepart, source) {
-            const loadingEl = document.getElementById('sankey-plot');
-            if (loadingEl) {
-                loadingEl.innerHTML = '<div class="flex items-center justify-center h-full"><span class="text-xl">Chargement des données...</span></div>';
+            // Réinitialiser le diagramme et les filtres
+            const plotDiv = document.getElementById('sankey-plot');
+            if (plotDiv) {
+                // Purge Plotly si déjà affiché
+                if (window.Plotly && plotDiv.data) {
+                    window.Plotly.purge(plotDiv);
+                }
+                plotDiv.innerHTML = '';
+            }
+            // Réinitialiser les boutons filtres (mettre "Toutes les années" actif)
+            document.querySelectorAll('.but-filter').forEach(btn => {
+                btn.classList.remove('bg-[#60A5FA]', 'bg-[#93C5FD]', 'bg-[#DBEAFE]', 'bg-[#E3BF81]', 'text-white', 'text-[#0A1E2F]');
+                btn.classList.add('bg-transparent');
+            });
+            document.getElementById('btn-all')?.classList.add('bg-[#E3BF81]', 'text-[#0A1E2F]');
+            // Afficher le loader
+            if (plotDiv) {
+                plotDiv.innerHTML = '<div class="flex items-center justify-center h-full"><span class="text-xl">Chargement des données...</span></div>';
             }
 
             try {
@@ -217,6 +238,41 @@
                 // Initialiser le diagramme Sankey
                 if (typeof SankeyCohort !== 'undefined') {
                     SankeyCohort.init();
+                        // Charger et afficher les statistiques de cohorte (depuis l'API stats)
+                        try {
+                            const statsUrl = `index.php?controller=api&action=stats&formation=${formation}&anneeDepart=${anneeDepart}`;
+                            const statsResp = await fetch(statsUrl);
+                            if (!statsResp.ok) throw new Error(`Erreur HTTP stats: ${statsResp.status}`);
+                            const stats = await statsResp.json();
+                            if (stats.error) throw new Error(stats.error);
+                            // Affichage dynamique dans la section stats
+                            const statsDiv = document.getElementById('sankey-stats-content');
+                            if (statsDiv) {
+                                statsDiv.innerHTML = `
+                                    <div class=\"flex flex-col items-center\">
+                                        <span class=\"text-3xl font-bold text-[#E3BF81]\">${stats.effectif}</span>
+                                        <span class=\"text-base text-[#FBEDD3]\">Effectif total</span>
+                                    </div>
+                                    <div class=\"flex flex-col items-center\">
+                                        <span class=\"text-3xl font-bold text-green-400\">${stats.diplomes}</span>
+                                        <span class=\"text-base text-[#FBEDD3]\">Diplômés</span>
+                                    </div>
+                                    <div class=\"flex flex-col items-center\">
+                                        <span class=\"text-3xl font-bold text-blue-400\">${stats.encours}</span>
+                                        <span class=\"text-base text-[#FBEDD3]\">En cours</span>
+                                    </div>
+                                    <div class=\"flex flex-col items-center\">
+                                        <span class=\"text-3xl font-bold text-red-400\">${stats.abandons}</span>
+                                        <span class=\"text-base text-[#FBEDD3]\">Abandons</span>
+                                    </div>
+                                `;
+                            }
+                        } catch (err) {
+                            const statsDiv = document.getElementById('sankey-stats-content');
+                            if (statsDiv) {
+                                statsDiv.innerHTML = `<span class='text-red-400'>Erreur stats: ${err.message}</span>`;
+                            }
+                        }
                 }
 
             } catch (error) {
@@ -244,13 +300,28 @@
             await loadSankeyData(formation, annee, source);
         });
 
+        // Ajout : recharger automatiquement quand on change un sélecteur
+        ['formation-select', 'annee-select', 'source-select'].forEach(id => {
+            document.getElementById(id)?.addEventListener('change', async function() {
+                const formation = document.getElementById('formation-select').value;
+                const annee = document.getElementById('annee-select').value;
+                const source = document.getElementById('source-select').value;
+                // Mettre à jour l'URL sans recharger
+                const url = new URL(window.location.href);
+                url.searchParams.set('formation', formation);
+                url.searchParams.set('anneeDepart', annee);
+                url.searchParams.set('source', source);
+                history.pushState({}, '', url);
+                await loadSankeyData(formation, annee, source);
+            });
+        });
+
         // Chargement initial des données au démarrage
         document.addEventListener('DOMContentLoaded', function() {
-            loadSankeyData(
-                window.SANKEY_CONFIG.formation,
-                window.SANKEY_CONFIG.anneeDepart,
-                window.SANKEY_CONFIG.source
-            );
+            const formation = document.getElementById('formation-select').value;
+            const annee = document.getElementById('annee-select').value;
+            const source = document.getElementById('source-select').value;
+            loadSankeyData(formation, annee, source);
         });
     </script>
     

@@ -458,34 +458,38 @@ const SankeyCohort = (function() {
     }
 
     async function init() {
+                    // Activer le bouton 'Toutes les années' par défaut
+                    document.querySelectorAll('.but-filter').forEach(btn => {
+                        btn.classList.remove('bg-[#60A5FA]', 'bg-[#93C5FD]', 'bg-[#DBEAFE]', 'bg-[#E3BF81]', 'text-white', 'text-[#0A1E2F]');
+                        btn.classList.add('bg-transparent');
+                    });
+                    document.getElementById('btn-all')?.classList.add('bg-[#E3BF81]', 'text-[#0A1E2F]');
         const loader = document.getElementById('loader');
-        
         try {
             console.log('init() appelé');
             const data = window.SANKEY_DATA;
             console.log('SANKEY_DATA:', data);
-            
             const availableYears = extractAvailableYears(data);
             const yearKeys = Object.keys(availableYears);
-            
             if (!data || yearKeys.length === 0) {
                 throw new Error('Données non disponibles');
             }
-
             console.log(`Années disponibles: ${yearKeys.join(', ')}`);
-            loader.innerHTML = '<p class="animate-pulse text-xl">Analyse des parcours...</p>';
-            
+            loader && (loader.innerHTML = '<p class="animate-pulse text-xl">Analyse des parcours...</p>');
             const processed = processCohortData(availableYears);
-            
-            loader.classList.add('hidden');
+            if (loader) loader.remove();
             renderChart(processed);
-            
             setupLegendToggle();
-            setupBUTFilters(availableYears);
 
+            // Réinitialiser les handlers des boutons filtres pour utiliser les données courantes
+            document.querySelectorAll('.but-filter').forEach(btn => {
+                const newBtn = btn.cloneNode(true);
+                btn.parentNode.replaceChild(newBtn, btn);
+            });
+            setupBUTFilters(availableYears);
         } catch (err) {
             console.error('Erreur lors du chargement:', err);
-            loader.innerHTML = `<p class="text-red-400">⚠ Erreur : ${err.message}</p>`;
+            loader && (loader.innerHTML = `<p class="text-red-400">⚠ Erreur : ${err.message}</p>`);
         }
     }
 
@@ -566,9 +570,5 @@ const SankeyCohort = (function() {
 
 })();
 
-// Appeler init() immédiatement si le DOM est déjà chargé, sinon attendre
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', SankeyCohort.init);
-} else {
-    SankeyCohort.init();
-}
+
+// (Suppression de l'auto-init : l'init doit être déclenchée uniquement après le chargement effectif des données via loadSankeyData)

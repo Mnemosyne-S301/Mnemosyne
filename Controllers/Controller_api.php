@@ -6,6 +6,34 @@ require_once __DIR__ . "/../Services/Service_api.php";
  * Utilisé par les appels fetch() depuis le JavaScript
  */
 class Controller_api extends Controller {
+        /**
+         * Détermine l'ordre (BUT1, BUT2, BUT3) à partir du nom de fichier
+         */
+        private function determineOrdreFromFilename(string $filename): int {
+            if (preg_match('/BUT[_\s]?1/i', $filename)) return 1;
+            if (preg_match('/BUT[_\s]?2/i', $filename)) return 2;
+            if (preg_match('/BUT[_\s]?3/i', $filename)) return 3;
+            if (preg_match('/S[12][^0-9]/i', $filename)) return 1;
+            if (preg_match('/S[34][^0-9]/i', $filename)) return 2;
+            if (preg_match('/S[56][^0-9]/i', $filename)) return 3;
+            return 1;
+        }
+
+        /**
+         * Détermine le code de décision d'un étudiant à partir de ses données
+         */
+        private function determineCodeFromEtudiant(array $etudiant): string {
+            if (isset($etudiant['annee']['code'])) {
+                return $etudiant['annee']['code'];
+            }
+            if (isset($etudiant['decisions']) && isset($etudiant['decisions']['annee'])) {
+                return $etudiant['decisions']['annee']['code'] ?? 'ATT';
+            }
+            if (isset($etudiant['code'])) {
+                return $etudiant['code'];
+            }
+            return 'ATT';
+        }
     
     private Service_stats $service;
     private string $jsonPath;
@@ -50,6 +78,8 @@ class Controller_api extends Controller {
             // Récupérer les données selon la source
             if ($source === 'json') {
                 $donnees = $this->getSankeyDataFromJson($annee, $formation);
+            } elseif ($source === 'testdata') {
+                $donnees = $this->getSankeyDataFromJson($annee, $formation, 'testdata');
             } else {
                 $donnees = $this->service->getSankeyCohorteDepuisAnnee($annee, $formation);
             }
@@ -69,52 +99,202 @@ class Controller_api extends Controller {
     }
 
     /**
+     * Action stats - retourne les statistiques de cohorte (effectif, diplomes, abandons, en cours)
+     * Paramètres GET : anneeDepart, formation
+     */
+    public function action_stats() {
+            try {
+                if (!isset($_GET['anneeDepart']) || trim($_GET['anneeDepart']) === '') {
+                    throw new InvalidArgumentException("Paramètre 'anneeDepart' obligatoire.");
+                }
+                if (!isset($_GET['formation']) || trim($_GET['formation']) === '') {
+                    throw new InvalidArgumentException("Paramètre 'formation' obligatoire.");
+                }
+
+                $annee = (int)substr(trim($_GET['anneeDepart']), 0, 4);
+                $formation = strtoupper(trim($_GET['formation']));
+
+                // Effectif total
+                $effectif = $this->service->recupererEffectifParFormationAnnee($formation, $annee);
+                // Cohorte brute pour stats
+                $cohorte = $this->service->getCohorteParAnneeEtFormation($annee, $formation);
+                $diplomes = 0;
+                $abandons = 0;
+                $encours = 0;
+                foreach ($cohorte as $etudiant) {
+                    if (isset($etudiant['etat']) && $etudiant['etat'] === 'DIPLOME') {
+                        $diplomes++;
+                    } elseif (isset($etudiant['etat']) && $etudiant['etat'] === 'ABANDON') {
+                        $abandons++;
+                    } else {
+                        $encours++;
+                    }
+                }
+                $stats = [
+                    'effectif' => $effectif,
+                    'diplomes' => $diplomes,
+                    'abandons' => $abandons,
+                    'encours' => $encours
+                ];
+                http_response_code(200);
+                echo json_encode($stats, JSON_UNESCAPED_UNICODE);
+            } catch (InvalidArgumentException $e) {
+                http_response_code(400);
+                echo json_encode(['error' => $e->getMessage()], JSON_UNESCAPED_UNICODE);
+            } catch (Throwable $e) {
+                http_response_code(500);
+                echo json_encode(['error' => 'Erreur serveur: ' . $e->getMessage()], JSON_UNESCAPED_UNICODE);
+            }
+            exit;
+        }
+
+    /**
      * Charge les données Sankey depuis les fichiers JSON de test
      */
-    private function getSankeyDataFromJson(int $anneeDepart, string $formation): array {
+    private function getSankeyDataFromJson(int $anneeDepart, string $formation, string $jsonSource = 'json'): array {
         $annees = [$anneeDepart, $anneeDepart + 1, $anneeDepart + 2, $anneeDepart + 3];
-        $donnees = [];
-        
         $formationPatterns = [
-            'INFO' => 'Informatique',
-            'GEA' => 'GEA',
-            'RT' => 'R_T',
-            'GEII' => 'G_nie_Electrique|GEII',
-            'CJ' => 'Carri_res_Juridiques|CJ',
-            'SD' => 'SD|STID',
+            'INFO' => 'Informatique|INFO|BUT_Informatique_en_FI_classique|BUT_Informatique_en_alternance|BUT_informatique_en_alternance|BUT_Informatique_en_FA_alternance',
+            'GEA' => 'GEA|BUT_GEA|BUT1_GEA|BUT2_GEA|BUT3_GEA|BUT_GEA_Apprentissage|BUT_GEA_en_Apprentissage|BUT_GEA_FI_S4|BUT_GEA_FI|BUT_GEA_FA',
+            'RT' => 'R_T|BUT_R_T|BUT_R_T_en_alternance|BUT_R_T_en_altenance',
+            'GEII' => 'G_nie_Electrique_et_Informatique_Industrielle|GEII|BUT_GEII|BUT_GEII_FA',
+            'CJ' => 'Carri_res_Juridiques|CJ|Bachelor_Universitaire_de_Technologie_Carri_res_Juridiques|BUT_Carri_res_Juridiques|BUT_Carri_res_Juridiques_-_Parcours_AJ|BUT_Carri_res_Juridiques_-_Parcours_EA|BUT_Carri_res_Juridiques_-_Parcours_PF_Banque_|BUT_Carri_res_Juridiques_-_Parcours_PF_Notariat_|BUT_Carri_res_Juridiques_-_Parcours_EA_FA_|BUT_Carri_res_Juridiques_-_Parcours_AJ_EA_PF|BUT_CJ_-_Parcours_AJ_EA_PF_Formation_initiale_|BUT_Carri_res_Juridiques_-_Parcours_PF|BUT_Carri_res_Juridiques_-Parcours_EA_FA_',
+            'SD' => 'SD|STID|BUT_SD_PN_2021_',
+            'PASS' => 'BUT_Passerelle_SD_INFO',
         ];
-        
         $pattern = $formationPatterns[$formation] ?? $formation;
-        
-        foreach ($annees as $annee) {
-            $donnees[(string)$annee] = $this->loadJsonFilesForYear($annee, $pattern);
+
+        // Déterminer le chemin du dossier JSON selon la source
+        if ($jsonSource === 'testdata') {
+            $jsonPath = __DIR__ . '/../Database/example/json/testdata/';
+            $filePattern = 'test_promo_' . $anneeDepart . '_v*.json';
+        } else {
+            $jsonPath = __DIR__ . '/../Database/example/json/';
+            $filePattern = 'decisions_jury_' . $anneeDepart . '_fs_*.json';
         }
-        
-        return [
+
+        // Chargement et déduplication par etudid sur toutes les années
+        $allData = [];
+        foreach ($annees as $annee) {
+            if ($jsonSource === 'testdata') {
+                $allData[(string)$annee] = $this->loadJsonFilesForYear($annee, $pattern, $jsonPath, 'testdata');
+            } else {
+                $allData[(string)$annee] = $this->loadJsonFilesForYear($annee, $pattern, $jsonPath, 'json');
+            }
+        }
+
+        // Déduplication par etudid (on garde la première occurrence par année)
+        foreach ($allData as $annee => &$etudiants) {
+            $seen = [];
+            $dedup = [];
+            foreach ($etudiants as $etudiant) {
+                $id = $etudiant['etudid'];
+                if (!isset($seen[$id])) {
+                    $dedup[] = $etudiant;
+                    $seen[$id] = true;
+                }
+            }
+            $etudiants = $dedup;
+        }
+        unset($etudiants);
+
+        // Construction du format attendu par le JS : data2021, data2022, ...
+        $dataByYear = [];
+        foreach ($allData as $annee => $etudiants) {
+            $dataByYear['data' . $annee] = $etudiants;
+        }
+
+        // Normalisation des codes d'état
+        $normalizeCode = function($code) {
+            $map = [
+                'ADM' => 'ADM', 'ADMI' => 'ADM', 'AD' => 'ADM',
+                'RED' => 'RED', 'RE' => 'RED',
+                'AJ' => 'AJ', 'AJA' => 'AJ',
+                'ATT' => 'ATT', 'ATTENTE' => 'ATT',
+                'ABS' => 'ABS',
+                'DEC' => 'DEC',
+                'DES' => 'DES',
+                'EXC' => 'EXC',
+                'ABAN' => 'ABAN', 'ABANDON' => 'ABAN',
+            ];
+            $uc = strtoupper($code);
+            return $map[$uc] ?? $uc;
+        };
+        foreach ($allData as $annee => &$etudiants) {
+            foreach ($etudiants as &$etudiant) {
+                $etudiant['annee']['code'] = $normalizeCode($etudiant['annee']['code']);
+            }
+        }
+        unset($etudiant);
+
+        // Calcul des transitions pour Sankey (source/target)
+        $links = [];
+        $nodes = [];
+        $nodeIndex = [];
+        // On crée un identifiant unique pour chaque état/année
+        foreach ($annees as $i => $annee) {
+            foreach ($allData[(string)$annee] as $etudiant) {
+                $label = $annee . ' ' . $etudiant['annee']['code'];
+                if (!isset($nodeIndex[$label])) {
+                    $nodeIndex[$label] = count($nodes);
+                    $nodes[] = $label;
+                }
+            }
+        }
+        // Pour chaque étudiant, on relie son état d'une année à l'état de l'année suivante
+        for ($i = 0; $i < count($annees) - 1; $i++) {
+            $an1 = (string)$annees[$i];
+            $an2 = (string)$annees[$i+1];
+            $byId = [];
+            foreach ($allData[$an1] as $etudiant) {
+                $byId[$etudiant['etudid']] = $etudiant['annee']['code'];
+            }
+            foreach ($allData[$an2] as $etudiant) {
+                $id = $etudiant['etudid'];
+                if (isset($byId[$id])) {
+                    $from = $an1 . ' ' . $byId[$id];
+                    $to = $an2 . ' ' . $etudiant['annee']['code'];
+                    $links[] = [
+                        'source' => $nodeIndex[$from],
+                        'target' => $nodeIndex[$to],
+                        'value' => 1
+                    ];
+                }
+            }
+        }
+
+        return array_merge([
             'annee_depart' => $anneeDepart,
             'annees' => $annees,
-            'data' => $donnees
-        ];
+            'nodes' => $nodes,
+            'links' => $links,
+            'data' => $allData
+        ], $dataByYear);
     }
 
     /**
      * Charge tous les fichiers JSON correspondant à une année et une formation
      */
-    private function loadJsonFilesForYear(int $annee, string $pattern): array {
+    private function loadJsonFilesForYear(int $annee, string $pattern, string $jsonPath = null): array {
         $result = [];
-        $files = glob($this->jsonPath . "decisions_jury_{$annee}_fs_*.json");
-        
+        $jsonPath = $jsonPath ?? $this->jsonPath;
+        $args = func_get_args();
+        $mode = $args[3] ?? 'json';
+        if ($mode === 'testdata') {
+            $files = glob($jsonPath . "test_promo_{$annee}_v*.json");
+        } else {
+            $files = glob($jsonPath . "decisions_jury_{$annee}_fs_*.json");
+        }
         foreach ($files as $file) {
             $filename = basename($file);
-            if (preg_match("/BUT.*({$pattern})/i", $filename)) {
+            if ($mode === 'testdata' || preg_match("/BUT.*({$pattern})/i", $filename)) {
                 $content = file_get_contents($file);
                 $data = json_decode($content, true);
-                
                 if (is_array($data)) {
-                    $ordre = $this->determineOrdreFromFilename($filename);
-                    
                     foreach ($data as $etudiant) {
                         if (isset($etudiant['etudid'])) {
+                            // Priorité à l'ordre du JSON si présent, sinon heuristique sur le nom de fichier
+                            $ordre = isset($etudiant['annee']['ordre']) ? (int)$etudiant['annee']['ordre'] : $this->determineOrdreFromFilename($filename);
                             $result[] = [
                                 'etudid' => (string)$etudiant['etudid'],
                                 'etat' => $etudiant['etat'] ?? null,
@@ -129,33 +309,6 @@ class Controller_api extends Controller {
                 }
             }
         }
-        
         return $result;
     }
-
-    private function determineOrdreFromFilename(string $filename): int {
-        if (preg_match('/BUT[_\s]?1/i', $filename)) return 1;
-        if (preg_match('/BUT[_\s]?2/i', $filename)) return 2;
-        if (preg_match('/BUT[_\s]?3/i', $filename)) return 3;
-        if (preg_match('/S[12][^0-9]/i', $filename)) return 1;
-        if (preg_match('/S[34][^0-9]/i', $filename)) return 2;
-        if (preg_match('/S[56][^0-9]/i', $filename)) return 3;
-        return 1;
-    }
-
-    private function determineCodeFromEtudiant(array $etudiant): string {
-        if (isset($etudiant['annee']['code'])) {
-            return $etudiant['annee']['code'];
-        }
-        if (isset($etudiant['decisions']) && isset($etudiant['decisions']['annee'])) {
-            return $etudiant['decisions']['annee']['code'] ?? 'ATT';
-        }
-        if (isset($etudiant['code'])) {
-            return $etudiant['code'];
-        }
-        return 'ATT';
-    }
 }
-
-
-
