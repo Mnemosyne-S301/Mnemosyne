@@ -12,6 +12,8 @@
 
 [Maquette de l'application web](https://framer.com/projects/Untitled--Ts7k6rS705D9eSODZAcf-fbQMT)
 
+[Feuille de temps](https://docs.google.com/spreadsheets/d/1Ov5RuqRq0NL5uIwc943j6rrz82AiVEtHR9Nx7iToyG0/edit?usp=sharing)
+
 ## Base de données
 
 [Modèle Entité Association de la Base de Données (ouvrir avec draw.io)](https://drive.google.com/file/d/13g4qzHSnRilrsYOjBbHpyiyaf5ur9eEl/view)
