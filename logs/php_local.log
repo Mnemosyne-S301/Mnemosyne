@@ -1,0 +1,6 @@
+[2026-01-18 20:52:53] [ERROR] recupererEffectifParFormationAnnee: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'annee_scolaire' in 'where clause'
+[2026-01-18 20:52:53] [DEBUG] getCohorteParAnneeEtFormation annee=2021 formation=INFO count=0
+[2026-01-18 20:55:07] [ERROR] recupererEffectifParFormationAnnee: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'annee_scolaire' in 'where clause'
+[2026-01-18 20:55:07] [DEBUG] getCohorteParAnneeEtFormation annee=2021 formation=INFO count=0
+[2026-01-18 20:55:08] [ERROR] recupererEffectifParFormationAnnee: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'annee_scolaire' in 'where clause'
+[2026-01-18 20:55:08] [DEBUG] getCohorteParAnneeEtFormation annee=2021 formation=INFO count=0
