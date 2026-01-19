@@ -324,7 +324,19 @@
             loadSankeyData(formation, annee, source);
         });
     </script>
-    
+   
+        
+   
+
+    <script>
+    // charger les règles admin sauvegardées
+    try {
+        window.SANKEY_REGLES = JSON.parse(localStorage.getItem("SANKEY_REGLES") || "null");
+    } catch {
+        window.SANKEY_REGLES = null;
+    }
+</script>
+
     <!-- Charger le fichier JavaScript externe -->
     <script src="Content/script/sankey-logic.js"></script>
 </body>

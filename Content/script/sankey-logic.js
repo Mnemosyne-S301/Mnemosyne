@@ -45,6 +45,48 @@ const SankeyCohort = (function() {
         const b = parseInt(hex.slice(5, 7), 16);
         return `rgba(${r}, ${g}, ${b}, ${alpha})`;
     }
+    function chargerReglesAdmin() {
+  
+    if (window.SANKEY_REGLES) return window.SANKEY_REGLES;
+
+   
+    try {
+        return JSON.parse(localStorage.getItem("SANKEY_REGLES") || "null");
+    } catch {
+        return null;
+    }
+}
+
+function appliquerReglesSurCode(codeDecision) {
+    const configurationRegles = chargerReglesAdmin();
+    if (!configurationRegles || !configurationRegles.actif) return codeDecision;
+
+ 
+    const activerScenarioReussite = (configurationRegles.regles || [])
+        .some(regle => regle.resultat === "reussite");
+
+    const activerScenarioEchec = (configurationRegles.regles || [])
+        .some(regle => regle.resultat === "echec");
+
+   
+    if (activerScenarioReussite) {
+        // Exemple demandé : CMP => ADM
+        if (codeDecision === "CMP") return "ADM";
+
+  
+    }
+
+
+    if (activerScenarioEchec) {
+     
+        if (codeDecision === "ADJ") return "AJ";
+
+   
+    }
+
+    return codeDecision;
+}
+
 
     function processCohortData(dataByYear) {
         const etudiants = new Map();
@@ -96,7 +138,7 @@ const SankeyCohort = (function() {
             etudData.annees.push({
                 annee: year,
                 ordre: etud.annee.ordre || 1,
-                code: etud.annee.code,
+                code: appliquerReglesSurCode(etud.annee.code),
                 etat: etud.etat,
                 annee_scolaire: etud.annee.annee_scolaire
             });
@@ -492,6 +534,8 @@ const SankeyCohort = (function() {
             loader && (loader.innerHTML = `<p class="text-red-400">⚠ Erreur : ${err.message}</p>`);
         }
     }
+    
+    
 
     function setupBUTFilters(availableYears) {
         const buttons = document.querySelectorAll('.but-filter');
