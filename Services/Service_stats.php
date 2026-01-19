@@ -1,5 +1,5 @@
 <?php
-require_once 'StatsDAO.php';
+require_once __DIR__ . '../Models/StatsDAO.php';
 
 /**
  * Classe Service_stats.
@@ -47,20 +47,20 @@ class Service_stats {
      * @return array Tableau associatif où les clés sont 'ue_1' à 'ue_6' et les valeurs
      * sont le nombre d'élèves correspondant.
      */
-    public function recupererRepartitionUEADMISParFormation($Formation,$Annee){
-        $res=[];
+    public function recupererRepartitionUEADMISParFormationParSemesetre($Formation,$Annee,$Semestre){
+        $res=array();
 
-        // Initialisation des clés pour garantir qu'elles existent, même avec une valeur de 0.
-        // La valeur '6' est une valeur de test non pertinente ici et pourrait être source de confusion.
-        $res['ue_6'] = 0;
-        $res['ue_5'] = 0;
-        $res['ue_4'] = 0;
-        $res['ue_3'] = 0;
-        $res['ue_2'] = 0;
-        $res['ue_1'] = 0;
+        $nbue = $this->dao->getNbUeParFormationParSemestre($Formation,$semestre);
+
+
 
         // Récupération des données brutes de répartition du DAO (toutes années et parcours confondus)
         $list=$this->dao->getNbRepartitionUEADMISParFormation($Formation);
+        
+        for($i=0;i<=$nbue;$i++){
+            $uei=$i+1;
+            array['ue_'.$uei]=
+        }
 
         // Parcours de toutes les lignes retournées par la BDD
         foreach($list as $ligne){
