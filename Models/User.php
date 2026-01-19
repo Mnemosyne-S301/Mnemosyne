@@ -1,5 +1,5 @@
 <?php
-use PDO ;
+
 class User {
 public int $id_user;
 public string $username;
