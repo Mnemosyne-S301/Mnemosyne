@@ -57,12 +57,16 @@
                                border-default-medium text-heading text-sm rounded-lg
                                focus:ring-brand focus:border-brand px-3 py-2.5 shadow-xs
                                text-fg-disabled bg-[#88888880]">
-                    <option value="INFO">INFO</option>
-                    <option value="CJ">CJ (Carrières Juridiques)</option>
-                    <option value="GEII">GEII</option>
-                    <option value="GEA">GEA</option>
-                    <option value="RT">RT (Réseau et Telecom)</option>
-                    <option value="SD">SD (Sciences des Données)</option>
+                    <?php
+                        if(!empty($formationArray)) {
+                            foreach($formationArray as $formation){
+                                echo '<option value="'.$formation['titre'].'">'.$formation['titre'].'</option>';
+                            }
+                        }
+                        else{
+                            echo '<option>Aucune Formation </option>';
+                        }
+                    ?>
                 </select>
             </div>
 

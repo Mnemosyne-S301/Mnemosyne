@@ -43,6 +43,23 @@ class StatsDAO {
         return self::$instance;
     }
 
+    public function getallFormationByAccronyme(){
+        try {
+            // Utiliser une connexion à la base scolarite (pas stats)
+            $connScolarite = new PDO('mysql:host=' . DB_HOST . ';dbname=' . DB_NAME . ';charset=utf8mb4', DB_USER, DB_PASS);
+        } catch (PDOException $e) {
+            error_log('[ERREUR SQL] Connexion scolarite : ' . $e->getMessage());
+            throw new Exception('Erreur connexion base scolarite : ' . $e->getMessage());
+        }
+        $query ='SELECT DISTINCT(accronyme)
+                FROM formation';
+        $stmt=$connScolarite->prepare($query);
+        $stmt->execute();
+        
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     /**
      * Récupère le nombre d'élèves pour une formation donnée.
      *

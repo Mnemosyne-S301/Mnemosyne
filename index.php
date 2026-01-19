@@ -3,13 +3,9 @@
 ini_set('display_errors', 'On');
 error_reporting(E_ALL);
 
-// Charger la classe parent Controller
-require_once 'Controllers/Controller.php';
 
-
-$controllers = ["index", "accueil", "sankey", "admin", "api", "users"]; //Liste des contrôleurs
-$controller_default = "index"; //Nom du contrôleur par défaut
-
+$controllers = ["index"]; //Liste des contrôleurs
+$controller_default = "accueil"; //Nom du contrôleur par défaut
 
 //On teste si le paramètre controller existe et correspond à un contrôleur
 //de la liste $controllers
@@ -31,8 +27,10 @@ $nom_fichier = 'Controllers/' . $nom_classe . '.php';
 if (is_readable($nom_fichier))
 {
 //On l'inclut et on instancie un objet de cette classe
-require_once $nom_fichier;
+require_once __DIR__ .'/Controllers/Controller.php';
+require_once __DIR__ .'/'. $nom_fichier;
 new $nom_classe();
+
 }
 else
 {
