@@ -42,6 +42,62 @@ class StatsDAO {
         }
         return self::$instance;
     }
+/**
+ * Récupère la liste des formations avec leurs années scolaires disponibles
+ * @return array Tableau associatif groupé par formation avec les années
+ */
+public function getFormationsAvecAnnees(): array {
+    try {
+        // Connexion à la base scolarite
+        $connScolarite = new PDO('mysql:host=' . DB_HOST . ';dbname=' . DB_NAME . ';charset=utf8mb4', DB_USER, DB_PASS);
+    } catch (PDOException $e) {
+        error_log('[ERREUR SQL] Connexion scolarite : ' . $e->getMessage());
+        throw new Exception('Erreur connexion base scolarite : ' . $e->getMessage());
+    }
+    // Requête SQL pour récupérer les formations et années scolaires
+    $sql = "
+        SELECT DISTINCT 
+            f.nom AS nom,
+            ea.annee_scolaire
+        FROM EffectuerAnnee ea
+        INNER JOIN AnneeFormation af 
+            ON af.anneeformation_id = ea.anneeformation_id
+        INNER JOIN Parcours p 
+            ON p. parcours_id = af.parcours_id
+        INNER JOIN Formation f 
+            ON f.formation_id = p.formation_id
+        ORDER BY f.nom ASC, ea.annee_scolaire DESC
+    ";
+    // Exécution de la requête
+    try {
+        $stmt = $connScolarite->prepare($sql);
+        $stmt->execute();
+        $resultats = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        // Grouper par formation
+        $formations = [];
+        foreach ($resultats as $row) {
+            $nom = $row['nom'];
+            if (!isset($formations[$nom])) {
+                $formations[$nom] = [
+                    'nom' => $nom,
+                    'annees' => []
+                ];
+            }
+            // Éviter les doublons d'années
+            $annee = (int)$row['annee_scolaire'];
+            if (! in_array($annee, $formations[$nom]['annees'])) {
+                $formations[$nom]['annees'][] = $annee;
+            }
+        }
+        
+        return array_values($formations);
+        
+    } catch (PDOException $e) {
+        error_log('[ERREUR SQL] getFormationsAvecAnnees :  ' . $e->getMessage());
+        throw new Exception('Erreur SQL getFormationsAvecAnnees : ' . $e->getMessage());
+    }
+}
 
     /**
      * Récupère le nombre d'élèves pour une formation donnée.
