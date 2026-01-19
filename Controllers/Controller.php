@@ -41,9 +41,10 @@ abstract class Controller
         } else {
             //Sinon, on affiche la page d'->action_error
             //$this->action_error("La vue n'existe pas !");
+            echo "Erreur : PHP cherche le fichier ici : " . realpath('.') . DIRECTORY_SEPARATOR . $file_name;
         }
         // Pour terminer le script
-        die();
+
     }
 
     
