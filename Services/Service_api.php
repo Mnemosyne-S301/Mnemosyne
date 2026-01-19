@@ -51,6 +51,21 @@ class Service_stats {
     }
 
     /**
+    * Récupère la liste des formations avec leurs années disponibles
+    * @return array Tableau des formations avec leurs années
+    */
+    public function recupererFormationsAvecAnnees(): array {
+        try {
+            $formations = $this->dao->getFormationsAvecAnnees();
+            $this->logLocal("[DEBUG] recupererFormationsAvecAnnees count=" . count($formations));
+            return $formations;
+        } catch (Exception $e) {
+            $this->logLocal("[ERROR] recupererFormationsAvecAnnees:  " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
      * Récupère l'effectif total d'étudiants pour une formation et une année spécifiques.
      * Cette méthode est un simple "passe-plat" vers la méthode SQL optimisée du DAO.
      *

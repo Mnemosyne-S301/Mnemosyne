@@ -29,7 +29,7 @@
     </header>
 
     <!-- ============================
-         MAIN : Formulaire centré e
+         MAIN :  Formulaire centré
     ============================= -->
     <main class="flex items-center justify-center flex-1">
 
@@ -51,18 +51,23 @@
                     Formation:
                 </label>
 
-                <!-- Sélecteur de formation -->
-                <select name=formation 
+                <!-- Sélecteur de formation (dynamique) -->
+                <select name="formation" 
+                        id="selectFormation"
                         class="appearance-none block w-full bg-neutral-secondary-medium text-[#999999]
                                border-default-medium text-heading text-sm rounded-lg
                                focus:ring-brand focus:border-brand px-3 py-2.5 shadow-xs
-                               text-fg-disabled bg-[#88888880]">
-                    <option value="INFO">INFO</option>
-                    <option value="CJ">CJ (Carrières Juridiques)</option>
-                    <option value="GEII">GEII</option>
-                    <option value="GEA">GEA</option>
-                    <option value="RT">RT (Réseau et Telecom)</option>
-                    <option value="SD">SD (Sciences des Données)</option>
+                               text-fg-disabled bg-[#88888880]"
+                        onchange="updateAnnees()">
+                    <option value="">-- Sélectionnez une formation --</option>
+                    <?php if (isset($formations) && !empty($formations)): ?>
+                        <?php foreach ($formations as $formation): ?>
+                            <option value="<?= htmlspecialchars($formation['nom']) ?>" 
+                                    data-annees='<?= json_encode($formation['annees']) ?>'>
+                                <?= htmlspecialchars($formation['nom']) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
                 </select>
             </div>
 
@@ -73,27 +78,22 @@
 
                 <!-- Label -->
                 <label class="font-semibold text-[#FBEDD3]">
-                    Cohorte de départ:
+                    Année:
                 </label>
 
-                <!-- Sélecteur d'années (PHP générant les options) -->
+                <!-- Sélecteur d'années (mis à jour dynamiquement) -->
                 <select name="anneeDepart"
+                        id="selectAnnee"
                         class="appearance-none block text-[#999999] w-full bg-neutral-secondary-medium
                                border-default-medium text-heading text-sm rounded-lg
                                focus:ring-brand focus:border-brand px-3 py-2.5 shadow-xs
                                text-fg-disabled bg-[#88888880]">
-
-                    <?php
-                        // Génère les années 2021 jusqu'à 2024 (années avec données disponibles)
-                        for ($y = 2021; $y <= 2024; $y++) {
-                            echo '<option value="' . $y . '">' . $y . '-' . ($y + 1) . '</option>';
-                        }
-                    ?>
+                    <option value="">-- Sélectionnez d'abord une formation --</option>
                 </select>
             </div>
 
             <!-- ----------------------------
-                 Bouton d’envoi du formulaire
+                 Bouton d'envoi du formulaire
             ----------------------------- -->
             <input type="submit"
                    value="Confirmer"
@@ -104,7 +104,7 @@
         <!-- ============================
              BOUTON ADMIN (collé en bas)
         ============================= -->
-        <a href="./Views/view_login.php">
+        <a href="/Views/view_login.php">
             <input id="logo_admin"
                 type="image"
                 src="/Content/image/connexion_admin.png"
@@ -115,6 +115,51 @@
         </a>
 
     </main>
+
+    <!-- ============================
+         SCRIPT :  Mise à jour dynamique des années
+    ============================= -->
+    <script>
+        function updateAnnees() {
+            const selectFormation = document.getElementById('selectFormation');
+            const selectAnnee = document.getElementById('selectAnnee');
+            
+            // Récupérer l'option sélectionnée
+            const selectedOption = selectFormation.options[selectFormation.selectedIndex];
+            
+            // Récupérer les années depuis l'attribut data-annees
+            const anneesJSON = selectedOption.getAttribute('data-annees');
+            
+            // Vider le select des années
+            selectAnnee. innerHTML = '';
+            
+            if (anneesJSON) {
+                const annees = JSON.parse(anneesJSON);
+                
+                if (annees.length > 0) {
+                    // Ajouter les options d'années
+                    annees.forEach(annee => {
+                        const option = document. createElement('option');
+                        option.value = annee;
+                        option.textContent = annee + '-' + (annee + 1);
+                        selectAnnee.appendChild(option);
+                    });
+                } else {
+                    // Aucune année disponible
+                    const option = document.createElement('option');
+                    option.value = '';
+                    option.textContent = '-- Aucune année disponible --';
+                    selectAnnee.appendChild(option);
+                }
+            } else {
+                // Aucune formation sélectionnée
+                const option = document.createElement('option');
+                option.value = '';
+                option.textContent = '-- Sélectionnez d\'abord une formation --';
+                selectAnnee.appendChild(option);
+            }
+        }
+    </script>
 
 </body>
 </html>
