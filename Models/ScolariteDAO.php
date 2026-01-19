@@ -9,13 +9,13 @@ class ScolariteDAO
 
     private function __construct()
     {
+        // charset=utf8mb4 dans le DSN suffit, pas besoin de MYSQL_ATTR_INIT_COMMAND
         $this->conn = new PDO(
             'mysql:host=' . DB_HOST . ';dbname=' . DB_NAME . ';charset=utf8mb4', 
             DB_USER, 
             DB_PASS,
-            [PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4"]
+            [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
         );
-        $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     }
 
     public static function getModel()
@@ -567,6 +567,104 @@ class ScolariteDAO
         $this->conn->exec("TRUNCATE FROM $table;");
     }
     $this->conn->exec("SET FOREIGN_KEY_CHECKS=1;");
+    }
+
+    // =========================================================================
+    // METHODES DE LECTURE (pour le diagramme Sankey)
+    // =========================================================================
+
+    /**
+     * Mapping des acronymes simplifiés vers les patterns de recherche en base.
+     * Permet de faire correspondre les codes courts (INFO, GEA) aux acronymes stockés.
+     */
+    private function getFormationPattern(string $acronyme): string
+    {
+        $mapping = [
+            'INFO' => '%INFO%',
+            'GEA' => '%GEA%',
+            'GEII' => '%GEII%',
+            'RT' => '%R&T%',
+            'CJ' => '%CJ%',
+            'SD' => '%SD%',
+            'STID' => '%STID%',
+        ];
+        
+        return $mapping[strtoupper($acronyme)] ?? '%' . $acronyme . '%';
+    }
+
+    /**
+     * Récupère la cohorte d'étudiants pour une année scolaire et une formation.
+     * Utilisé pour alimenter le diagramme Sankey.
+     * 
+     * IMPORTANT: Cette méthode suit une VRAIE cohorte, c'est-à-dire les étudiants
+     * qui sont entrés en BUT1 à l'année de départ de la cohorte.
+     *
+     * @param int $anneeScolaire L'année scolaire à récupérer (ex: 2021, 2022, 2023)
+     * @param string $formationAccronyme L'acronyme de la formation (ex: INFO, GEA, CJ)
+     * @param int|null $anneeCohorte L'année d'entrée de la cohorte (si null, = anneeScolaire)
+     * @return array Liste des étudiants avec leurs décisions annuelles
+     *               Format: [['etudid', 'etat', 'ordre', 'code', 'annee_scolaire'], ...]
+     */
+    public function getCohorteParAnneeEtFormation(int $anneeScolaire, string $formationAccronyme, ?int $anneeCohorte = null): array
+    {
+        $pattern = $this->getFormationPattern($formationAccronyme);
+        
+        // Si pas d'année de cohorte spécifiée, on prend l'année demandée
+        if ($anneeCohorte === null) {
+            $anneeCohorte = $anneeScolaire;
+        }
+        
+        // Requête qui suit une vraie cohorte:
+        // 1. Sous-requête pour identifier les étudiants entrés en BUT1 à l'année de cohorte
+        // 2. Récupère les données de ces étudiants pour l'année demandée
+        $sql = "
+            SELECT
+                e.etudiant_id AS etudid,
+                e.etat AS etat,
+                af.ordre AS ordre,
+                ca.code AS code,
+                ea.annee_scolaire AS annee_scolaire
+            FROM EffectuerAnnee ea
+            INNER JOIN Etudiant e 
+                ON e.etudiant_id = ea.etudiant_id
+            INNER JOIN AnneeFormation af 
+                ON af.anneeformation_id = ea.anneeformation_id
+            INNER JOIN Parcours p 
+                ON p.parcours_id = af.parcours_id
+            INNER JOIN Formation f 
+                ON f.formation_id = p.formation_id
+            INNER JOIN CodeAnnee ca 
+                ON ca.codeannee_id = ea.codeannee_id
+            WHERE ea.annee_scolaire = :annee
+              AND f.accronyme LIKE :formation
+              AND e.etudiant_id IN (
+                  -- Sous-requête: étudiants entrés en BUT1 à l'année de cohorte
+                  SELECT DISTINCT ea2.etudiant_id
+                  FROM EffectuerAnnee ea2
+                  INNER JOIN AnneeFormation af2 
+                      ON af2.anneeformation_id = ea2.anneeformation_id
+                  INNER JOIN Parcours p2 
+                      ON p2.parcours_id = af2.parcours_id
+                  INNER JOIN Formation f2 
+                      ON f2.formation_id = p2.formation_id
+                  WHERE ea2.annee_scolaire = :annee_cohorte
+                    AND af2.ordre = 1
+                    AND f2.accronyme LIKE :formation2
+              )
+        ";
+        
+        try {
+            $stmt = $this->conn->prepare($sql);
+            $stmt->bindValue(':annee', $anneeScolaire, PDO::PARAM_INT);
+            $stmt->bindValue(':annee_cohorte', $anneeCohorte, PDO::PARAM_INT);
+            $stmt->bindValue(':formation', $pattern, PDO::PARAM_STR);
+            $stmt->bindValue(':formation2', $pattern, PDO::PARAM_STR);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log('[ERREUR SQL] Requete getCohorteParAnneeEtFormation : ' . $e->getMessage());
+            throw new Exception('Erreur SQL getCohorteParAnneeEtFormation : ' . $e->getMessage());
+        }
     }
 
 }

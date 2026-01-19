@@ -21,18 +21,23 @@ class Controller_api extends Controller {
 
         /**
          * Détermine le code de décision d'un étudiant à partir de ses données
+         * Retourne null si l'étudiant n'a pas de décision annuelle (annee: [])
          */
-        private function determineCodeFromEtudiant(array $etudiant): string {
+        private function determineCodeFromEtudiant(array $etudiant): ?string {
+            // Si annee est un tableau vide, pas de décision annuelle
+            if (isset($etudiant['annee']) && is_array($etudiant['annee']) && empty($etudiant['annee'])) {
+                return null;
+            }
             if (isset($etudiant['annee']['code'])) {
                 return $etudiant['annee']['code'];
             }
-            if (isset($etudiant['decisions']) && isset($etudiant['decisions']['annee'])) {
-                return $etudiant['decisions']['annee']['code'] ?? 'ATT';
+            if (isset($etudiant['decisions']['annee']['code'])) {
+                return $etudiant['decisions']['annee']['code'];
             }
             if (isset($etudiant['code'])) {
                 return $etudiant['code'];
             }
-            return 'ATT';
+            return null;
         }
     
     private Service_stats $service;
@@ -293,6 +298,11 @@ class Controller_api extends Controller {
                 if (is_array($data)) {
                     foreach ($data as $etudiant) {
                         if (isset($etudiant['etudid'])) {
+                            // Ignorer les étudiants sans décision annuelle (annee: [])
+                            $code = $this->determineCodeFromEtudiant($etudiant);
+                            if ($code === null) {
+                                continue;
+                            }
                             // Priorité à l'ordre du JSON si présent, sinon heuristique sur le nom de fichier
                             $ordre = isset($etudiant['annee']['ordre']) ? (int)$etudiant['annee']['ordre'] : $this->determineOrdreFromFilename($filename);
                             $result[] = [
@@ -300,7 +310,7 @@ class Controller_api extends Controller {
                                 'etat' => $etudiant['etat'] ?? null,
                                 'annee' => [
                                     'ordre' => $ordre,
-                                    'code' => $this->determineCodeFromEtudiant($etudiant),
+                                    'code' => $code,
                                     'annee_scolaire' => (string)$annee,
                                 ],
                             ];
