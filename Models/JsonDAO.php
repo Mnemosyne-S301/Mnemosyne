@@ -9,6 +9,7 @@ require_once __DIR__ . "/Parcours.php";
 require_once __DIR__ . "/AnneeFormation.php";
 require_once __DIR__ . "/RCUE.php";
 require_once __DIR__ . "/UE.php";
+require_once __DIR__ . "/Decision.php";
 
 $JSON_PATH = __DIR__ . "/../Database/example/json";
 
@@ -168,6 +169,7 @@ class JsonDAO
         global $JSON_PATH;
         $allFiles = $this->__getAllJsonFiles();
         $allDecisionInstances = [];
+        $allDecisionCombinaison = []; // toutes les combinaisons faites, pour éviter les doublons
 
         foreach($allFiles as $filename)
         {
@@ -188,16 +190,33 @@ class JsonDAO
                     }
 
                     // recherche des valeurs de l'année scolaire et de l'id formsemestre dans le nom de fichier
-                    preg_match("/^decisions_jury_([0-9]{4})_fs_([0-9])/", $filename, $matches);
+                    preg_match("/^decisions_jury_([0-9]{4})_fs_([0-9]{3,4})/", $filename, $matches);
                     $current_annee_scolaire = $matches[1];  // qui a matché le 1er groupe de la regex
                     $current_formsemstre_id = $matches[2];  // qui a matché le 2eme groupe
-                    // création du dico nous même
-                    $current_decision_array = array(
-                        'code'              => $current_decision['annee']['code'],
-                        'code_nip'          => $current_decision['code_nip'],
-                        'annee_scolaire'    => $current_annee_scolaire,
-                        'formsemestre_id'   => $current_formsemstre_id
-                    );
+
+                    $current_combinaision_string = (string)$current_annee_scolaire . '-' . (string)$current_formsemstre_id . '-' . $current_decision['code_nip'] . '-' . $current_decision['annee']['code'];
+                    //************  A CHANGER **************/
+                    if($current_annee_scolaire == '2022')
+                    {
+                        continue; // condition temporaire pour faire marcher le peuplement
+                    }
+                    /**************************************/
+                    if(!in_array($current_combinaision_string, $allDecisionCombinaison))
+                    {
+                        // création du dico nous même
+                        $current_decision_array = array(
+                            'code'              => $current_decision['annee']['code'],
+                            'code_nip'          => $current_decision['code_nip'],
+                            'annee_scolaire'    => $current_annee_scolaire,
+                            'formsemestre_id'   => $current_formsemstre_id
+                        );
+                        $allDecisionCombinaison[] = $current_combinaision_string;
+                        // ajout à la liste des combinaisons parcourus
+                    }
+                    else
+                    {
+                        var_dump($allDecisionCombinaison);
+                    }
 
                     // instanciate the object
                     $allDecisionInstances[] = new Decision($current_decision_array);
@@ -386,6 +405,16 @@ class JsonDAO
         return $allCompetenceInstances;
     }
 
+    /**
+     * Fonctionnalité NON IMPLÉMENTÉE suite à une erreur d'analyse dans la conception.
+     * En effet, il était prévu qu'une UE ne soit associé qu'à un FormSemestre.
+     * Après erreur de peuplement de la base de donnée, il s'est avérer 
+     * qu'une même UE peut être présente sur plusieurs FormSemestre. 
+     * 
+     * Faute de temps, les changements necessaire n'ont pu être fait. 
+     * 
+     * - le 19 janvier 2026 à minuit
+     */
     public function findall_ue()
     {
         global $JSON_PATH;
@@ -430,7 +459,6 @@ class JsonDAO
                     }
                 }
 
-                var_dump($current_formsemestre_competences);
                 $current_decision = $current_data[0]; // on prend qu'un echantillon pour recuperer les UE
                 $current_ues = $current_decision['ues'];
                 $i = 0;

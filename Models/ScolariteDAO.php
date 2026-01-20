@@ -285,13 +285,16 @@ class ScolariteDAO
     public function addUE(array $ues)
     {
         // query writting
-        $query = "INSERT INTO UE(ue_id, rcue_id, formsemestre_id) VALUES ";
+        $query = "INSERT INTO UE(ue_id, rcue_id, formsemestre_id) ";
         for ($i = 0; $i < count($ues); $i++)
         {
-            $query = $query . "(?, ?, ?)";
+            $query = $query . " SELECT ? AS ue_id, rcue_id AS rcue_id, ? AS formsemetre_id
+                                FROM RCUE
+                                WHERE RCUE.nomCompetence = ?
+                            ";
             if ($i < count($ues) - 1)
             {
-                $query = $query . ", ";
+                $query = $query . " UNION ALL ";
             }
         }
         $query = $query . ";";
@@ -301,8 +304,9 @@ class ScolariteDAO
         foreach($ues as $ue)
         {
             $allUEValues[] = $ue['ue_id'];
-            $allUEValues[] = $ue['rcue_id'];
             $allUEValues[] = $ue['formsemestre_id'];
+            $allUEValues[] = $ue['nomCompetence'];
+            
         }
 
         // execution de la requete
@@ -403,7 +407,7 @@ class ScolariteDAO
      *                                      'annee_scolaire' : l'année scolaire (ex : 2021) 
      *                                      'code_nip' : le hash du code nip de l'étudiant (doit être valeur de la table Etudiant)
      *                                      'formsemestre_id' : l'id d'un formesemestre de l'année de formation. (doit être renseigné dans la table Formsemestre)
-     *                                      'code_annee' : le code obtenu pour l'année (ex : ADM, AJ, etc.) (doit être valeur de la table CodeAnnee)
+     *                                      'code' : le code obtenu pour l'année (ex : ADM, AJ, etc.) (doit être valeur de la table CodeAnnee)
      */
     public function addEffectuerAnnee(array $effectuerAnnees)
     {
@@ -443,7 +447,7 @@ class ScolariteDAO
             $allEffectuerAnneeValues[] = $ea['annee_scolaire'];
             $allEffectuerAnneeValues[] = $ea['code_nip'];
             $allEffectuerAnneeValues[] = $ea['formsemestre_id'];
-            $allEffectuerAnneeValues[] = $ea['code_annee'];
+            $allEffectuerAnneeValues[] = $ea['code'];
         }
 
         // execution de la requete

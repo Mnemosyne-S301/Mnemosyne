@@ -107,7 +107,7 @@ CREATE TABLE CodeUE(
 CREATE TABLE CodeAnnee(
     codeannee_id SERIAL PRIMARY KEY,
     code VARCHAR(50) NOT NULL,
-    signification VARCHAR(50)
+    signification VARCHAR(150)
 );
 
 CREATE TABLE EffectuerRCUE(

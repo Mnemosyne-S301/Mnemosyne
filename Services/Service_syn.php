@@ -154,5 +154,66 @@ class Service_syn
         // remplissage de la base de donnée
         self::$scolariteDAO->addFormSemestre($all_formsemestre_dict);
     }
+
+    /**
+     * Fonctionnalité NON IMPLÉMENTÉE suite à une erreur d'analyse dans la conception.
+     * En effet, il était prévu qu'une UE ne soit associé qu'à un FormSemestre.
+     * Après erreur de peuplement de la base de donnée, il s'est avérer 
+     * qu'une même UE peut être présente sur plusieurs FormSemestre. 
+     * 
+     * Faute de temps, les changements necessaire n'ont pu être fait. 
+     * 
+     * - le 19 janvier 2026 à minuit
+     */
+    public function sync_ue()
+    {
+        $all_ue = self::$sourcedataDAO->findall_ue();
+
+        $all_ue_dict = [];
+        foreach($all_ue as $ue)
+        {
+            $all_ue_dict[] = $ue->toDict();
+        }
+
+        // remplissage de la base de donnée
+        self::$scolariteDAO->addUE($all_ue_dict);
+    }
+
+    public function sync_code_annee()
+    {
+        $all_code_annee_dict = [
+            ['code' => 'ABAN',      'signification' => 'Abandon constaté (sans lettre de démission)'],
+            ['code' => 'ABL',       'signification' => 'Année Blanche'],
+            ['code' => 'ADM' ,      'signification' => 'Admis'],
+            ['code' => 'ADJ' ,      'signification' => 'Admis par décision de jury'],
+            ['code' => 'ATJ' ,      'signification' => 'Non validé pour une autre raison, voir règlement local'],
+            ['code' => 'DEF' ,      'signification' => '(défaillance) Non évalué par manque assiduité'],
+            ['code' => 'DEM' ,      'signification' => 'Démission'],
+            ['code' => 'EXC' ,      'signification' => 'EXClusion, décision réservée à des décisions disciplinaires'],
+            ['code' => 'NAR' ,      'signification' => 'Non admis, réorientation'],
+            ['code' => 'PAS1NCI' ,  'signification' => 'Non admis, mais passage par décision de jury (Passage en Année Supérieure avec au moins 1 Niveau de Compétence Insuffisant (RCUE<8))'],
+            ['code' => 'PASD' ,     'signification' => 'Non admis, mais passage de droit'],
+            ['code' => 'RAT' ,      'signification' => 'En attente d’un rattrapage'],
+            ['code' => 'RED' ,      'signification' => 'Ajourné, mais autorisé à redoubler']
+        ];
+
+        // remplissage de la base de donnée
+        self::$scolariteDAO->addCodeAnnee($all_code_annee_dict);
+    }
+
+    public function sync_decision_annee()
+    {
+        $all_decision = self::$sourcedataDAO->findall_decision();
+
+        $all_decision_dict = [];
+        foreach($all_decision as $d)
+        {
+            $all_decision_dict[] = $d->toDict();
+        }
+
+        // remplissage de la base de donnée
+        self::$scolariteDAO->addEffectuerAnnee($all_decision_dict);
+    }
+
 }
 ?>
