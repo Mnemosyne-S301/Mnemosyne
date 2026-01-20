@@ -25,12 +25,12 @@ CREATE TABLE Departement(
 CREATE TABLE Formation(
     formation_id SERIAL PRIMARY KEY,
     accronyme VARCHAR(50) NOT NULL,
-    titre VARCHAR(50) NOT NULL,
+    titre VARCHAR(100) NOT NULL,
     version TINYINT UNSIGNED,
     formation_code VARCHAR(50) NOT NULL,
-    type_parcours TINYINT UNSIGNED,
-    titre_officiel VARCHAR(50) NOT NULL,
-    commentaire VARCHAR(50) DEFAULT NULL,
+    type_parcours SMALLINT UNSIGNED,
+    titre_officiel VARCHAR(150) NOT NULL,
+    commentaire VARCHAR(100) DEFAULT NULL,
     code_specialite VARCHAR(50) DEFAULT NULL,
     dep_id INTEGER,
     FOREIGN KEY (dep_id) REFERENCES Departement(dep_id) ON DELETE CASCADE
@@ -39,7 +39,7 @@ CREATE TABLE Formation(
 CREATE TABLE Parcours(
     parcours_id SERIAL PRIMARY KEY,
     code VARCHAR(50) NOT NULL,
-    libelle VARCHAR(50) NOT NULL,
+    libelle VARCHAR(100) NOT NULL,
     formation_id BIGINT UNSIGNED,
     FOREIGN KEY (formation_id) REFERENCES Formation(formation_id) ON DELETE CASCADE
 );
@@ -60,11 +60,11 @@ CREATE TABLE AnneeFormation(
 
 CREATE TABLE FormSemestre(
     formsemestre_id INTEGER PRIMARY KEY,
-    titre VARCHAR(50) NOT NULL,
+    titre VARCHAR(100) NOT NULL,
     semestre_num TINYINT UNSIGNED,
     date_debut DATE,
     date_fin DATE,
-    titre_long VARCHAR(50),
+    titre_long VARCHAR(100),
     etape_apo VARCHAR(50),
     anneeformation_id BIGINT UNSIGNED,
     FOREIGN KEY (anneeformation_id) REFERENCES AnneeFormation(anneeformation_id) ON DELETE CASCADE
@@ -88,7 +88,7 @@ CREATE TABLE UE(
 
 CREATE TABLE Etudiant(
     etudiant_id SERIAL PRIMARY KEY,
-    code_nip VARCHAR(50) NOT NULL,
+    code_nip VARCHAR(100) NOT NULL,
     etat VARCHAR(50) -- pareil, je sais pas ce que c'est
 );
 
@@ -107,7 +107,7 @@ CREATE TABLE CodeUE(
 CREATE TABLE CodeAnnee(
     codeannee_id SERIAL PRIMARY KEY,
     code VARCHAR(50) NOT NULL,
-    signification VARCHAR(50)
+    signification VARCHAR(150)
 );
 
 CREATE TABLE EffectuerRCUE(

@@ -90,7 +90,7 @@ class ScolariteDAO
             $allDepartementsValues[] = $dept['dep_id'];
             $allDepartementsValues[] = $dept['accronyme'];
             $allDepartementsValues[] = $dept['description'];
-            $allDepartementsValues[] = $dept['visible'];
+            $allDepartementsValues[] = (int)$dept['visible'];   // cast bool to int for SQL issue
             $allDepartementsValues[] = $dept['date_creation'];
             $allDepartementsValues[] = $dept['nom_dep'];
         }
@@ -214,13 +214,20 @@ class ScolariteDAO
     public function addRCUE(array $rcues)
     {
         // query writting
-        $query = "INSERT INTO RCUE(nomCompetence, niveau, anneeformation_id) VALUES ";
+        $query = "INSERT INTO RCUE(nomCompetence, niveau, anneeformation_id) ";
         for ($i = 0; $i < count($rcues); $i++)
         {
-            $query = $query . "(?, ?, ?)";
+            $query = $query . " SELECT ? AS nomCompetence, ? AS niveau, anneeformation_id
+                                FROM AnneeFormation AS AF
+                                INNER JOIN Parcours AS P USING(parcours_id)
+                                INNER JOIN Formation AS F USING(formation_id)
+                                WHERE AF.ordre = ?
+                                AND P.code = ?
+                                AND F.formation_id = ?
+                            ";
             if ($i < count($rcues) - 1)
             {
-                $query = $query . ", ";
+                $query = $query . " UNION ALL ";
             }
         }
         $query = $query . ";";
@@ -231,7 +238,9 @@ class ScolariteDAO
         {
             $allRCUEValues[] = $rcue['nomCompetence'];
             $allRCUEValues[] = $rcue['niveau'];
-            $allRCUEValues[] = $rcue['anneeformation_id'];
+            $allRCUEValues[] = $rcue['ordre_anneeFormation'];
+            $allRCUEValues[] = $rcue['code_parcours'];
+            $allRCUEValues[] = $rcue['formation_id'];
         }
 
         // execution de la requete
@@ -242,13 +251,19 @@ class ScolariteDAO
     public function addFormSemestre(array $formSemestres)
     {
         // query writting
-        $query = "INSERT INTO FormSemestre(formsemestre_id, titre, semestre_num, date_debut, date_fin, titre_long, etape_apo, anneeformation_id) VALUES ";
+        $query = "INSERT INTO FormSemestre(formsemestre_id, titre, semestre_num, date_debut, date_fin, titre_long, etape_apo, anneeformation_id) ";
         for ($i = 0; $i < count($formSemestres); $i++)
         {
-            $query = $query . "(?, ?, ?, ?, ?, ?, ?, ?)";
+            $query = $query . " SELECT ? AS formsemestre_id, ? AS titre, ? AS semestre_num, ? AS date_debut, ? AS date_fin, ? AS titre_long, ? AS etape_apo, anneeformation_id
+                                FROM AnneeFormation AS AF 
+                                INNER JOIN Parcours AS P USING(parcours_id)
+                                WHERE AF.ordre = ?
+                                AND P.code = ?
+                                AND P.formation_id = ?
+                            ";
             if ($i < count($formSemestres) - 1)
             {
-                $query = $query . ", ";
+                $query = $query . " UNION ALL ";
             }
         }
         $query = $query . ";";
@@ -264,7 +279,9 @@ class ScolariteDAO
             $allFormSemestreValues[] = $fs['date_fin'];
             $allFormSemestreValues[] = $fs['titre_long'];
             $allFormSemestreValues[] = $fs['etape_apo'];
-            $allFormSemestreValues[] = $fs['anneeformation_id'];
+            $allFormSemestreValues[] = $fs['ordre_anneeFormation'];
+            $allFormSemestreValues[] = $fs['code_parcours'];
+            $allFormSemestreValues[] = $fs['formation_id'];
         }
 
         // execution de la requete
@@ -275,13 +292,16 @@ class ScolariteDAO
     public function addUE(array $ues)
     {
         // query writting
-        $query = "INSERT INTO UE(ue_id, rcue_id, formsemestre_id) VALUES ";
+        $query = "INSERT INTO UE(ue_id, rcue_id, formsemestre_id) ";
         for ($i = 0; $i < count($ues); $i++)
         {
-            $query = $query . "(?, ?, ?)";
+            $query = $query . " SELECT ? AS ue_id, rcue_id AS rcue_id, ? AS formsemetre_id
+                                FROM RCUE
+                                WHERE RCUE.nomCompetence = ?
+                            ";
             if ($i < count($ues) - 1)
             {
-                $query = $query . ", ";
+                $query = $query . " UNION ALL ";
             }
         }
         $query = $query . ";";
@@ -291,8 +311,9 @@ class ScolariteDAO
         foreach($ues as $ue)
         {
             $allUEValues[] = $ue['ue_id'];
-            $allUEValues[] = $ue['rcue_id'];
             $allUEValues[] = $ue['formsemestre_id'];
+            $allUEValues[] = $ue['nomCompetence'];
+            
         }
 
         // execution de la requete
@@ -393,7 +414,7 @@ class ScolariteDAO
      *                                      'annee_scolaire' : l'année scolaire (ex : 2021) 
      *                                      'code_nip' : le hash du code nip de l'étudiant (doit être valeur de la table Etudiant)
      *                                      'formsemestre_id' : l'id d'un formesemestre de l'année de formation. (doit être renseigné dans la table Formsemestre)
-     *                                      'code_annee' : le code obtenu pour l'année (ex : ADM, AJ, etc.) (doit être valeur de la table CodeAnnee)
+     *                                      'code' : le code obtenu pour l'année (ex : ADM, AJ, etc.) (doit être valeur de la table CodeAnnee)
      */
     public function addEffectuerAnnee(array $effectuerAnnees)
     {
@@ -433,7 +454,7 @@ class ScolariteDAO
             $allEffectuerAnneeValues[] = $ea['annee_scolaire'];
             $allEffectuerAnneeValues[] = $ea['code_nip'];
             $allEffectuerAnneeValues[] = $ea['formsemestre_id'];
-            $allEffectuerAnneeValues[] = $ea['code_annee'];
+            $allEffectuerAnneeValues[] = $ea['code'];
         }
 
         // execution de la requete

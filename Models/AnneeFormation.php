@@ -1,20 +1,32 @@
 <?php
+
 class AnneeFormation {
-    private ?int $anneeformation_id; // SERIAL en DB, pas nécessaire à l’insert
     private int $ordre;
     private int $parcours_id;
 
-    public function __construct(array $d) {
-        $this->anneeformation_id = isset($d['anneeformation_id']) ? (int)$d['anneeformation_id'] : null;
-        $this->ordre = (int)$d['ordre'];
-        $this->parcours_id = (int)$d['parcours_id'];
+    public function __construct(array $dict) {
+        $this->ordre = $dict['ordre'];
+        $this->parcours_id = $dict['parcours_id'];
     }
 
+    /* GETTERS */
+
+    public function getOrdre(): int {
+        return $this->ordre;
+    }
+
+    public function getParcoursId(): int {
+        return $this->parcours_id;
+    }
+
+    /* OTHER METHODS */
+
     public function toDict(): array {
-        // addAnneeFormation() attend seulement ordre + parcours_id
-        return [
+        return array(
             'ordre' => $this->ordre,
-            'parcours_id' => $this->parcours_id,
-        ];
+            'parcours_id' => $this->parcours_id
+        );
     }
 }
+
+?>

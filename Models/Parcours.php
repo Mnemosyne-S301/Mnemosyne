@@ -1,23 +1,44 @@
 <?php
+
 class Parcours {
     private int $parcours_id;
-    private string $code;
-    private string $libelle;
+    private String $code;
+    private String $libelle;
     private int $formation_id;
 
-    public function __construct(array $d) {
-        $this->parcours_id = (int)$d['parcours_id'];
-        $this->code = (string)$d['code'];
-        $this->libelle = (string)$d['libelle'];
-        $this->formation_id = (int)$d['formation_id'];
+    public function __construct(array $dict) {
+        $this->parcours_id = $dict['parcours_id'];
+        $this->code = $dict['code'];
+        $this->libelle = $dict['libelle'];
+        $this->formation_id = $dict['formation_id'];
     }
 
+    /* GETTERS */
+
+    public function getParcoursId(): int {
+        return $this->parcours_id;
+    }
+
+    public function getCode(): String {
+        return $this->code;
+    }
+
+    public function getLibelle(): String {
+        return $this->libelle;
+    }
+
+    public function getFormationId(): int {
+        return $this->formation_id;
+    }
+
+    /* OTHER METHODS */
+
     public function toDict(): array {
-        return [
+        return array(
             'parcours_id' => $this->parcours_id,
             'code' => $this->code,
             'libelle' => $this->libelle,
-            'formation_id' => $this->formation_id,
-        ];
+            'formation_id' => $this->formation_id
+        );
     }
 }
