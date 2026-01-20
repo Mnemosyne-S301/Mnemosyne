@@ -194,13 +194,38 @@ class JsonDAO
                     $current_annee_scolaire = $matches[1];  // qui a matché le 1er groupe de la regex
                     $current_formsemstre_id = $matches[2];  // qui a matché le 2eme groupe
 
-                    $current_combinaision_string = (string)$current_annee_scolaire . '-' . (string)$current_formsemstre_id . '-' . $current_decision['code_nip'] . '-' . $current_decision['annee']['code'];
                     //************  A CHANGER **************/
+                    // temporaire pour faire marcher le peuplement de la BD
                     if($current_annee_scolaire == '2022')
                     {
                         continue; // condition temporaire pour faire marcher le peuplement
                     }
+
+                    $current_formsemestre_list_file_name = "formsemestres_" . $current_annee_scolaire . ".json";
+                    $current_formsemestre_list_file_path = $JSON_PATH . "/" . $current_formsemestre_list_file_name;
+
+                    /*On va rechercher le formation_id auquelle le formsemestre est rataché pour éviter d'avoir
+                    * deux formsemestre qui sont rataché à la même formation la même année scolaire. Car certain étudiant 
+                    * y sont en double. 
+                    * FAQ : 
+                    * Q : Pourquoi ne pas checké les code_nip des étudiants plutôt pour enlever juste ceux qui sont en doublons ? 
+                    * R : Trop long à faire. Pas le temps à J-1 du rendu finale. Merci de votre compréhension. 
+                    */
+
+                    $current_annee_scolaire_all_formsemestre_data = json_decode(file_get_contents($current_formsemestre_list_file_path), true);
+                    $current_formation_id = null;
+                    foreach($current_annee_scolaire_all_formsemestre_data as $fs)
+                    {
+                        if($fs['id'] == $current_formsemstre_id)
+                        {
+                            $current_formation_id = $fs['formation_id'];
+                            break;
+                        }
+                    }
+
                     /**************************************/
+                    $current_combinaision_string = (string)$current_annee_scolaire . '-' . (string)$current_formation_id . '-' . $current_decision['code_nip'] . '-' . $current_decision['annee']['code'];
+                    
                     if(!in_array($current_combinaision_string, $allDecisionCombinaison))
                     {
                         // création du dico nous même
@@ -212,15 +237,10 @@ class JsonDAO
                         );
                         $allDecisionCombinaison[] = $current_combinaision_string;
                         // ajout à la liste des combinaisons parcourus
-                    }
-                    else
-                    {
-                        var_dump($allDecisionCombinaison);
-                    }
 
-                    // instanciate the object
-                    $allDecisionInstances[] = new Decision($current_decision_array);
-                    
+                        // instanciate the object
+                        $allDecisionInstances[] = new Decision($current_decision_array);
+                    }
                 }
             }
         }

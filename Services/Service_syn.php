@@ -215,5 +215,18 @@ class Service_syn
         self::$scolariteDAO->addEffectuerAnnee($all_decision_dict);
     }
 
+    public function sync_all()
+    {
+        $this->sync_etudiant();
+        $this->sync_departement();
+        $this->sync_formation();
+        $this->sync_parcours();
+        $this->sync_anneeFormation();
+        $this->sync_rcue();
+        $this->sync_formsemestre();
+        $this->sync_code_annee();
+        $this->sync_decision_annee();
+    }
+
 }
 ?>
