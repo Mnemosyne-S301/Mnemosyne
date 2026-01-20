@@ -51,7 +51,7 @@ class StatsDAO {
             error_log('[ERREUR SQL] Connexion scolarite : ' . $e->getMessage());
             throw new Exception('Erreur connexion base scolarite : ' . $e->getMessage());
         }
-        $query ='SELECT DISTINCT(accronyme)
+        $query ='SELECT DISTINCT(titre)
                 FROM formation';
         $stmt=$connScolarite->prepare($query);
         $stmt->execute();

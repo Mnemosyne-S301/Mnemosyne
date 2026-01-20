@@ -34,7 +34,7 @@
     <main class="flex items-center justify-center flex-1">
 
         <!-- Formulaire principal -->
-        <form action="index.php"
+        <form action="/view_sankey.php"
               method="get"
               class="flex flex-col gap-4 w-96">
             
