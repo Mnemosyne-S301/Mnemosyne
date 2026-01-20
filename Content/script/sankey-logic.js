@@ -10,7 +10,8 @@ const SankeyCohort = (function() {
 
     const COLORS = {
         'Parcoursup': '#3B82F6',
-        'Hors Parcoursup': '#8B5CF6',
+        'Passerelle BUT2': '#8B5CF6',
+        'Passerelle BUT3': '#A855F7',
         'BUT1': '#60A5FA', 
         'BUT2': '#93C5FD',
         'BUT3': '#DBEAFE',
@@ -27,6 +28,7 @@ const SankeyCohort = (function() {
         'Diplômé': '#8B5CF6',
         'En cours': '#60A5FA',
         'Abandon': '#EF4444',
+        'Inconnu': '#9CA3AF',
         'DEFAULT': '#6B7280'
     };
 
@@ -150,10 +152,19 @@ function appliquerReglesSurCode(codeDecision) {
     }
 
     function determineOrigine(firstStep, premierNiveau) {
-        if (premierNiveau === 1 && CODES_VALIDATION.includes(firstStep.code)) {
+        // Les étudiants qui commencent en BUT1 viennent de Parcoursup
+        if (premierNiveau === 1) {
             return 'Parcoursup';
         }
-        return 'Hors Parcoursup';
+        // Les étudiants qui arrivent directement en BUT2 ou BUT3 sont des passerelles
+        if (premierNiveau === 2) {
+            return 'Passerelle BUT2';
+        }
+        if (premierNiveau === 3) {
+            return 'Passerelle BUT3';
+        }
+        // Cas par défaut (ne devrait pas arriver)
+        return 'Parcoursup';
     }
 
     function buildLinks(etudiants) {
@@ -179,7 +190,8 @@ function appliquerReglesSurCode(codeDecision) {
             const firstStep = etudiant.annees[0];
             const lastStep = etudiant.annees[etudiant.annees.length - 1];
             
-            const origine = determineOrigine(firstStep, etudiant.premierNiveau);
+            // Utiliser firstStep.ordre (après tri) pour déterminer l'origine réelle
+            const origine = determineOrigine(firstStep, firstStep.ordre);
             const premierNiveau = `BUT${firstStep.ordre}`;
             addLink(origine, premierNiveau);
             
@@ -243,10 +255,10 @@ function appliquerReglesSurCode(codeDecision) {
                     // Note: Les abandons définitifs sont déjà gérés plus haut dans la boucle
                     // Ce bloc gère les cas où un étudiant disparaît entre deux années (gap > 1 an)
                     if (!nextStep || nextStep.annee - step.annee > 1) {
-                        // Étudiant disparu sans code d'abandon explicite
+                        // Étudiant disparu sans code d'abandon explicite -> Inconnu
                         if (!hasAbandon && !CODES_VALIDATION.includes(step.code) && !CODES_PASSAGE_DIFFICILE.includes(step.code)) {
-                            addLink(niveauActuel, `Abandon_${niveauActuel}`);
-                            stats.abandons++;
+                            addLink(niveauActuel, `Inconnu_${niveauActuel}`);
+                            stats.abandons++;  // Comptabilisé comme abandon pour les stats
                             hasAbandon = true;
                             break;
                         }
@@ -277,8 +289,13 @@ function appliquerReglesSurCode(codeDecision) {
         const orderedNodes = [];
         // Ordre de base pour les nœuds principaux
         const nodeOrder = [
-            'Parcoursup', 'Hors Parcoursup',
+            // Origines - classées par niveau d'entrée
+            'Parcoursup',
+            'Passerelle BUT2',
+            'Passerelle BUT3',
+            // Niveaux BUT
             'BUT1', 'BUT2', 'BUT3',
+            // Codes de validation
             'ADM', 'PASD', 'ADSUP', 'CMP',
             // Redoublements par niveau
             'RED_BUT1', 'RED_BUT2', 'RED_BUT3',
@@ -288,6 +305,9 @@ function appliquerReglesSurCode(codeDecision) {
             'NAR_BUT1', 'NAR_BUT2', 'NAR_BUT3',
             'DEF_BUT1', 'DEF_BUT2', 'DEF_BUT3',
             'DEM_BUT1', 'DEM_BUT2', 'DEM_BUT3',
+            // Inconnus (disparus sans code explicite)
+            'Inconnu_BUT1', 'Inconnu_BUT2', 'Inconnu_BUT3',
+            // Sorties finales
             'Diplômé', 'En cours'
         ];
         
@@ -338,18 +358,19 @@ function appliquerReglesSurCode(codeDecision) {
         
         // Positions de base pour les nœuds principaux
         const basePositions = {
-            // Origines (colonne 0)
-            'Parcoursup': { x: 0.01, y: 0.3 },
-            'Hors Parcoursup': { x: 0.01, y: 0.7 },
+            // Origines (colonne 0) - alignées avec leur niveau de destination
+            'Parcoursup': { x: 0.01, y: 0.25 },
+            'Passerelle BUT2': { x: 0.25, y: 0.8 },
+            'Passerelle BUT3': { x: 0.50, y: 1.0 },
             
             // Niveaux BUT - positions de référence
-            'BUT1': { x: 0.25, y: 0.4 },
-            'BUT2': { x: 0.50, y: 0.4 },
-            'BUT3': { x: 0.75, y: 0.4 },
+            'BUT1': { x: 0.25, y: 0.25 },
+            'BUT2': { x: 0.50, y: 0.25 },
+            'BUT3': { x: 0.75, y: 0.25 },
             
             // Diplômé (fin)
-            'Diplômé': { x: 0.99, y: 0.3 },
-            'En cours': { x: 0.99, y: 0.5 },
+            'Diplômé': { x: 0.99, y: 0.35 },
+            'En cours': { x: 0.99, y: 0.45 },
         };
         
         // Les sorties de chaque année vont VERS l'année suivante
@@ -362,12 +383,13 @@ function appliquerReglesSurCode(codeDecision) {
         
         // Décalages verticaux pour les différents types de sortie
         const sortieOffsets = {
-            'RED': 0.55,
-            'AJ': 0.65,
-            'ADJ': 0.75,
-            'NAR': 0.80,
-            'DEM': 0.88,
-            'DEF': 0.95,
+            'RED': 0.50,
+            'AJ': 0.58,
+            'ADJ': 0.66,
+            'NAR': 0.74,
+            'DEM': 0.82,
+            'DEF': 0.90,
+            'Abandon': 0.98,
         };
         
         const positions = { ...basePositions };

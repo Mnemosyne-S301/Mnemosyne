@@ -33,12 +33,12 @@ class Controller_sankey extends Controller {
         // Récupérer les paramètres ou utiliser les valeurs par défaut
         $anneeDepart = isset($_GET['anneeDepart']) ? (int)substr(trim($_GET['anneeDepart']), 0, 4) : 2021;
         $formation = isset($_GET['formation']) ? strtoupper(trim($_GET['formation'])) : 'INFO';
-        $source = isset($_GET['source']) ? strtolower(trim($_GET['source'])) : 'json';
+        $source = isset($_GET['source']) ? strtolower(trim($_GET['source'])) : 'bdd';
         
         $title = 'Suivi de Cohorte d\'étudiants';
         
         // Passer uniquement la configuration à la vue
-        // Les données seront chargées via l'API en JavaScript
+        // Les données seront chargées via l'API en JS
         $this->render('sankey', [
             'title' => $title,
             'formation' => $formation,

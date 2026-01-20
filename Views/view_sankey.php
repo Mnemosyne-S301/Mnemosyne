@@ -235,6 +235,10 @@
                     console.log(`Année ${i + 1} (${annee}):`, sankeyData[dataKey]?.length || 0, 'étudiants');
                 });
 
+                // Masquer le loader
+                const loader = document.getElementById('loader');
+                if (loader) loader.style.display = 'none';
+                
                 // Initialiser le diagramme Sankey
                 if (typeof SankeyCohort !== 'undefined') {
                     SankeyCohort.init();
@@ -277,8 +281,12 @@
 
             } catch (error) {
                 console.error('Erreur lors du chargement:', error);
-                if (loadingEl) {
-                    loadingEl.innerHTML = `<div class="flex items-center justify-center h-full text-red-400"><span class="text-xl">Erreur: ${error.message}</span></div>`;
+                // Masquer le loader et afficher l'erreur
+                const loader = document.getElementById('loader');
+                if (loader) loader.style.display = 'none';
+                const plotDiv = document.getElementById('sankey-plot');
+                if (plotDiv) {
+                    plotDiv.innerHTML = `<div class="flex items-center justify-center h-full text-red-400"><span class="text-xl">Erreur: ${error.message}</span></div>`;
                 }
             }
         }
