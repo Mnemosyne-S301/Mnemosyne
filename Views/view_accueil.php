@@ -34,7 +34,7 @@
     <main class="flex items-center justify-center flex-1">
 
         <!-- Formulaire principal -->
-        <form action="/view_sankey.php"
+        <form action="/sankey/default"
               method="get"
               class="flex flex-col gap-4 w-96">
             
@@ -108,7 +108,7 @@
         <!-- ============================
              BOUTON ADMIN (collé en bas)
         ============================= -->
-        <a href="./Views/view_login.php">
+        <a href="/auth/default">
             <input id="logo_admin"
                 type="image"
                 src="/Content/image/connexion_admin.png"

@@ -1,10 +1,11 @@
 <?php
+require_once "Controllers/Controller.php";
 
 ini_set('display_errors', 'On');
 error_reporting(E_ALL);
 
 
-$controllers = ["index"]; //Liste des contrôleurs
+$controllers = ["accueil", "admin", "api", "auth", "sankey"]; //Liste des contrôleurs
 $controller_default = "accueil"; //Nom du contrôleur par défaut
 
 //On teste si le paramètre controller existe et correspond à un contrôleur
@@ -27,10 +28,8 @@ $nom_fichier = 'Controllers/' . $nom_classe . '.php';
 if (is_readable($nom_fichier))
 {
 //On l'inclut et on instancie un objet de cette classe
-require_once __DIR__ .'/Controllers/Controller.php';
-require_once __DIR__ .'/'. $nom_fichier;
+require_once $nom_fichier;
 new $nom_classe();
-
 }
 else
 {
