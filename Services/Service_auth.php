@@ -2,6 +2,9 @@
 require_once __DIR__ . "/../Models/UserDAO.php";
 require_once __DIR__ . "/../Models/DB.php";
 
+/**
+ * @package Service
+ */
 class Service_auth {
     private UserDAO $dao ;   
 

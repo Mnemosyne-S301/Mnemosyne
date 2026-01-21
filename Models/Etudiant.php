@@ -1,4 +1,7 @@
 <?php
+/**
+ * @package Model
+ */
 class Etudiant{
     private String $code_nip;
     private String $etat;

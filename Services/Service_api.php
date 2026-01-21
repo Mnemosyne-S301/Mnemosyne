@@ -11,6 +11,8 @@ require_once __DIR__ . '/../Models/ScolariteDAO.php';
  * Utilise deux DAO :
  * - StatsDAO : pour les statistiques agrégées (BDD stats)
  * - ScolariteDAO : pour les données individuelles des étudiants (BDD scolarite)
+ * 
+ * @package Service
  */
 class Service_stats {
     

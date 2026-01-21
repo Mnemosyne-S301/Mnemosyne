@@ -15,7 +15,7 @@
 <body class="h-screen bg-[#0A1E2F] flex flex-col overflow-hidden text-[#FBEDD3]">
 
     <header class="relative flex flex-col items-center justify-center gap-2 py-6">
-        <a href="index.php?controller=accueil" class="absolute left-8 top-8 group z-10">
+        <a href="/accueil/default" class="absolute left-8 top-8 group z-10">
             <img src="Content/image/logo.png" alt="Accueil" class="w-10 h-10 group-hover:scale-110 transition-transform">
         </a>
         <h1 class="text-3xl font-bold tracking-wide">Suivi de Cohorte BUT</h1>
@@ -199,7 +199,7 @@
             }
 
             try {
-                const url = `index.php?controller=api&action=sankey&formation=${formation}&anneeDepart=${anneeDepart}&source=${source}`;
+                const url = `/api/sankey?formation=${formation}&anneeDepart=${anneeDepart}&source=${source}`;
                 console.log('Appel API:', url);
                 
                 const response = await fetch(url);
@@ -371,6 +371,6 @@
 </script>
 
     <!-- Charger le fichier JavaScript externe -->
-    <script src="Content/script/sankey-logic.js"></script>
+    <script src="/Content/script/sankey-logic.js"></script>
 </body>
 </html>

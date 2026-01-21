@@ -1,4 +1,7 @@
 <?php
+/**
+ * @package Model
+ */
 class CodeAnnee {
     private string $code;
     private ?string $signification;

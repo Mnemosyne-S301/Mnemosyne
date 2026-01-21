@@ -1,6 +1,9 @@
 <?php
 require_once __DIR__ . '/../Models/StatsDAO.php';
 
+/**
+ * @package Service
+ */
 class Service_scodoc {
     /**
          * @var StatsDAO $dao Instance du Data Access Object pour interagir avec la BDD.

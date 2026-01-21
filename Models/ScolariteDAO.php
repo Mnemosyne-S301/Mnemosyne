@@ -2,6 +2,10 @@
 
 require_once __DIR__ . '/../config/config.php';
 
+/**
+ * Le DAO permettant d'acceder à la base de donnée Scolarite.
+ * @package DAO
+ */
 class ScolariteDAO
 {
     private $conn; // contains the PDO instance

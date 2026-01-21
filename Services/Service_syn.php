@@ -4,9 +4,16 @@ require_once __DIR__ . "/../Models/ScolariteDAO.php";
 require_once __DIR__ . "/../Models/JsonDAO.php";
 //require_once __DIR__ . "../Models/ScodocDAO.php";
 
+/**
+ * Service gérant l'enregistrement dans la base de donnée.
+ * 
+ * @package Service
+ */
 class Service_syn
 {
+    /** @var ScolariteDAO $scolariteDAO  Le DAO pour enregistrer les données dans la base de donnée Scolarite. */
     private static ?ScolariteDAO $scolariteDAO = null;
+    /** @var mixed $sourcedataDAO Le DAO depuis lequel on extrait les données. Cette variable peut être modifié dans le constructeur. */
     private static $sourcedataDAO = null;
 
     public function __construct()

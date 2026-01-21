@@ -1,4 +1,7 @@
 <?php
+/**
+ * @package Model
+ */
 class Decision {
     private string $code;
     private string $code_nip;

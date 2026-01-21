@@ -4,6 +4,8 @@ require_once __DIR__ . "/../Services/Service_api.php";
 /**
  * Controller API pour fournir les données en JSON
  * Utilisé par les appels fetch() depuis le JavaScript
+ * 
+ * @package Controller
  */
 class Controller_api extends Controller {
         /**

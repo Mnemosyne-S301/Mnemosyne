@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * @package Model
+ */
 class RCUE {
     private String $nomCompetence;
     private int $niveau;

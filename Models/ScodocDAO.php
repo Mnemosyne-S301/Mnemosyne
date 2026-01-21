@@ -8,7 +8,10 @@ require_once __DIR__. "/Formsemestre.php";
 require_once __DIR__. "/Decision.php";
 
 
-    
+/**
+ * Le DAO permettant de recuperer les données depuis l'API ScoDoc
+ * @package DAO
+ */    
 class ScodocDAO implements SourceDataDAO { // va se co a scodoc et recup les infos, tous lers etudiants + tous les dep ect en istanciant 
     private string $api_url="https://scodoc.univ-paris13.fr/ScoDoc/api";
     private ?string $token=null;

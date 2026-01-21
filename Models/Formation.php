@@ -1,4 +1,7 @@
 <?php
+/**
+ * @package Model
+ */
 class Formation{
     private int $formation_id;
     private String $accronyme;

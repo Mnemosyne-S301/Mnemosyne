@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * @package Model
+ */
 class UE {
     private int $ue_id;
     private int $formsemestre_id;

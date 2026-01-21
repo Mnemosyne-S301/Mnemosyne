@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * @package Model
+ */
 class Parcours {
     private int $parcours_id;
     private String $code;
