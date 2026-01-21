@@ -5,9 +5,11 @@
 -- 1. NETTOYAGE
 -- Suppression des tables existantes pour permettre la régénération des données
 DROP TABLE IF EXISTS nb_eleve_par_formation;
+/*
 DROP TABLE IF EXISTS res_ue_par_annee_par_eleve;
 DROP TABLE IF EXISTS nb_ue_valide_par_annee_par_eleve;
 DROP TABLE IF EXISTS repartition_notes_par_parcours;
+*/
 DROP TABLE IF EXISTS nb_rcue_valide_par_annee_par_eleve;
 DROP TABLE IF EXISTS repartition_rcue_par_parcours;
 
@@ -38,7 +40,8 @@ GROUP BY
     departement.description, 
     formation.titre, 
     parcours.libelle;
-
+/*
+--Supprimer pour l'instant car nous avons pas réussi a implémenter la table ue dans la Base de Donnée
 -- ==============================================================================
 -- PARTIE 2 : ANALYSE DES UE (UNITES D'ENSEIGNEMENT)
 -- ==============================================================================
@@ -114,7 +117,7 @@ ORDER BY
     parcours, 
     annee_scolaire,
     nb_ue_validees DESC;
-
+*/
 -- ==============================================================================
 -- PARTIE 3 : ANALYSE DES RCUE (COMPETENCES)
 -- ==============================================================================
