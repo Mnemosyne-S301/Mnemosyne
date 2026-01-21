@@ -60,7 +60,9 @@
                     <?php
                         if(!empty($formationArray)) {
                             foreach($formationArray as $formation){
-                                echo '<option value="'.$formation['titre'].'">'.$formation['titre'].'</option>';
+                                $accronyme = htmlspecialchars($formation['accronyme'] ?? $formation['titre']);
+                                $titre = htmlspecialchars($formation['titre'] ?? $formation['accronyme']);
+                                echo '<option value="'.$accronyme.'">'.$titre.' (' . $accronyme . ')</option>';
                             }
                         }
                         else{

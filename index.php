@@ -4,7 +4,7 @@ ini_set('display_errors', 'On');
 error_reporting(E_ALL);
 
 
-$controllers = ["index"]; //Liste des contrôleurs
+$controllers = ["index", "accueil", "api", "auth", "sankey", "users"]; //Liste des contrôleurs
 $controller_default = "accueil"; //Nom du contrôleur par défaut
 
 //On teste si le paramètre controller existe et correspond à un contrôleur

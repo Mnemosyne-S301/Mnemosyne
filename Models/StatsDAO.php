@@ -51,11 +51,14 @@ class StatsDAO {
             error_log('[ERREUR SQL] Connexion scolarite : ' . $e->getMessage());
             throw new Exception('Erreur connexion base scolarite : ' . $e->getMessage());
         }
-        $query ='SELECT DISTINCT(titre)
-                FROM formation';
-        $stmt=$connScolarite->prepare($query);
+        // Retourner l'accronyme (code court) et le titre pour permettre
+        // d'utiliser l'accronyme comme valeur de formulaire tout en
+        // affichant le titre lisible à l'utilisateur.
+        $query = 'SELECT DISTINCT accronyme, titre
+            FROM formation
+            ORDER BY accronyme, titre';
+        $stmt = $connScolarite->prepare($query);
         $stmt->execute();
-        
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
