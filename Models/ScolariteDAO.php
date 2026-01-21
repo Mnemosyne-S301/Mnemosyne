@@ -605,12 +605,12 @@ class ScolariteDAO
     private function getFormationPattern(string $acronyme): string
     {
         $mapping = [
-            'INFO' => '%INFO%',
-            'GEA' => '%GEA%',
-            'GEII' => '%GEII%',
-            'RT' => '%R&T%',
-            'CJ' => '%CJ%',
-            'SD' => '%SD%',
+            'INFO' => 'BUT INFO%',
+            'GEA' => 'BUT GEA%',
+            'GEII' => 'BUT GEII%',
+            'RT' => 'BUT R&T%',
+            'CJ' => 'BUT CJ%',
+            'SD' => 'BUT SD%',
             'STID' => '%STID%',
         ];
         

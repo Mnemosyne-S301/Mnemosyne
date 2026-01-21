@@ -30,8 +30,8 @@
                 <div class="flex items-center gap-2">
                     <label for="formation-select" class="text-sm font-medium">Formation :</label>
                     <select id="formation-select" class="bg-[#0A1E2F] border border-[#E3BF81] text-[#FBEDD3] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#E3BF81]">
-                        <option value="INFO" <?= ($formation ?? 'INFO') === 'INFO' ? 'selected' : '' ?>>BUT Informatique</option>
-                        <option value="GEA" <?= ($formation ?? '') === 'GEA' ? 'selected' : '' ?>>BUT GEA</option>
+                        <option value="INFO" <?= ($formation ?? '') === 'INFO' ? 'selected' : '' ?>>BUT Informatique</option>
+                        <option value="GEA" <?= ($formation ?? 'GEA') === 'GEA' ? 'selected' : '' ?>>BUT GEA</option>
                         <option value="RT" <?= ($formation ?? '') === 'RT' ? 'selected' : '' ?>>BUT R&T</option>
                         <option value="GEII" <?= ($formation ?? '') === 'GEII' ? 'selected' : '' ?>>BUT GEII</option>
                         <option value="CJ" <?= ($formation ?? '') === 'CJ' ? 'selected' : '' ?>>BUT Carrières Juridiques</option>
@@ -165,7 +165,7 @@
     <script>
         // Configuration initiale depuis PHP
         window.SANKEY_CONFIG = {
-            formation: '<?php echo $formation ?? 'INFO'; ?>',
+            formation: '<?php echo $formation ?? 'GEA'; ?>',
             anneeDepart: <?php echo $anneeDepart ?? 2021; ?>,
             source: '<?php echo $source ?? 'json'; ?>'
         };
@@ -199,7 +199,7 @@
             }
 
             try {
-                const url = `/api/sankey?formation=${formation}&anneeDepart=${anneeDepart}&source=${source}`;
+                const url = `index.php?controller=api&action=sankey&formation=${formation}&anneeDepart=${anneeDepart}&source=${source}`;
                 console.log('Appel API:', url);
                 
                 const response = await fetch(url);
