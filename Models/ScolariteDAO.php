@@ -585,7 +585,7 @@ class ScolariteDAO
         'Departement'
     ];
     foreach($tables as $table){
-        $this->conn->exec("TRUNCATE FROM $table;");
+        $this->conn->exec("TRUNCATE TABLE $table;");
     }
     $this->conn->exec("SET FOREIGN_KEY_CHECKS=1;");
     }

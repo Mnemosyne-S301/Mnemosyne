@@ -252,7 +252,8 @@
                             // Affichage dynamique dans la section stats
                             const statsDiv = document.getElementById('sankey-stats-content');
                             if (statsDiv) {
-                                statsDiv.innerHTML = `
+                                // Construire le HTML des statistiques enrichies
+                                let html = `
                                     <div class=\"flex flex-col items-center\">
                                         <span class=\"text-3xl font-bold text-[#E3BF81]\">${stats.effectif}</span>
                                         <span class=\"text-base text-[#FBEDD3]\">Effectif total</span>
@@ -269,7 +270,31 @@
                                         <span class=\"text-3xl font-bold text-red-400\">${stats.abandons}</span>
                                         <span class=\"text-base text-[#FBEDD3]\">Abandons</span>
                                     </div>
+                                    <div class=\"flex flex-col items-center\">
+                                        <span class=\"text-3xl font-bold text-purple-400\">${stats.tauxReussite}%</span>
+                                        <span class=\"text-base text-[#FBEDD3]\">Taux diplômés</span>
+                                    </div>
                                 `;
+                                
+                                // Ajouter les stats de la BDD stats si disponibles
+                                if (stats.tauxValidation6UE !== null) {
+                                    html += `
+                                        <div class=\"flex flex-col items-center\">
+                                            <span class=\"text-3xl font-bold text-cyan-400\">${stats.tauxValidation6UE}%</span>
+                                            <span class=\"text-base text-[#FBEDD3]\">6 UE validées</span>
+                                        </div>
+                                    `;
+                                }
+                                if (stats.moyenneUE !== null) {
+                                    html += `
+                                        <div class=\"flex flex-col items-center\">
+                                            <span class=\"text-3xl font-bold text-amber-400\">${stats.moyenneUE}</span>
+                                            <span class=\"text-base text-[#FBEDD3]\">Moy. UE validées</span>
+                                        </div>
+                                    `;
+                                }
+                                
+                                statsDiv.innerHTML = html;
                             }
                         } catch (err) {
                             const statsDiv = document.getElementById('sankey-stats-content');

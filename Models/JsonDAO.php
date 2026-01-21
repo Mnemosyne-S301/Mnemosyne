@@ -89,14 +89,14 @@ class JsonDAO
         {
             // on crée dico nous même car les noms de la base de donnée et du modèle ne sont pas exactement les mêmes
             // que dans les jsons
+            // Clés JSON réelles: id, acronym, description, visible, date_creation, dept_name
             $dpt_array = array(
                 'dep_id'        => $dpt['id'],
                 'accronyme'     => $dpt['acronym'],
-                'nom'           => $dpt['name'],
-                'ville'         => $dpt['city'],
-                'region'        => $dpt['region'],
-                'academie'      => $dpt['academy'],
-                'uai'           => $dpt['uai']
+                'description'   => $dpt['description'] ?? 'N/A',
+                'visible'       => $dpt['visible'] ?? true,
+                'date_creation' => $dpt['date_creation'] ?? date('Y-m-d H:i:s'),
+                'nom_dep'       => $dpt['dept_name'] ?? $dpt['acronym']
             );
             $allDepartementsInstances[] = new Departement($dpt_array);
         }
@@ -201,7 +201,7 @@ class JsonDAO
                     }
 
                     $current_formsemestre_list_file_name = "formsemestres_" . $current_annee_scolaire . ".json";
-                    $current_formsemestre_list_file_path = $JSON_PATH . "/" . $current_formsemestre_list_file_name;
+                    $current_formsemestre_list_file_path = $this->JSON_PATH . "/" . $current_formsemestre_list_file_name;
 
                     /*On va rechercher le formation_id auquelle le formsemestre est rataché pour éviter d'avoir
                     * deux formsemestre qui sont rataché à la même formation la même année scolaire. Car certain étudiant 
@@ -249,13 +249,16 @@ class JsonDAO
 
     public function findall_formation()
     {
-        global $JSON_PATH;
         $formation_filename = "formations.json";
-        $formation_file_path = $JSON_PATH . '/' . $formation_filename;
+        $formation_file_path = $this->JSON_PATH . '/' . $formation_filename;
 
         $formation_content = file_get_contents($formation_file_path);
         $formation_data = json_decode($formation_content, true);
         $allFormationInstances = [];
+
+        if (!is_array($formation_data)) {
+            return $allFormationInstances;
+        }
 
         foreach($formation_data as $formation)
         {
@@ -267,22 +270,21 @@ class JsonDAO
                 'formation_code' => $formation['formation_code'],
                 'type_parcours' => $formation['type_parcours'],
                 'titre_officiel' => $formation['titre_officiel'],
-                'commentaire' => $formation['commentaire'],
-                'code_specialite' => $formation['code_specialite'],
+                'commentaire' => $formation['commentaire'] ?? '',
+                'code_specialite' => $formation['code_specialite'] ?? '',
                 'dep_id' => $formation['departement']['id']
             );
 
             // instanciate the object
-            $allDecisionInstances[] = new Formation($formation_array);
+            $allFormationInstances[] = new Formation($formation_array);
         }
         
-        return $allDecisionInstances;
+        return $allFormationInstances;
     }
 
     
     public function findall_parcours()
     {
-        global $JSON_PATH;
         $allFiles = $this->__getAllJsonFiles();
         $allParcoursInstances = [];
 
@@ -290,7 +292,7 @@ class JsonDAO
         {
             if(preg_match("/^referentiel_competences_BUT_[0-9]{2,3}/", $filename)) // verifie qu'on lit bien que les referentiel competences ici
             {
-                $current_file_path = $JSON_PATH . "/" . $filename;
+                $current_file_path = $this->JSON_PATH . "/" . $filename;
                 $current_file_content = file_get_contents($current_file_path);
                 $current_formation = json_decode($current_file_content, true);
 
@@ -324,7 +326,6 @@ class JsonDAO
 
     public function findall_anneeFormation()
     {
-        global $JSON_PATH;
         $allFiles = $this->__getAllJsonFiles();
         $allAnneeFormationInstances = [];
 
@@ -332,7 +333,7 @@ class JsonDAO
         {
             if(preg_match("/^referentiel_competences_BUT_[0-9]{2,3}/", $filename)) // verifie qu'on lit bien que les referentiel competences ici
             {
-                $current_file_path = $JSON_PATH . "/" . $filename;
+                $current_file_path = $this->JSON_PATH . "/" . $filename;
                 $current_file_content = file_get_contents($current_file_path);
                 $current_formation = json_decode($current_file_content, true);
 
@@ -369,7 +370,6 @@ class JsonDAO
 
     public function findall_rcue()
     {
-        global $JSON_PATH;
         $allFiles = $this->__getAllJsonFiles();
         $allCompetenceInstances = [];
 
@@ -377,7 +377,7 @@ class JsonDAO
         {
             if(preg_match("/^referentiel_competences_BUT_[0-9]{2,3}/", $filename)) // verifie qu'on lit bien que les referentiel competences ici
             {
-                $current_file_path = $JSON_PATH . "/" . $filename;
+                $current_file_path = $this->JSON_PATH . "/" . $filename;
                 $current_file_content = file_get_contents($current_file_path);
                 $current_formation = json_decode($current_file_content, true);
 
@@ -436,7 +436,6 @@ class JsonDAO
      */
     public function findall_ue()
     {
-        global $JSON_PATH;
         $allFiles = $this->__getAllJsonFiles();
         $allUeInstances = [];
 
@@ -444,7 +443,7 @@ class JsonDAO
         {
             if(preg_match("/^decisions_jury_[0-9]{4}_fs_[0-9]{3,4}_/", $filename)) // verifie qu'on lit bien que les referentiel competences ici
             {
-                $current_file_path = $JSON_PATH . "/" . $filename;
+                $current_file_path = $this->JSON_PATH . "/" . $filename;
                 $current_file_content = file_get_contents($current_file_path);
                 $current_data = json_decode($current_file_content, true);
 
@@ -461,7 +460,7 @@ class JsonDAO
                 // recherche des competences du premier parcours (choix par defaut) du l'annee de ce formsemestre
                 // pas du tout optimise, dsl la complexite (plus le temps)
                 $current_formsemestre_competences = [];
-                $formsemestre_file_path = $JSON_PATH . '/formsemestres_' . $current_annee_scolaire . '.json';
+                $formsemestre_file_path = $this->JSON_PATH . '/formsemestres_' . $current_annee_scolaire . '.json';
                 $formsemestre_file_content = file_get_contents($formsemestre_file_path);
                 $formsemestre_file_data = json_decode($formsemestre_file_content, true);
                 foreach($formsemestre_file_data as $formsemestre)

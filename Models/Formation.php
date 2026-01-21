@@ -80,6 +80,6 @@ class Formation{
             'commentaire' => $this->commentaire,
             'code_specialite' => $this->code_specialite,
             'dep_id' => $this->dep_id,
-        ];
+        );
     }
 }

@@ -119,27 +119,100 @@ class Controller_api extends Controller {
                 $annee = (int)substr(trim($_GET['anneeDepart']), 0, 4);
                 $formation = strtoupper(trim($_GET['formation']));
 
-                // Effectif total
-                $effectif = $this->service->recupererEffectifParFormationAnnee($formation, $annee);
-                // Cohorte brute pour stats
-                $cohorte = $this->service->getCohorteParAnneeEtFormation($annee, $formation);
+                // Récupérer les données Sankey pour calculer les stats à partir des codes de décision
+                $sankeyData = $this->service->getSankeyCohorteDepuisAnnee($annee, $formation);
+                
+                // Codes de décision pour classifier les étudiants
+                $codesValidation = ['ADM', 'ADSUP', 'PASD', 'CMP'];
+                $codesAbandon = ['NAR', 'DEM', 'DEF'];
+                $codesEnCours = ['RED', 'AJ', 'ADJ'];
+                
+                // Compteurs
+                $etudiantsVus = [];
                 $diplomes = 0;
                 $abandons = 0;
                 $encours = 0;
-                foreach ($cohorte as $etudiant) {
-                    if (isset($etudiant['etat']) && $etudiant['etat'] === 'DIPLOME') {
-                        $diplomes++;
-                    } elseif (isset($etudiant['etat']) && $etudiant['etat'] === 'ABANDON') {
+                
+                // Parcourir toutes les années pour trouver le dernier état de chaque étudiant
+                $dernierEtat = [];
+                $annees = $sankeyData['annees'] ?? [];
+                foreach ($annees as $an) {
+                    $dataAnnee = $sankeyData['data'][(string)$an] ?? [];
+                    foreach ($dataAnnee as $etud) {
+                        $etudid = $etud['etudid'];
+                        $code = $etud['annee']['code'] ?? '';
+                        $ordre = $etud['annee']['ordre'] ?? 1;
+                        // Garder le dernier état connu (année la plus récente)
+                        if (!isset($dernierEtat[$etudid]) || $an > $dernierEtat[$etudid]['annee']) {
+                            $dernierEtat[$etudid] = ['code' => $code, 'ordre' => $ordre, 'annee' => $an];
+                        }
+                    }
+                }
+                
+                // Classifier chaque étudiant selon son dernier code
+                foreach ($dernierEtat as $etudid => $info) {
+                    $code = $info['code'];
+                    $ordre = $info['ordre'];
+                    
+                    if (in_array($code, $codesAbandon)) {
                         $abandons++;
+                    } elseif (in_array($code, $codesValidation) && $ordre >= 3) {
+                        // Diplômé = validé en BUT3
+                        $diplomes++;
                     } else {
+                        // Tous les autres sont "en cours"
                         $encours++;
                     }
                 }
+                
+                $effectif = count($dernierEtat);
+                
+                // Calculer le taux de réussite (diplômés / effectif total)
+                $tauxReussite = $effectif > 0 ? round(($diplomes / $effectif) * 100, 1) : 0;
+                $tauxAbandon = $effectif > 0 ? round(($abandons / $effectif) * 100, 1) : 0;
+                
+                // Essayer de récupérer les stats détaillées depuis la BDD stats
+                $statsDetaillees = null;
+                $repartitionUE = [];
+                $tauxValidation6UE = null;
+                $moyenneUE = null;
+                
+                try {
+                    require_once __DIR__ . '/../Models/StatsDAO.php';
+                    $statsDao = StatsDAO::getModel();
+                    
+                    // Mapping des codes courts vers les noms de formation en BDD stats
+                    $formationMapping = [
+                        'INFO' => 'Informatique',
+                        'GEA' => 'GEA',
+                        'RT' => 'R&T',
+                        'GEII' => 'GEII',
+                        'CJ' => 'Carrières Juridiques',
+                        'SD' => 'SD'
+                    ];
+                    $formationName = $formationMapping[$formation] ?? $formation;
+                    
+                    $statsDetaillees = $statsDao->getStatsDetailleesFormation($formationName, $annee);
+                    if ($statsDetaillees) {
+                        $repartitionUE = $statsDetaillees['repartition_ue'] ?? [];
+                        $tauxValidation6UE = $statsDetaillees['taux_validation_6ue'] ?? null;
+                        $moyenneUE = $statsDetaillees['moyenne_ue_validees'] ?? null;
+                    }
+                } catch (Throwable $e) {
+                    // Si erreur sur la BDD stats, on continue sans ces données
+                    error_log('Erreur stats BDD: ' . $e->getMessage());
+                }
+                
                 $stats = [
                     'effectif' => $effectif,
                     'diplomes' => $diplomes,
                     'abandons' => $abandons,
-                    'encours' => $encours
+                    'encours' => $encours,
+                    'tauxReussite' => $tauxReussite,
+                    'tauxAbandon' => $tauxAbandon,
+                    'repartitionUE' => $repartitionUE,
+                    'tauxValidation6UE' => $tauxValidation6UE,
+                    'moyenneUE' => $moyenneUE
                 ];
                 http_response_code(200);
                 echo json_encode($stats, JSON_UNESCAPED_UNICODE);

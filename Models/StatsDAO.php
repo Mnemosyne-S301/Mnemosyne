@@ -202,4 +202,105 @@ class StatsDAO {
         return (int) $stmt->fetchColumn();
     }
 
+    /**
+     * Récupère les statistiques détaillées pour une formation et une année.
+     * Inclut : effectif total, répartition UE, taux de réussite.
+     *
+     * @param string $formation Le nom de la formation.
+     * @param int|string $annee L'année scolaire.
+     * @return array Statistiques détaillées.
+     */
+    public function getStatsDetailleesFormation($formation, $annee) {
+        $stats = [
+            'effectif_total' => 0,
+            'parcours' => [],
+            'repartition_ue' => [],
+            'taux_validation_6ue' => 0,
+            'moyenne_ue_validees' => 0
+        ];
+
+        // Effectif par parcours
+        $query = "SELECT parcours, SUM(nombre_etudiants) AS nb
+                  FROM nb_eleve_par_formation 
+                  WHERE formation LIKE :formation AND annee_scolaire = :annee
+                  GROUP BY parcours";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindValue(':formation', '%' . $formation . '%', PDO::PARAM_STR);
+        $stmt->bindValue(':annee', $annee, PDO::PARAM_STR);
+        $stmt->execute();
+        $parcours = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        foreach ($parcours as $p) {
+            $stats['parcours'][$p['parcours']] = (int)$p['nb'];
+            $stats['effectif_total'] += (int)$p['nb'];
+        }
+
+        // Répartition des UE validées
+        $query = "SELECT nb_ue_validees, SUM(nb_eleves) AS nb
+                  FROM repartition_notes_par_parcours 
+                  WHERE formation LIKE :formation AND annee_scolaire = :annee
+                  GROUP BY nb_ue_validees
+                  ORDER BY nb_ue_validees DESC";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindValue(':formation', '%' . $formation . '%', PDO::PARAM_STR);
+        $stmt->bindValue(':annee', $annee, PDO::PARAM_STR);
+        $stmt->execute();
+        $repartition = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        $totalEleves = 0;
+        $totalUE = 0;
+        $eleves6UE = 0;
+        
+        foreach ($repartition as $r) {
+            $nbUE = (int)$r['nb_ue_validees'];
+            $nbEleves = (int)$r['nb'];
+            $stats['repartition_ue'][$nbUE] = $nbEleves;
+            $totalEleves += $nbEleves;
+            $totalUE += $nbUE * $nbEleves;
+            if ($nbUE >= 6) {
+                $eleves6UE += $nbEleves;
+            }
+        }
+        
+        if ($totalEleves > 0) {
+            $stats['taux_validation_6ue'] = round(($eleves6UE / $totalEleves) * 100, 1);
+            $stats['moyenne_ue_validees'] = round($totalUE / $totalEleves, 1);
+        }
+
+        return $stats;
+    }
+
+    /**
+     * Récupère le taux de réussite global (étudiants ayant validé toutes leurs UE).
+     *
+     * @param string $formation Le nom de la formation.
+     * @param int|string $annee L'année scolaire.
+     * @return float Taux de réussite en pourcentage.
+     */
+    public function getTauxReussite($formation, $annee) {
+        // Total d'étudiants
+        $queryTotal = "SELECT SUM(nb_eleves) AS total
+                       FROM repartition_notes_par_parcours 
+                       WHERE formation LIKE :formation AND annee_scolaire = :annee";
+        $stmt = $this->conn->prepare($queryTotal);
+        $stmt->bindValue(':formation', '%' . $formation . '%', PDO::PARAM_STR);
+        $stmt->bindValue(':annee', $annee, PDO::PARAM_STR);
+        $stmt->execute();
+        $total = (int)$stmt->fetchColumn();
+        
+        if ($total === 0) return 0.0;
+        
+        // Étudiants avec 6 UE validées (réussite complète)
+        $queryReussis = "SELECT SUM(nb_eleves) AS reussis
+                         FROM repartition_notes_par_parcours 
+                         WHERE formation LIKE :formation AND annee_scolaire = :annee AND nb_ue_validees >= 6";
+        $stmt = $this->conn->prepare($queryReussis);
+        $stmt->bindValue(':formation', '%' . $formation . '%', PDO::PARAM_STR);
+        $stmt->bindValue(':annee', $annee, PDO::PARAM_STR);
+        $stmt->execute();
+        $reussis = (int)$stmt->fetchColumn();
+        
+        return round(($reussis / $total) * 100, 1);
+    }
+
 }
