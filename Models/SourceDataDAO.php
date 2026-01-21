@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * Interface qui représente un DAO à partir du quel on peut extraire
+ * des donnée brut. Par exemple depuis des fichiers Json ou une API.
+ * @package DAO
+ */
 interface SourceDataDAO {
     public function findall_etudiant();
     public function findall_ue();

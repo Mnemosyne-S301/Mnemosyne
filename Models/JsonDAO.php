@@ -11,6 +11,10 @@ require_once __DIR__ . "/RCUE.php";
 require_once __DIR__ . "/UE.php";
 require_once __DIR__ . "/Decision.php";
 
+/**
+ * Le DAO permettant de récupéré les données depuis les fichiers Json. 
+ * @package DAO
+ */
 class JsonDAO
 {
     private $jsonPath;

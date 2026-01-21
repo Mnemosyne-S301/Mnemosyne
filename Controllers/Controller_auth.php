@@ -1,6 +1,9 @@
 <?php 
 require_once __DIR__ . "/../Services/Service_auth.php";
 
+/**
+ * @package Controller
+ */
 class Controller_auth extends Controller { 
 
     private Service_auth $service_auth;

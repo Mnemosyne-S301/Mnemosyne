@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * La classe abstraite dont héritent tout les controllers. 
+ * @package Controller
+ */
 abstract class Controller
 {
     public function __construct()

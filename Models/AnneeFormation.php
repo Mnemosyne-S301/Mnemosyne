@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * @package Model
+ */
 class AnneeFormation {
     private int $ordre;
     private int $parcours_id;

@@ -1,5 +1,9 @@
 <?php
 require __DIR__ . '/../Services/Service_scodoc.php';
+
+/**
+ * @package Controller
+ */
 class Controller_accueil extends Controller {
     
     private Service_scodoc $Service;

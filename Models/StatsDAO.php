@@ -7,6 +7,7 @@ require_once __DIR__ . '/../config/config.php';
  * Gère la connexion à la base de données et la récupération des informations
  * sur les effectifs et la répartition des résultats (UE).
  * Implémente le pattern Singleton.
+ * @package DAO
  */
 class StatsDAO {
     

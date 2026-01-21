@@ -1,4 +1,7 @@
 <?php
+/**
+ * @package Model
+ */
 class CodeUE {
     private string $code;
     private ?string $signification;

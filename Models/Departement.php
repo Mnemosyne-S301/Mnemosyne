@@ -1,4 +1,7 @@
 <?php
+/**
+ * @package Model
+ */
 class Departement{
     private int $dep_id;
     private String $accronyme;

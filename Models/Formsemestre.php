@@ -1,4 +1,7 @@
 <?php
+/**
+ * @package Model
+ */
 class Formsemestre {
     private int $formsemestre_id;
     private string $titre;

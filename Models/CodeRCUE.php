@@ -1,4 +1,7 @@
 <?php
+/**
+ * @package Model
+ */
 class CodeRCUE {
     private string $code;
     private ?string $signification;

@@ -3,6 +3,7 @@ require_once __DIR__ . '/../Services/Service_api.php';
 
 /**
  * Controller pour la visualisation Sankey des cohortes BUT
+ * @package Controller
  */
 class Controller_sankey extends Controller {
     
