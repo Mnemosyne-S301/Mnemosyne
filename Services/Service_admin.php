@@ -61,9 +61,7 @@ class Service_admin {
             return false;
         }
 
-        $hash = password_hash($password, PASSWORD_BCRYPT);
-
-        return $this->dao->createUser($username, $hash, "admin");
+        return $this->dao->createUser($username, $password, "admin");
     }
     
     /**

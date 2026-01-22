@@ -101,7 +101,7 @@ class Controller_admin extends Controller {
      *
      * @return void
      */
-    public function addAdmin(){
+    public function action_addAdmin(){
         $this->requireAdmin();
 
         if ($_SERVER['REQUEST_METHOD'] === "POST"){
@@ -131,7 +131,7 @@ class Controller_admin extends Controller {
      *
      * @return void
      */
-    public function delAdmin(){
+    public function action_delAdmin(){
         $this->requireAdmin();
 
         if ($_SERVER['REQUEST_METHOD'] === "POST"){

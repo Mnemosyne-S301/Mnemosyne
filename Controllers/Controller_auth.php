@@ -58,16 +58,29 @@ class Controller_auth extends Controller {
 
         return $this->render("login");
 
+    }
 
-}
     public function action_logout() {
-        
-        session_unset();
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        $_SESSION = [];
+        if (ini_get("session.use_cookies")) {
+            $params = session_get_cookie_params();
+            setcookie(
+                session_name(),
+                '',
+                time() - 42000,
+                $params["path"],
+                $params["domain"],
+                $params["secure"],
+                $params["httponly"]
+            );
+        }
         session_destroy();
-        header("Location: ?controller=auth&action=default");
+        header("Location: index.php?controller=auth&action=default");
         exit;
-        
-    
     }
 
 
