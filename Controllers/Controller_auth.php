@@ -32,7 +32,7 @@ class Controller_auth extends Controller {
 
 
 
-    public function login() {
+    public function action_login() {
         if (session_status()=== PHP_SESSION_NONE){session_start();}
 
         $msg_error = "";

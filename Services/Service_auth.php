@@ -1,9 +1,7 @@
 <?php
 require_once __DIR__ . "/../Models/UserDAO.php";
-<<<<<<< HEAD
 require_once __DIR__ . "/../Models/DB.php";
-=======
->>>>>>> logAdmin
+
 
 /**
  * Class Service_auth
@@ -20,10 +18,8 @@ require_once __DIR__ . "/../Models/DB.php";
  * et le UserDAO.
  */
 class Service_auth {
-<<<<<<< HEAD
-    private UserDAO $dao;
-=======
->>>>>>> logAdmin
+
+
 
     /**
      * DAO utilisé pour l'accès aux données utilisateurs / administrateurs.
@@ -41,11 +37,7 @@ class Service_auth {
         $this->dao = new UserDAO();
     }
 
-<<<<<<< HEAD
-    public function login($username, $password)  {
-        $user = $this->dao->findbyname($username);
-        if ($user == null) {
-=======
+
     /**
      * Authentifie un utilisateur (administrateur).
      *
@@ -64,7 +56,6 @@ class Service_auth {
         if ($user) {
             return $user;
         } else {
->>>>>>> logAdmin
             return false;
         }
 
@@ -83,49 +74,6 @@ class Service_auth {
      * @return bool True si connecté, false sinon
      */
     public function isLogged() : bool {
-<<<<<<< HEAD
-        if (isset($_SESSION["logged"]) && $_SESSION["logged"] == true) {
-            return true;
-        }
-        return false;
-    }
-
-    public function logout() : void {
-        session_destroy();
-    }
-
-    public function hashMdp(string $password) : string {
-        return password_hash($password, PASSWORD_BCRYPT);
-    }
-
-    public function createUser(string $username, string $password)  {
-        $password = password_hash($password, PASSWORD_BCRYPT);
-        if ($this->dao->findbyname($username)) {
-            echo "Cet utiulisateur existe deja ";
-            return false;
-        }
-
-        return $this->dao->createUser($username, $password);
-    }
-
-    public function isAdmin(){
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-
-        if (!$this->isLogged()) {
-            return false;
-        }
-
-        if (!isset($_SESSION["role"])) {
-            return false;
-        }
-
-        return strtolower((string)$_SESSION["role"]) === "admin";
-    }
-}
-?>
-=======
         return isset($_SESSION["logged"]) && $_SESSION["logged"] === true;
     }
 
@@ -158,4 +106,3 @@ class Service_auth {
 }
 
 ?>
->>>>>>> logAdmin

@@ -156,15 +156,7 @@ class UserDAO {
     }
 
 
-}
 
-public function createUser(string $username, string $password)  {
-    $pdo=DB::get();
-    $requete = $pdo->prepare("INSERT INTO users (username, password) VALUES (:username, :password)");
-    $requete->bindParam(":username", $username, PDO::PARAM_STR) ;
-    $requete->bindParam(":password", $password, PDO::PARAM_STR) ;
-    $requete->execute() ;
-    
 }
 
 
