@@ -44,7 +44,7 @@
                 </button>
             </div>
 
-            <form class="my-12 w-1/2"></form>
+            <form class="my-12 w-full max-w-5xl"></form>
         </div>
 
         <!-- Panneau admins à droite -->
