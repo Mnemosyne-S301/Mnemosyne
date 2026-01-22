@@ -39,6 +39,9 @@
                 <button id="Supp" class="text-white bg-red-700 hover:bg-red-800 focus:ring-2 focus:ring-gray-600 rounded-lg px-4 py-2 mx-4">
                     Supprimer Filtre
                 </button>
+                <button id="saveRules" class="text-white bg-green-700 hover:bg-green-800 focus:ring-2 focus:ring-gray-600 rounded-lg px-4 py-2 mx-4">
+                    Enregistrer règles
+                </button>
             </div>
 
             <form class="my-12 w-1/2"></form>
