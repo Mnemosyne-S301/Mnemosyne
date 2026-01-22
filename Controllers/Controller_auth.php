@@ -1,9 +1,11 @@
 <?php 
 require_once __DIR__ . "/../Services/Service_auth.php";
 
+
 /**
  * @package Controller
  */
+
 class Controller_auth extends Controller { 
 
     private Service_auth $service_auth;
@@ -15,19 +17,24 @@ class Controller_auth extends Controller {
 
     public function action_default() {
 
-        session_start();
+        if (session_status()=== PHP_SESSION_NONE)
+            {session_start();}
 
         if ($this->service_auth->isLogged()) {
             
-            return $this->render("admin");
+            header("Location: index.php?controller=admin&action=default");
+            exit;
         }
+
 
         else { return $this->render("login");}
     }
 
 
-    public function action_login() {
-        session_start();
+
+    public function login() {
+        if (session_status()=== PHP_SESSION_NONE){session_start();}
+
         $msg_error = "";
         if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $username=$_POST['username'];

@@ -1,60 +1,80 @@
 <?php
-require_once __DIR__ . "/../Models/DB.php";
-require_once __DIR__ . "/../Models/User.php";
+require_once __DIR__ . "/../Models/UserDAO.php";
 
+/**
+ * Class Service_admin
+ *
+ * Couche service dédiée à la gestion des administrateurs.
+ *
+ * Cette classe joue le rôle d’intermédiaire entre :
+ * - le contrôleur (Controller)
+ * - la couche d’accès aux données (UserDAO)
+ *
+ * Elle encapsule la logique métier liée aux comptes administrateurs
+ * (liste, ajout, suppression).
+ */
 class Service_admin {
-    private PDO $pdo;
 
-    public function __construct() {
-        $this->pdo = DB::get();
+    /**
+     * DAO utilisé pour accéder aux données des administrateurs.
+     *
+     * @var UserDAO
+     */
+    private UserDAO $dao;
+
+    /**
+     * Constructeur du service administrateur.
+     *
+     * Initialise le DAO utilisé pour les opérations sur les comptes admin.
+     */
+    public function __construct(){
+        $this->dao = new UserDAO();
     }
 
-    public function listAdmin() : array {
-        $stmt = $this->pdo->prepare("SELECT * FROM users WHERE role = :role ORDER BY username");
-        $stmt->execute([':role' => 'admin']);
-        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        $admins = [];
-        foreach ($rows as $row) {
-            $admins[] = new User($row);
-        }
-
-        return $admins;
+    /**
+     * Retourne la liste des administrateurs.
+     *
+     * Actuellement, la méthode récupère uniquement les utilisateurs
+     * ayant le rôle "admin".
+     *
+     * @return User[] Liste des administrateurs
+     */
+    public function listAdmin() {
+        return $this->dao->findbyrole("admin"); 
+        // Remarque : findAll() fonctionnerait aussi car seuls des admins existent
     }
 
-    public function addAdmin(string $username, string $password) : bool {
-        $username = trim($username);
-        if ($username === "" || $password === "") {
-            return false;
-        }
-
-        $check = $this->pdo->prepare("SELECT 1 FROM users WHERE username = :username LIMIT 1");
-        $check->execute([':username' => $username]);
-        if ($check->fetchColumn()) {
+    /**
+     * Ajoute un nouvel administrateur.
+     *
+     * Étapes :
+     * - Vérifie si le nom d’utilisateur existe déjà
+     * - Hash le mot de passe
+     * - Crée le compte avec le rôle "admin"
+     *
+     * @param string $username Nom de connexion administrateur
+     * @param string $password Mot de passe en clair
+     * @return bool False si l’utilisateur existe déjà, sinon résultat de l’insertion
+     */
+    public function addAdmin(string $username, string $password){
+        if ($this->dao->findbyname($username)) {
             return false;
         }
 
         $hash = password_hash($password, PASSWORD_BCRYPT);
-        $stmt = $this->pdo->prepare(
-            "INSERT INTO users (username, password, role) VALUES (:username, :password, :role)"
-        );
 
-        return $stmt->execute([
-            ':username' => $username,
-            ':password' => $hash,
-            ':role' => 'admin',
-        ]);
+        return $this->dao->createUser($username, $hash, "admin");
     }
-
-    public function deleteAdmin(int $id) : bool {
-        if ($id <= 0) {
-            return false;
-        }
-
-        $stmt = $this->pdo->prepare("DELETE FROM users WHERE id = :id AND role = :role");
-        return $stmt->execute([
-            ':id' => $id,
-            ':role' => 'admin',
-        ]);
+    
+    /**
+     * Supprime un administrateur à partir de son identifiant.
+     *
+     * @param int $id Identifiant de l’administrateur
+     * @return bool Résultat de la suppression
+     */
+    public function deleteAdmin (int $id){
+        return $this->dao->deleteById($id);
     }
 }
+?>
+
