@@ -65,7 +65,27 @@ class User {
          */
         $this->role = $data["role"];
     }
+
+    /**
+     * Retourne l'identifiant unique de l'administrateur.
+     */
+    public function getId(): int {
+        return $this->id_user;
+    }
+
+    /**
+     * Retourne le nom de connexion de l'administrateur.
+     */
+    public function getUsername(): string {
+        return $this->username;
+    }
+
+    /**
+     * Retourne le rôle de l'administrateur.
+     */
+    public function getRole(): string {
+        return $this->role;
+    }
 }
 
 ?>
-
