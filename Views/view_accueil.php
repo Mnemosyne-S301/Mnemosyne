@@ -34,7 +34,7 @@
     <main class="flex items-center justify-center flex-1">
 
         <!-- Formulaire principal -->
-        <form action="/sankey/default"
+        <form action="index.php"
               method="get"
               class="flex flex-col gap-4 w-96">
             
@@ -58,11 +58,9 @@
                                focus:ring-brand focus:border-brand px-3 py-2.5 shadow-xs
                                text-fg-disabled bg-[#88888880]">
                     <?php
-                        if(!empty($formationArray)) {
-                            foreach($formationArray as $formation){
-                                $accronyme = htmlspecialchars($formation['accronyme'] ?? $formation['titre']);
-                                $titre = htmlspecialchars($formation['titre'] ?? $formation['accronyme']);
-                                echo '<option value="'.$accronyme.'">'.$titre.' (' . $accronyme . ')</option>';
+                        if(!empty($data['formationArray'])) {
+                            foreach($data['formationArray'] as $formation){
+                                echo '<option value="'.$formation['titre'].'">'.$formation['titre'].'</option>';
                             }
                         }
                         else{
@@ -79,7 +77,7 @@
 
                 <!-- Label -->
                 <label class="font-semibold text-[#FBEDD3]">
-                    Cohorte de départ:
+                    Année de départ:
                 </label>
 
                 <!-- Sélecteur d'années (PHP générant les options) -->
@@ -110,7 +108,7 @@
         <!-- ============================
              BOUTON ADMIN (collé en bas)
         ============================= -->
-        <a href="/auth/default">
+        <a href="index.php?controller=auth&action=login">
             <input id="logo_admin"
                 type="image"
                 src="/Content/image/connexion_admin.png"

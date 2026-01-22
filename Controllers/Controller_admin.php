@@ -16,8 +16,6 @@ require_once __DIR__ . "/../Services/Service_admin.php";
  * Dépendances :
  * - Service_auth : vérifie l’état de connexion et le rôle admin via la session
  * - Service_admin : logique métier pour gérer les comptes administrateurs
- * 
- * @package Controller
  */
 class Controller_admin extends Controller {
 
@@ -43,9 +41,10 @@ class Controller_admin extends Controller {
      * @param Service_admin $service_admin Service de gestion des administrateurs
      * @param Service_auth $service_auth Service d’authentification et contrôle d’accès
      */
-    public function __construct(Service_admin $service_admin, Service_auth $service_auth ){
-        $this->service_auth = $service_auth;
-        $this->service_admin = $service_admin;
+    public function __construct(){
+        $this->service_auth = new Service_auth;
+        $this->service_admin = new Service_admin;
+        parent::__construct();
     }
 
     /**
