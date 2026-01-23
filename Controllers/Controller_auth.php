@@ -1,9 +1,11 @@
 <?php 
 require_once __DIR__ . "/../Services/Service_auth.php";
 
+
 /**
  * @package Controller
  */
+
 class Controller_auth extends Controller { 
 
     private Service_auth $service_auth;
@@ -15,19 +17,24 @@ class Controller_auth extends Controller {
 
     public function action_default() {
 
-        session_start();
+        if (session_status()=== PHP_SESSION_NONE)
+            {session_start();}
 
         if ($this->service_auth->isLogged()) {
             
-            return $this->render("admin");
+            header("Location: index.php?controller=admin&action=default");
+            exit;
         }
+
 
         else { return $this->render("login");}
     }
 
 
+
     public function action_login() {
-        session_start();
+        if (session_status()=== PHP_SESSION_NONE){session_start();}
+
         $msg_error = "";
         if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $username=$_POST['username'];
@@ -51,16 +58,29 @@ class Controller_auth extends Controller {
 
         return $this->render("login");
 
+    }
 
-}
     public function action_logout() {
-        
-        session_unset();
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        $_SESSION = [];
+        if (ini_get("session.use_cookies")) {
+            $params = session_get_cookie_params();
+            setcookie(
+                session_name(),
+                '',
+                time() - 42000,
+                $params["path"],
+                $params["domain"],
+                $params["secure"],
+                $params["httponly"]
+            );
+        }
         session_destroy();
-        header("Location: ?controller=auth&action=default");
+        header("Location: index.php?controller=auth&action=default");
         exit;
-        
-    
     }
 
 

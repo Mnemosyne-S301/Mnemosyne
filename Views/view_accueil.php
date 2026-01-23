@@ -102,7 +102,7 @@
     <main class="flex items-center justify-center flex-1">
 
         <!-- Formulaire principal -->
-        <form action="/sankey/default"
+        <form action="index.php"
               method="get"
               class="flex flex-col gap-4 w-96">
             
@@ -149,7 +149,7 @@
 
                 <!-- Label -->
                 <label class="font-semibold text-[#FBEDD3]">
-                    Cohorte de départ:
+                    Année de départ:
                 </label>
 
                 <!-- Sélecteur d'années (PHP générant les options) -->
@@ -182,7 +182,7 @@
         <!-- ============================
              BOUTON ADMIN (collé en bas)
         ============================= -->
-        <a href="/auth/default">
+        <a href="index.php?controller=auth&action=login">
             <input id="logo_admin"
                 type="image"
                 src="/Content/image/connexion_admin.png"

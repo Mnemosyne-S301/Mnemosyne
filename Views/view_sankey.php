@@ -268,7 +268,7 @@
             document.getElementById('btn-all')?.classList.add('bg-[#E3BF81]', 'text-[#0A1E2F]');
             // Afficher le loader
             if (plotDiv) {
-                plotDiv.innerHTML = '<div class="flex items-center justify-center h-full"><span class="text-xl">Chargement des données...</span></div>';
+                plotDiv.innerHTML = '<div id="loader" class="flex items-center justify-center h-full"><span class="text-xl">Chargement des données...</span></div>';
             }
 
             try {
