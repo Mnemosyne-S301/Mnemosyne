@@ -24,7 +24,7 @@ const CODE_ANNEE_OPTIONS = [
 ];
 const VALEUR_TYPE_OPTIONS = [
     { value: "moyenne", label: "Moyenne" },
-    { value: "absences_heures", label: "Heures d'absences" },
+    { value: "UEs validées", label: "UEs validées" },
 ];
 
 function creerInputValeur(valeur = "") {
