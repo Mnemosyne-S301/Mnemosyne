@@ -58,11 +58,13 @@
                                focus:ring-brand focus:border-brand px-3 py-2.5 shadow-xs
                                text-fg-disabled bg-[#88888880]">
                     <?php
+                        $defaultFormation = 'GEA';
                         if(!empty($formationArray)) {
                             foreach($formationArray as $formation){
                                 $accronyme = htmlspecialchars($formation['accronyme'] ?? $formation['titre']);
                                 $titre = htmlspecialchars($formation['titre'] ?? $formation['accronyme']);
-                                echo '<option value="'.$accronyme.'">'.$titre.' (' . $accronyme . ')</option>';
+                                $selected = ($accronyme === $defaultFormation) ? 'selected' : '';
+                                echo '<option value="'.$accronyme.'" '.$selected.'>'.$titre.' (' . $accronyme . ')</option>';
                             }
                         }
                         else{
@@ -91,8 +93,10 @@
 
                     <?php
                         // Génère les années 2021 jusqu'à 2024 (années avec données disponibles)
-                        for ($y = 2021; $y <= 2024; $y++) {
-                            echo '<option value="' . $y . '">' . $y . '-' . ($y + 1) . '</option>';
+                        $defaultYear = 2023;
+                        for ($y = 2023; $y <= 2024; $y++) {
+                            $selected = ($y === $defaultYear) ? 'selected' : '';
+                            echo '<option value="' . $y . '" ' . $selected . '>' . $y . '-' . ($y + 1) . '</option>';
                         }
                     ?>
                 </select>

@@ -18,7 +18,7 @@
 
     <header class="sticky top-0 z-50 bg-[#0A1E2F] relative flex flex-col items-center justify-center gap-2 py-6 border-b border-[#E3BF81]/10">
         <a href="/accueil/default" class="absolute left-8 top-8 group z-10">
-            <img src="Content/image/logo.png" alt="Accueil" class="w-10 h-10 group-hover:scale-110 transition-transform">
+            <img src="/Content/image/logo.png" alt="Accueil" class="w-10 h-10 group-hover:scale-110 transition-transform">
         </a>
         <h1 class="text-3xl font-bold tracking-wide">Suivi de Cohorte BUT</h1>
     </header>
@@ -47,8 +47,8 @@
                         <div class="flex flex-col gap-2 mb-4">
                             <label for="formation-select" class="text-sm font-medium">Formation :</label>
                             <select id="formation-select" class="bg-[#0A1E2F] border border-[#E3BF81] text-[#FBEDD3] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#E3BF81]">
-                                <option value="INFO" <?= ($formation ?? '') === 'INFO' ? 'selected' : '' ?>>BUT Informatique</option>
-                                <option value="GEA" <?= ($formation ?? 'GEA') === 'GEA' ? 'selected' : '' ?>>BUT GEA</option>
+                                <option value="INFO" <?= ($formation ?? 'INFO') === 'INFO' ? 'selected' : '' ?>>BUT Informatique</option>
+                                <option value="GEA" <?= ($formation ?? '') === 'GEA' ? 'selected' : '' ?>>BUT GEA</option>
                                 <option value="RT" <?= ($formation ?? '') === 'RT' ? 'selected' : '' ?>>BUT R&T</option>
                                 <option value="GEII" <?= ($formation ?? '') === 'GEII' ? 'selected' : '' ?>>BUT GEII</option>
                                 <option value="CJ" <?= ($formation ?? '') === 'CJ' ? 'selected' : '' ?>>BUT Carrières Juridiques</option>
@@ -79,8 +79,8 @@
                         <div class="flex flex-col gap-2 mb-5">
                             <label for="source-select" class="text-sm font-medium">Source :</label>
                             <select id="source-select" class="bg-[#0A1E2F] border border-[#E3BF81] text-[#FBEDD3] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#E3BF81]">
-                                <option value="json" <?= ($source ?? 'json') === 'json' ? 'selected' : '' ?>>Fichiers JSON Test</option>
-                                <option value="testdata" <?= ($source ?? '') === 'testdata' ? 'selected' : '' ?>>Fichiers JSON Testdata</option>
+                                <option value="json" <?= ($source ?? '') === 'json' ? 'selected' : '' ?>>Fichiers JSON Test</option>
+                                <option value="testdata" <?= ($source ?? 'testdata') === 'testdata' ? 'selected' : '' ?>>Fichiers JSON Testdata</option>
                                 <option value="bdd" <?= ($source ?? '') === 'bdd' ? 'selected' : '' ?>>Base de données</option>
                             </select>
                         </div>
@@ -237,7 +237,7 @@
     <script>
         // Configuration initiale depuis PHP
         window.SANKEY_CONFIG = {
-            formation: '<?php echo $formation ?? 'GEA'; ?>',
+            formation: '<?php echo $formation ?? 'INFO'; ?>',
             anneeDepart: <?php echo $anneeDepart ?? 2021; ?>,
             source: '<?php echo $source ?? 'json'; ?>',
             modalite: 'FI'
