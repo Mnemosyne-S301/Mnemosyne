@@ -173,8 +173,7 @@ function appliquerReglesSurCode(codeDecision) {
             totalEtudiants: etudiants.size,
             diplomes: 0,
             enCours: 0,
-            abandons: 0,
-            effectifsParNiveau: { BUT1: 0, BUT2: 0, BUT3: 0 }
+            abandons: 0
         };
         
         const addLink = (source, target) => {
@@ -274,15 +273,6 @@ function appliquerReglesSurCode(codeDecision) {
             .slice(0, 20);
         sortedLinks.forEach(([key, count]) => {
             console.log(`${key}: ${count} étudiants`);
-        });
-
-        // Calculer les effectifs par niveau BUT depuis les flux entrants du Sankey
-        // (somme de tous les liens qui pointent vers BUT1, BUT2, BUT3)
-        links.forEach((count, key) => {
-            const [src, tgt] = key.split('→');
-            if (tgt === 'BUT1' || tgt === 'BUT2' || tgt === 'BUT3') {
-                stats.effectifsParNiveau[tgt] += count;
-            }
         });
 
         return { links, stats };
@@ -551,10 +541,6 @@ function appliquerReglesSurCode(codeDecision) {
             console.log(`Années disponibles: ${yearKeys.join(', ')}`);
             loader && (loader.innerHTML = '<p class="animate-pulse text-xl">Analyse des parcours...</p>');
             const processed = processCohortData(availableYears);
-            
-            // Exposer les stats globalement pour le graphique d'évolution
-            window.SANKEY_STATS = processed.stats;
-            
             if (loader) loader.remove();
             renderChart(processed);
             setupLegendToggle();
