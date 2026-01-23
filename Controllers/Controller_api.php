@@ -66,7 +66,7 @@ class Controller_api extends Controller {
 
     /**
      * Action sankey - retourne les données pour le diagramme Sankey
-     * Paramètres GET : anneeDepart, formation, source (json|bdd)
+     * Paramètres GET : anneeDepart, formation, source (json|bdd), modalite (FI|FAP)
      */
     public function action_sankey() {
         try {
@@ -81,12 +81,13 @@ class Controller_api extends Controller {
             $annee = (int)substr(trim($_GET['anneeDepart']), 0, 4);
             $formation = strtoupper(trim($_GET['formation']));
             $source = isset($_GET['source']) ? strtolower(trim($_GET['source'])) : 'json';
+            $modalite = isset($_GET['modalite']) ? strtoupper(trim($_GET['modalite'])) : 'FI';
 
             // Récupérer les données selon la source
             if ($source === 'json') {
-                $donnees = $this->getSankeyDataFromJson($annee, $formation);
+                $donnees = $this->getSankeyDataFromJson($annee, $formation, 'json', $modalite);
             } elseif ($source === 'testdata') {
-                $donnees = $this->getSankeyDataFromJson($annee, $formation, 'testdata');
+                $donnees = $this->getSankeyDataFromJson($annee, $formation, 'testdata', $modalite);
             } else {
                 $donnees = $this->service->getSankeyCohorteDepuisAnnee($annee, $formation);
             }
@@ -230,37 +231,97 @@ class Controller_api extends Controller {
 
     /**
      * Charge les données Sankey depuis les fichiers JSON de test
+     * CORRIGÉ: Suit une vraie cohorte (étudiants BUT1 de l'année de départ)
+     * 
+     * @param int $anneeDepart Année de départ de la cohorte
+     * @param string $formation Code de la formation
+     * @param string $jsonSource Source des fichiers JSON (json ou testdata)
+     * @param string $modalite Modalité de formation (FI = Formation Initiale, FAP = Apprentissage)
+     *                         Note: L'apprentissage ne s'applique qu'à partir du BUT2
      */
-    private function getSankeyDataFromJson(int $anneeDepart, string $formation, string $jsonSource = 'json'): array {
+    private function getSankeyDataFromJson(int $anneeDepart, string $formation, string $jsonSource = 'json', string $modalite = 'FI'): array {
         $annees = [$anneeDepart, $anneeDepart + 1, $anneeDepart + 2, $anneeDepart + 3];
-        $formationPatterns = [
-            'INFO' => 'Informatique|INFO|BUT_Informatique_en_FI_classique|BUT_Informatique_en_alternance|BUT_informatique_en_alternance|BUT_Informatique_en_FA_alternance',
-            'GEA' => 'GEA|BUT_GEA|BUT1_GEA|BUT2_GEA|BUT3_GEA|BUT_GEA_Apprentissage|BUT_GEA_en_Apprentissage|BUT_GEA_FI_S4|BUT_GEA_FI|BUT_GEA_FA',
-            'RT' => 'R_T|BUT_R_T|BUT_R_T_en_alternance|BUT_R_T_en_altenance',
-            'GEII' => 'G_nie_Electrique_et_Informatique_Industrielle|GEII|BUT_GEII|BUT_GEII_FA',
-            'CJ' => 'Carri_res_Juridiques|CJ|Bachelor_Universitaire_de_Technologie_Carri_res_Juridiques|BUT_Carri_res_Juridiques|BUT_Carri_res_Juridiques_-_Parcours_AJ|BUT_Carri_res_Juridiques_-_Parcours_EA|BUT_Carri_res_Juridiques_-_Parcours_PF_Banque_|BUT_Carri_res_Juridiques_-_Parcours_PF_Notariat_|BUT_Carri_res_Juridiques_-_Parcours_EA_FA_|BUT_Carri_res_Juridiques_-_Parcours_AJ_EA_PF|BUT_CJ_-_Parcours_AJ_EA_PF_Formation_initiale_|BUT_Carri_res_Juridiques_-_Parcours_PF|BUT_Carri_res_Juridiques_-Parcours_EA_FA_',
+        
+        // Patterns pour Formation Initiale (exclut apprentissage/alternance)
+        $formationPatternsFI = [
+            'INFO' => 'Informatique|INFO|BUT_Informatique_en_FI_classique',
+            'GEA' => 'GEA|BUT_GEA|BUT1_GEA|BUT2_GEA|BUT3_GEA|BUT_GEA_FI_S4|BUT_GEA_FI',
+            'RT' => 'R_T|BUT_R_T',
+            'GEII' => 'G_nie_Electrique_et_Informatique_Industrielle|GEII|BUT_GEII',
+            'CJ' => 'Carri_res_Juridiques|CJ|Bachelor_Universitaire_de_Technologie_Carri_res_Juridiques|BUT_Carri_res_Juridiques|BUT_Carri_res_Juridiques_-_Parcours_AJ|BUT_Carri_res_Juridiques_-_Parcours_EA|BUT_Carri_res_Juridiques_-_Parcours_PF_Banque_|BUT_Carri_res_Juridiques_-_Parcours_PF_Notariat_|BUT_Carri_res_Juridiques_-_Parcours_AJ_EA_PF|BUT_CJ_-_Parcours_AJ_EA_PF_Formation_initiale_|BUT_Carri_res_Juridiques_-_Parcours_PF',
             'SD' => 'SD|STID|BUT_SD_PN_2021_',
             'PASS' => 'BUT_Passerelle_SD_INFO',
         ];
-        $pattern = $formationPatterns[$formation] ?? $formation;
+        
+        // Patterns pour Apprentissage/Alternance
+        $formationPatternsFAP = [
+            'INFO' => 'BUT_Informatique_en_alternance|BUT_informatique_en_alternance|BUT_Informatique_en_FA_alternance',
+            'GEA' => 'BUT_GEA_Apprentissage|BUT_GEA_en_Apprentissage|BUT_GEA_FA|BUT2_GEA_en_Apprentissage',
+            'RT' => 'BUT_R_T_en_alternance|BUT_R_T_en_altenance',
+            'GEII' => 'BUT_GEII_FA',
+            'CJ' => 'BUT_Carri_res_Juridiques_-_Parcours_EA_FA_|BUT_Carri_res_Juridiques_-Parcours_EA_FA_',
+            'SD' => '',
+            'PASS' => '',
+        ];
+        
+        // Utiliser le bon pattern selon la modalité
+        $patternFI = $formationPatternsFI[$formation] ?? $formation;
+        $patternFAP = $formationPatternsFAP[$formation] ?? '';
 
         // Déterminer le chemin du dossier JSON selon la source
         if ($jsonSource === 'testdata') {
             $jsonPath = __DIR__ . '/../Database/example/json/testdata/';
-            $filePattern = 'test_promo_' . $anneeDepart . '_v*.json';
         } else {
             $jsonPath = __DIR__ . '/../Database/example/json/';
-            $filePattern = 'decisions_jury_' . $anneeDepart . '_fs_*.json';
         }
 
-        // Chargement et déduplication par etudid sur toutes les années
+        // ÉTAPE 1: Charger les données de l'année de départ (toujours FI pour BUT1)
         $allData = [];
-        foreach ($annees as $annee) {
-            if ($jsonSource === 'testdata') {
-                $allData[(string)$annee] = $this->loadJsonFilesForYear($annee, $pattern, $jsonPath, 'testdata');
-            } else {
-                $allData[(string)$annee] = $this->loadJsonFilesForYear($annee, $pattern, $jsonPath, 'json');
+        $cohorteEtudids = []; // Liste des etudid de la cohorte (BUT1 de l'année de départ)
+        
+        // BUT1 est toujours en Formation Initiale
+        $dataAnneeDepart = $this->loadJsonFilesForYear($anneeDepart, $patternFI, $jsonPath, $jsonSource, false);
+        
+        // Filtrer pour ne garder que les BUT1 (ordre=1) de l'année de départ
+        $but1Etudiants = [];
+        foreach ($dataAnneeDepart as $etudiant) {
+            $ordre = $etudiant['annee']['ordre'] ?? 1;
+            if ($ordre === 1) {
+                $but1Etudiants[] = $etudiant;
+                $cohorteEtudids[$etudiant['etudid']] = true;
             }
+        }
+        $allData[(string)$anneeDepart] = $but1Etudiants;
+        
+        error_log("[JSON Cohorte] Année départ $anneeDepart: " . count($but1Etudiants) . " étudiants BUT1 trouvés pour $formation (FI)");
+        
+        // ÉTAPE 2: Pour les années suivantes, suivre uniquement les étudiants de la cohorte
+        // Appliquer le filtre de modalité (FI ou FAP) pour BUT2 et BUT3
+        for ($i = 1; $i < count($annees); $i++) {
+            $annee = $annees[$i];
+            
+            // Choisir le pattern selon la modalité sélectionnée
+            // Pour les BUT2/BUT3, on charge selon la modalité choisie
+            if ($modalite === 'FAP' && !empty($patternFAP)) {
+                // Mode Apprentissage : charger les fichiers d'apprentissage
+                $dataAnnee = $this->loadJsonFilesForYear($annee, $patternFAP, $jsonPath, $jsonSource, true);
+                error_log("[JSON Cohorte] Chargement FAP (Apprentissage) pour année $annee, pattern: $patternFAP");
+            } else {
+                // Mode Formation Initiale : exclure les fichiers d'apprentissage
+                $dataAnnee = $this->loadJsonFilesForYear($annee, $patternFI, $jsonPath, $jsonSource, false);
+                error_log("[JSON Cohorte] Chargement FI pour année $annee, pattern: $patternFI");
+            }
+            
+            // Ne garder que les étudiants qui font partie de la cohorte initiale
+            $etudiantsCohorte = [];
+            foreach ($dataAnnee as $etudiant) {
+                if (isset($cohorteEtudids[$etudiant['etudid']])) {
+                    $etudiantsCohorte[] = $etudiant;
+                }
+            }
+            $allData[(string)$annee] = $etudiantsCohorte;
+            
+            error_log("[JSON Cohorte] Année $annee ($modalite): " . count($etudiantsCohorte) . " étudiants de la cohorte $anneeDepart trouvés");
         }
 
         // Déduplication par etudid (on garde la première occurrence par année)
@@ -348,25 +409,54 @@ class Controller_api extends Controller {
             'annees' => $annees,
             'nodes' => $nodes,
             'links' => $links,
-            'data' => $allData
+            'data' => $allData,
+            'modalite' => $modalite
         ], $dataByYear);
     }
 
     /**
      * Charge tous les fichiers JSON correspondant à une année et une formation
+     * 
+     * @param int $annee Année scolaire
+     * @param string $pattern Pattern regex pour filtrer les fichiers
+     * @param string $jsonPath Chemin vers le dossier JSON
+     * @param string $mode Mode de chargement (json ou testdata)
+     * @param bool $isApprentissage Si true, charge uniquement les fichiers d'apprentissage
      */
-    private function loadJsonFilesForYear(int $annee, string $pattern, string $jsonPath = null): array {
+    private function loadJsonFilesForYear(int $annee, string $pattern, string $jsonPath = null, string $mode = 'json', bool $isApprentissage = false): array {
         $result = [];
         $jsonPath = $jsonPath ?? $this->jsonPath;
-        $args = func_get_args();
-        $mode = $args[3] ?? 'json';
+        
         if ($mode === 'testdata') {
             $files = glob($jsonPath . "test_promo_{$annee}_v*.json");
         } else {
             $files = glob($jsonPath . "decisions_jury_{$annee}_fs_*.json");
         }
+        
+        // Patterns pour identifier les fichiers d'apprentissage
+        $apprentissagePatterns = ['Apprentissage', 'alternance', '_FA_', '_FA.'];
+        
         foreach ($files as $file) {
             $filename = basename($file);
+            
+            // Vérifier si le fichier est un fichier d'apprentissage
+            $isFileApprentissage = false;
+            foreach ($apprentissagePatterns as $ap) {
+                if (stripos($filename, $ap) !== false) {
+                    $isFileApprentissage = true;
+                    break;
+                }
+            }
+            
+            // Si on cherche l'apprentissage, on ne prend que les fichiers d'apprentissage
+            // Si on cherche la FI, on exclut les fichiers d'apprentissage
+            if ($isApprentissage && !$isFileApprentissage) {
+                continue; // On veut apprentissage mais le fichier est FI
+            }
+            if (!$isApprentissage && $isFileApprentissage) {
+                continue; // On veut FI mais le fichier est apprentissage
+            }
+            
             if ($mode === 'testdata' || preg_match("/BUT.*({$pattern})/i", $filename)) {
                 $content = file_get_contents($file);
                 $data = json_decode($content, true);

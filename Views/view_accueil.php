@@ -99,7 +99,7 @@
             </div>
 
             <!-- ----------------------------
-                 Bouton d’envoi du formulaire
+                 Bouton d'envoi du formulaire
             ----------------------------- -->
             <input type="submit"
                    value="Confirmer"

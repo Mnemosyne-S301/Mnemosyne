@@ -639,6 +639,8 @@ class ScolariteDAO
             $anneeCohorte = $anneeScolaire;
         }
         
+        error_log("[BDD Cohorte] Recherche: anneeScolaire=$anneeScolaire, anneeCohorte=$anneeCohorte, formation=$formationAccronyme, pattern=$pattern");
+        
         // Requête qui suit une vraie cohorte:
         // 1. Sous-requête pour identifier les étudiants entrés en BUT1 à l'année de cohorte
         // 2. Récupère les données de ces étudiants pour l'année demandée
@@ -685,7 +687,11 @@ class ScolariteDAO
             $stmt->bindValue(':formation', $pattern, PDO::PARAM_STR);
             $stmt->bindValue(':formation2', $pattern, PDO::PARAM_STR);
             $stmt->execute();
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            error_log("[BDD Cohorte] Résultat: " . count($results) . " étudiants trouvés");
+            
+            return $results;
         } catch (PDOException $e) {
             error_log('[ERREUR SQL] Requete getCohorteParAnneeEtFormation : ' . $e->getMessage());
             throw new Exception('Erreur SQL getCohorteParAnneeEtFormation : ' . $e->getMessage());
