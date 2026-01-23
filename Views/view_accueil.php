@@ -27,6 +27,74 @@
             Gardez la mémoire, éclairez les parcours
         </h2>
     </header>
+        <body>
+    <div>
+        <div class="wave"></div>
+        <div class="wave"></div>
+        <div class="wave"></div>
+    </div>
+    </body>
+    <style>
+@keyframes gradient {
+    0% {
+        background-position: 0% 0%;
+    }
+    50% {
+        background-position: 100% 100%;
+    }
+    100% {
+        background-position: 0% 0%;
+    }
+}
+
+.wave {
+    background: rgb(255 255 255 / 5%);
+    border-radius: 1000% 1000% 0 0;
+    position: fixed;
+    width: 200%;
+    height: 12em;
+    animation: wave 10s -3s linear infinite;
+    transform: translate3d(0, 0, 0);
+    opacity: 0.8;
+    bottom: 0;
+    left: 0;
+    z-index: -1;
+}
+
+.wave:nth-of-type(2) {
+    bottom: -1.25em;
+    animation: wave 18s linear reverse infinite;
+    opacity: 0.8;
+}
+
+.wave:nth-of-type(3) {
+    bottom: -2.5em;
+    animation: wave 20s -1s reverse infinite;
+    opacity: 0.9;
+}
+
+@keyframes wave {
+    2% {
+        transform: translateX(1);
+    }
+
+    25% {
+        transform: translateX(-25%);
+    }
+
+    50% {
+        transform: translateX(-50%);
+    }
+
+    75% {
+        transform: translateX(-25%);
+    }
+
+    100% {
+        transform: translateX(1);
+    }
+}
+    </style>
 
     <!-- ============================
          MAIN : Formulaire centré e
@@ -94,7 +162,7 @@
                     <?php
                         // Génère les années 2021 jusqu'à 2024 (années avec données disponibles)
                         $defaultYear = 2023;
-                        for ($y = 2023; $y <= 2024; $y++) {
+                        for ($y = 2021; $y <= 2024; $y++) {
                             $selected = ($y === $defaultYear) ? 'selected' : '';
                             echo '<option value="' . $y . '" ' . $selected . '>' . $y . '-' . ($y + 1) . '</option>';
                         }

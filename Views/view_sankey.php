@@ -308,9 +308,12 @@
                     console.log(`Année ${i + 1} (${annee}):`, sankeyData[dataKey]?.length || 0, 'étudiants');
                 });
 
-                // Masquer le loader
+                // Masquer le loader et effacer le message de chargement
                 const loader = document.getElementById('loader');
                 if (loader) loader.style.display = 'none';
+                
+                // Effacer le message "Chargement des données..." avant d'afficher le diagramme
+                if (plotDiv) plotDiv.innerHTML = '';
                 
                 // Initialiser le diagramme Sankey
                 if (typeof SankeyCohort !== 'undefined') {
