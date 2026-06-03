@@ -43,6 +43,7 @@ class Controller_auth extends Controller {
             if ($user) {
 
                 $_SESSION["logged"] = true ;
+                $_SESSION["id"] = $user->id;
                 $_SESSION["username"] = $user->username ;
                 $_SESSION["role"] = $user->role;
 

@@ -117,7 +117,8 @@ class Controller_admin extends Controller {
         exit;
     }
 
-    /**
+
+    /*
      * Supprime un administrateur.
      *
      * Déclenchée via une requête POST.
@@ -131,20 +132,23 @@ class Controller_admin extends Controller {
      *
      * @return void
      */
-    public function action_delAdmin(){
-        $this->requireAdmin();
 
-        if ($_SERVER['REQUEST_METHOD'] === "POST"){
-            $id = (int)$_POST['id'];
+        public function action_delAdmin(){
+    $this->requireAdmin();
 
-            if ($id > 0){
-                $this->service_admin->deleteAdmin($id);
-            }
+    if ($_SERVER['REQUEST_METHOD'] === "POST"){
+        $id = (int)$_POST['id'];
+
+        if (isset($_SESSION['id']) && $id > 0 && $id !== (int)$_SESSION['id']){
+            $this->service_admin->deleteAdmin($id);
         }
-
-        header("Location: index.php?controller=admin&action=default");
-        exit;
     }
+
+    header("Location: index.php?controller=admin&action=default");
+    exit;
+}
+    
+    
 
 }
 ?>
