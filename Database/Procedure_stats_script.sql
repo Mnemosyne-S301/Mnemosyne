@@ -6,13 +6,13 @@
 DELIMITER //
 
 -- Suppression des anciennes procédures (pour les mettre à jour facilement)
-DROP PROCEDURE IF EXISTS actualise_nb_eleve_par_formation
-DROP PROCEDURE IF EXISTS actualise_nb_ue_par_formation_par_semestre
-DROP PROCEDURE IF EXISTS actualise_res_ue_par_annee_par_eleve
-DROP PROCEDURE IF EXISTS actualise_nb_ue_valide_par_annee_par_eleve
-DROP PROCEDURE IF EXISTS actualise_repartition_notes_par_parcours
-DROP PROCEDURE IF EXISTS actualise_nb_rcue_valide_par_annee_par_eleve
-DROP PROCEDURE IF EXISTS actualise_repartition_rcue_par_parcours 
+DROP PROCEDURE IF EXISTS actualise_nb_eleve_par_formation;
+DROP PROCEDURE IF EXISTS actualise_nb_ue_par_formation_par_semestre;
+DROP PROCEDURE IF EXISTS actualise_res_ue_par_annee_par_eleve;
+DROP PROCEDURE IF EXISTS actualise_nb_ue_valide_par_annee_par_eleve;
+DROP PROCEDURE IF EXISTS actualise_repartition_notes_par_parcours;
+DROP PROCEDURE IF EXISTS actualise_nb_rcue_valide_par_annee_par_eleve;
+DROP PROCEDURE IF EXISTS actualise_repartition_rcue_par_parcours;
 
 
 -- ==============================================================================

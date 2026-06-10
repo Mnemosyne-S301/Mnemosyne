@@ -39,8 +39,8 @@ CREATE TABLE nb_ue_par_formation_semestre(
     parcours VARCHAR(255),
     annee_scolaire INT,
     semestre_num INT,
-    nb_ue INT
-    UNIQUE KEY idx_unique_ue(dep,formation,id_formsemetre)
+    nb_ue INT,
+    UNIQUE KEY idx_unique_ue(dep,formation)
     
 );
 

@@ -1,0 +1,15 @@
+services:
+  mnemosyne:
+    ports:
+      - "8080:80"
+    build:
+      context: .
+  
+  mnemosyne-mysql:
+    command: --lower_case_table_names=1 ## pour que connexion a la db marche car dans le PHP on avait utilisé avec et sans majuscule
+    build:
+      context: ./Database/
+
+## Normalement y'a un réseau par défaut (default) qui est créé.
+## La résolution DNS se fait toute seul par Docker (c'est magique),
+## donc pour acceder au conteneur mysql, pas besoin de son IP, juste le nom "mysql"
