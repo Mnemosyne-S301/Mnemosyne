@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="/Content/image/logo.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <title>Connection ...</title>
@@ -19,7 +20,16 @@
         <img src="/Content/image/logo.png" alt="Logo Mnemosyne" class="mb-16 w-64 h-64">
         <div class="bg-[#102436] p-8 rounded-lg shadow-lg w-full max-w-md">
             <h2 class="text-2xl font-bold mb-6 text-center text-white">Connexion Admin</h2>
-            <form action="../index.php?controller=auth&action=login" method="POST" class="space-y-4">
+            <?php if (!empty($msg_error)): ?>
+                <div class="mb-4 rounded-md bg-red-600 p-3 text-white">
+                    <?= htmlspecialchars(
+                        $msg_error,
+                        ENT_QUOTES,
+                        "UTF-8"
+                    ) ?>
+                </div>
+            <?php endif; ?>
+            <form action="index.php?controller=auth&action=login" method="POST">
                 <div>
                     <label for="username" class="block text-white mb-1">Nom d'utilisateur</label>
                     <input type="text" id="username" name="username" placeholder="Admin" required class="placeholder-gray-700 bg-[#999999] w-full px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-600">

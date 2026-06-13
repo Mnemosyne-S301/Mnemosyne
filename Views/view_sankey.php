@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8">
     <title>Mnemosyne — Diagramme Sankey Cohorte BUT</title>
+    <link rel="icon" type="image/png" href="/Content/image/logo.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <!-- Chart.js pour visualisations stats -->

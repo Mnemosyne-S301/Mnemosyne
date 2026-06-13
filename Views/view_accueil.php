@@ -4,6 +4,7 @@
 <head>
     <meta charset="utf-8">
     <title>Mnemosyne — Accueil</title>
+    <link rel="icon" type="image/png" href="/Content/image/logo.png">
 
     <!-- Importation de TailwindCSS depuis un CDN -->
     <script src="https://cdn.tailwindcss.com"></script>

@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="/Content/image/logo.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <title>Espace Admin</title>
@@ -78,16 +79,34 @@
                                         <?= htmlspecialchars($admin->getUsername()) ?>
                                     </td>
                                     <td class="p-3 text-right">
-                                        <form method="POST"
-                                              action="index.php?controller=admin&action=delAdmin"
-                                              onsubmit="return confirm('Supprimer cet admin ?');"
-                                              class="inline">
-                                            <input type="hidden" name="id" value="<?= (int)$admin->getId() ?>">
-                                            <button type="submit"
-                                                    class="bg-red-700 hover:bg-red-800 px-3 py-1.5 rounded-lg text-xs">
-                                                Delete
-                                            </button>
-                                        </form>
+                                        <?php if ((int) $admin->getId() !== (int) ($_SESSION["id"] ?? 0)): ?>
+
+                                            <form method="POST"
+                                                action="index.php?controller=admin&action=delAdmin"
+                                                onsubmit="return confirm('Supprimer cet admin ?');"
+                                                class="inline">
+
+                                                <input
+                                                    type="hidden"
+                                                    name="id"
+                                                    value="<?= (int) $admin->getId() ?>"
+                                                >
+
+                                                <button
+                                                    type="submit"
+                                                    class="bg-red-700 hover:bg-red-800 px-3 py-1.5 rounded-lg text-xs"
+                                                >
+                                                    Supprimer
+                                                </button>
+                                            </form>
+
+                                        <?php else: ?>
+
+                                            <span class="text-xs text-gray-400">
+                                                Vous
+                                            </span>
+
+                                        <?php endif; ?>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
