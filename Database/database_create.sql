@@ -15,31 +15,31 @@ DROP TABLE IF EXISTS Departement;
 
 CREATE TABLE Departement(
     dep_id INTEGER PRIMARY KEY,
-    accronyme VARCHAR(50) NOT NULL,
-    description VARCHAR(50),
+    accronyme VARCHAR(250) NOT NULL,
+    description VARCHAR(250),
     visible BOOLEAN,
     date_creation DATETIME,
-    nom_dep VARCHAR(50) NOT NULL
+    nom_dep VARCHAR(250) NOT NULL
 );
 
 CREATE TABLE Formation(
     formation_id SERIAL PRIMARY KEY,
-    accronyme VARCHAR(50) NOT NULL,
-    titre VARCHAR(50) NOT NULL,
-    version TINYINT UNSIGNED,
-    formation_code VARCHAR(50) NOT NULL,
-    type_parcours TINYINT UNSIGNED,
-    titre_officiel VARCHAR(50) NOT NULL,
-    commentaire VARCHAR(50) DEFAULT NULL,
-    code_specialite VARCHAR(50) DEFAULT NULL,
+    accronyme VARCHAR(250) NOT NULL,
+    titre VARCHAR(250) NOT NULL,
+    version INT UNSIGNED,
+    formation_code VARCHAR(250) NOT NULL,
+    type_parcours INT UNSIGNED,
+    titre_officiel VARCHAR(250) NOT NULL,
+    commentaire VARCHAR(250) DEFAULT NULL,
+    code_specialite VARCHAR(250) DEFAULT NULL,
     dep_id INTEGER,
     FOREIGN KEY (dep_id) REFERENCES Departement(dep_id) ON DELETE CASCADE
 );
 
 CREATE TABLE Parcours(
     parcours_id SERIAL PRIMARY KEY,
-    code VARCHAR(50) NOT NULL,
-    libelle VARCHAR(50) NOT NULL,
+    code VARCHAR(250) NOT NULL,
+    libelle VARCHAR(250) NOT NULL,
     formation_id BIGINT UNSIGNED,
     FOREIGN KEY (formation_id) REFERENCES Formation(formation_id) ON DELETE CASCADE
 );
@@ -60,19 +60,19 @@ CREATE TABLE AnneeFormation(
 
 CREATE TABLE FormSemestre(
     formsemestre_id INTEGER PRIMARY KEY,
-    titre VARCHAR(50) NOT NULL,
+    titre VARCHAR(250) NOT NULL,
     semestre_num TINYINT UNSIGNED,
     date_debut DATE,
     date_fin DATE,
-    titre_long VARCHAR(50),
-    etape_apo VARCHAR(50),
+    titre_long VARCHAR(250),
+    etape_apo VARCHAR(250),
     anneeformation_id BIGINT UNSIGNED,
     FOREIGN KEY (anneeformation_id) REFERENCES AnneeFormation(anneeformation_id) ON DELETE CASCADE
 );
 
 CREATE TABLE RCUE(
     rcue_id SERIAL PRIMARY KEY,
-    nomCompetence VARCHAR(50) NOT NULL,
+    nomCompetence VARCHAR(250) NOT NULL,
     niveau INTEGER, -- je sais pas ce que c'est. J'ai pas retrouvé à quoi correspond le "niveau d'une compétence"
     anneeformation_id BIGINT UNSIGNED,
     FOREIGN KEY (anneeformation_id) REFERENCES AnneeFormation(anneeformation_id) ON DELETE CASCADE
@@ -89,25 +89,25 @@ CREATE TABLE UE(
 CREATE TABLE Etudiant(
     etudiant_id SERIAL PRIMARY KEY,
     code_nip VARCHAR(100) NOT NULL,
-    etat VARCHAR(50) -- pareil, je sais pas ce que c'est
+    etat VARCHAR(250) -- pareil, je sais pas ce que c'est
 );
 
 CREATE TABLE CodeRCUE(
     codercue_id SERIAL PRIMARY KEY,
-    code VARCHAR(50) NOT NULL,
-    signification VARCHAR(50)
+    code VARCHAR(250) NOT NULL,
+    signification VARCHAR(250)
 );
 
 CREATE TABLE CodeUE(
     codeue_id SERIAL PRIMARY KEY,
-    code VARCHAR(50) NOT NULL,
-    signification VARCHAR(50)
+    code VARCHAR(250) NOT NULL,
+    signification VARCHAR(250)
 );
 
 CREATE TABLE CodeAnnee(
     codeannee_id SERIAL PRIMARY KEY,
-    code VARCHAR(50) NOT NULL,
-    signification VARCHAR(50)
+    code VARCHAR(250) NOT NULL,
+    signification VARCHAR(250)
 );
 
 CREATE TABLE EffectuerRCUE(
@@ -145,9 +145,9 @@ CREATE TABLE EffectuerAnnee(
 
 CREATE TABLE Users (
     id INT NOT NULL AUTO_INCREMENT,
-    username VARCHAR(50) NOT NULL,
+    username VARCHAR(250) NOT NULL,
     password VARCHAR(255) NOT NULL,
-    role VARCHAR(50) NOT NULL,
+    role VARCHAR(250) NOT NULL,
     PRIMARY KEY (id)
 );
 
