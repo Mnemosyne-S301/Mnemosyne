@@ -58,16 +58,13 @@ class Controller_admin extends Controller {
      *
      * @return void
      */
-    public function requireAdmin(){
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-
-        if (!$this->service_auth->isAdmin()){
+    public function requireAdmin(): void
+    {
+        if (!$this->service_auth->isAdmin()) {
             http_response_code(403);
-            exit("Acces interdit (vous devez etre ADMIN)");
+            exit("Accès interdit : vous devez être ADMIN");
         }
-    }
+}
 
     /**
      * Action par défaut du contrôleur admin.

@@ -34,7 +34,7 @@ class Controller_auth extends Controller {
 
     public function action_login() {
         if (session_status()=== PHP_SESSION_NONE){session_start();}
-
+        
         $msg_error = "";
         if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $username=$_POST['username'];
@@ -43,9 +43,9 @@ class Controller_auth extends Controller {
             if ($user) {
 
                 $_SESSION["logged"] = true ;
-                $_SESSION["id"] = $user->id;
-                $_SESSION["username"] = $user->username ;
-                $_SESSION["role"] = $user->role;
+                $_SESSION["id"] = $user->getId();
+                $_SESSION["username"] = $user->getUsername() ;
+                $_SESSION["role"] = $user->getRole();
 
                 header("Location: index.php?controller=admin&action=default");
                 exit;

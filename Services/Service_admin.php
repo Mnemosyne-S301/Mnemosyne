@@ -71,8 +71,16 @@ class Service_admin {
      * @return bool Résultat de la suppression
      */
     public function deleteAdmin (int $id){
+        
+        if (!isset($_SESSION["id"])) {
+            return false;
+        }
+
+        if ($id === (int) $_SESSION["id"]) {
+            return false;
+        }
         return $this->dao->deleteById($id);
     }
 }
-?>
+
 
