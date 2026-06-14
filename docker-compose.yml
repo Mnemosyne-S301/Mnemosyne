@@ -10,6 +10,15 @@ services:
       - mnemosyne-mysql
 
   mnemosyne-mysql:
-    command: --lower_case_table_names=1
+    command: --lower_case_table_names=1 ## dans code PHP, avec ou sans majuscules sont utilisé, donc insensible à la case
     build:
       context: ./Database/
+    volumes:
+      - db_data:/var/lib/mysql
+
+volumes:
+  db_data:
+
+## Normalement y'a un réseau par défaut (default) qui est créé.
+## La résolution DNS se fait toute seul par Docker (c'est magique),
+## donc pour acceder au conteneur mysql, pas besoin de son IP, juste le nom "mysql"
