@@ -40,7 +40,7 @@ class UserDAO {
      */
     public function findAll() : array {
         $pdo = DB::get();
-        $requete = $pdo->prepare("SELECT id,username,role  FROM users ");
+        $requete = $pdo->prepare("SELECT user_id AS id, username, role FROM Users");
 
         $requete->execute();
         $data = $requete->fetchAll();
@@ -64,7 +64,7 @@ class UserDAO {
      */
     public function findbyname(string $username) : ?User {
         $pdo = DB::get();
-        $requete = $pdo->prepare("SELECT id,username,role FROM users WHERE username=:username");
+        $requete = $pdo->prepare("SELECT user_id AS id, username, role FROM Users WHERE username=:username");
         $requete->bindParam(":username", $username, PDO::PARAM_STR);
         $requete->execute();
         $data = $requete->fetch();
@@ -84,7 +84,7 @@ class UserDAO {
      */
     public function findbyrole(string $role) {
         $pdo = DB::get();
-        $requete = $pdo->prepare("SELECT id,username,role FROM users WHERE role=:role");
+        $requete = $pdo->prepare("SELECT user_id AS id, username, role FROM Users WHERE role=:role");
         $requete->bindParam(":role", $role, PDO::PARAM_STR);
         $requete->execute();
         $data = $requete->fetchAll(PDO::FETCH_ASSOC);
@@ -109,7 +109,7 @@ class UserDAO {
     public function createUser(string $username, string $password, string $role)  {
         $pdo = DB::get();
         $hash = password_hash($password, PASSWORD_BCRYPT);
-        $requete = $pdo->prepare("INSERT INTO users (username,password,role) VALUES (:username, :password,:role)");
+        $requete = $pdo->prepare("INSERT INTO Users (username, password_hash, role) VALUES (:username, :password, :role)");
         $requete->bindParam(":username", $username, PDO::PARAM_STR);
         $requete->bindParam(":password", $hash, PDO::PARAM_STR);
         $requete->bindParam(":role", $role, PDO::PARAM_STR);
@@ -125,7 +125,7 @@ class UserDAO {
      */
     public function deleteById(int $id) {
         $pdo = DB::get();
-        $requete = $pdo->prepare("DELETE FROM users WHERE id =:id");
+        $requete = $pdo->prepare("DELETE FROM Users WHERE user_id = :id");
         $requete->bindParam(":id", $id, PDO::PARAM_INT);
         return $requete->execute();
     }
@@ -144,14 +144,14 @@ class UserDAO {
      */
     public function authenticate(string $username, string $password): ?User {
         $pdo = DB::get();
-        $stmt = $pdo->prepare("SELECT id, username, role, password FROM users WHERE username = :u");
+        $stmt = $pdo->prepare("SELECT user_id AS id, username, role, password_hash FROM Users WHERE username = :u");
         $stmt->execute([":u" => $username]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$row) return null;
-        if (!password_verify($password, $row["password"])) return null;
+        if (!password_verify($password, $row["password_hash"])) return null;
 
-        unset($row["password"]);
+        unset($row["password_hash"]);
         return new User($row);
     }
 
