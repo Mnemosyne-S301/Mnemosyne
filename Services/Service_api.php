@@ -112,9 +112,12 @@ class Service_stats {
         return $res;
     }
 
-    public function getSankeyCohorteDepuisAnnee(int $anneeDepart, string $formation , ?string $parcours = null): array
+    public function getSankeyCohorteDepuisAnnee(int $anneeDepart, string $formation, array $filters = []): array
 {
     $annees = [$anneeDepart, $anneeDepart + 1, $anneeDepart + 2];
+
+    $parcours = $filters['parcours'] ?? null;
+    $redoublant = $filters['redoublant'] ?? 'all';
 
     $formatterPourJS = function(array $lignes): array {
         return array_map(function($ligne) {
@@ -122,8 +125,8 @@ class Service_stats {
                 'etudid' => (string)$ligne['etudid'],
                 'etat' => $ligne['etat'] ?? null,
                 'annee' => [
-                    'ordre' => (int)$ligne['ordre'],                 // BUT1  BUT2 BUT3
-                    'code' => $ligne['code'],                        // ADM  RED  AJ 
+                    'ordre' => (int)$ligne['ordre'],
+                    'code' => $ligne['code'],
                     'annee_scolaire' => (string)$ligne['annee_scolaire'],
                 ],
             ];
@@ -133,8 +136,13 @@ class Service_stats {
     $donnees = [];
 
     foreach ($annees as $annee) {
-        // Passer l'année de départ comme année de cohorte pour suivre les mêmes étudiants
-        $lignes = $this->scolariteDao->getCohorteParAnneeEtFormation($annee, $formation, $anneeDepart);
+        $lignes = $this->scolariteDao->getCohorteParAnneeEtFormation(
+            $annee,
+            $formation,
+            $anneeDepart,
+            $parcours
+        );
+
         $donnees[(string)$annee] = $formatterPourJS($lignes);
     }
 

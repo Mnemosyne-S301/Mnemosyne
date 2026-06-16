@@ -69,42 +69,50 @@ class Controller_api extends Controller {
      * Paramètres GET : anneeDepart, formation, source (json|bdd), modalite (FI|FAP)
      */
     public function action_sankey() {
-        try {
-            // Validation des paramètres
-            if (!isset($_GET['anneeDepart']) || trim($_GET['anneeDepart']) === '') {
-                throw new InvalidArgumentException("Paramètre 'anneeDepart' obligatoire.");
-            }
-            if (!isset($_GET['formation']) || trim($_GET['formation']) === '') {
-                throw new InvalidArgumentException("Paramètre 'formation' obligatoire.");
-            }
-
-            $annee = (int)substr(trim($_GET['anneeDepart']), 0, 4);
-            $formation = strtoupper(trim($_GET['formation']));
-            $source = isset($_GET['source']) ? strtolower(trim($_GET['source'])) : 'json';
-            $modalite = isset($_GET['modalite']) ? strtoupper(trim($_GET['modalite'])) : 'FI';
-
-            // Récupérer les données selon la source
-            if ($source === 'json') {
-                $donnees = $this->getSankeyDataFromJson($annee, $formation, 'json', $modalite);
-            } elseif ($source === 'testdata') {
-                $donnees = $this->getSankeyDataFromJson($annee, $formation, 'testdata', $modalite);
-            } else {
-                $donnees = $this->service->getSankeyCohorteDepuisAnnee($annee, $formation);
-            }
-
-            http_response_code(200);
-            echo json_encode($donnees, JSON_UNESCAPED_UNICODE);
-
-        } catch (InvalidArgumentException $e) {
-            http_response_code(400);
-            echo json_encode(['error' => $e->getMessage()], JSON_UNESCAPED_UNICODE);
-
-        } catch (Throwable $e) {
-            http_response_code(500);
-            echo json_encode(['error' => 'Erreur serveur: ' . $e->getMessage()], JSON_UNESCAPED_UNICODE);
+    try {
+        // Validation des paramètres
+        if (!isset($_GET['anneeDepart']) || trim($_GET['anneeDepart']) === '') {
+            throw new InvalidArgumentException("Paramètre 'anneeDepart' obligatoire.");
         }
-        exit;
+        if (!isset($_GET['formation']) || trim($_GET['formation']) === '') {
+            throw new InvalidArgumentException("Paramètre 'formation' obligatoire.");
+        }
+
+        $annee = (int)substr(trim($_GET['anneeDepart']), 0, 4);
+        $formation = strtoupper(trim($_GET['formation']));
+        $source = isset($_GET['source']) ? strtolower(trim($_GET['source'])) : 'json';
+        $modalite = isset($_GET['modalite']) ? strtoupper(trim($_GET['modalite'])) : 'FI';
+
+        // Nouveaux filtres
+        $filters = [
+            'redoublant' => isset($_GET['redoublant']) ? strtolower(trim($_GET['redoublant'])) : 'all',
+            'parcours' => isset($_GET['parcours']) && trim($_GET['parcours']) !== ''
+                ? strtoupper(trim($_GET['parcours']))
+                : null
+        ];
+
+        // Récupérer les données selon la source
+        if ($source === 'json') {
+            $donnees = $this->getSankeyDataFromJson($annee, $formation, 'json', $modalite);
+        } elseif ($source === 'testdata') {
+            $donnees = $this->getSankeyDataFromJson($annee, $formation, 'testdata', $modalite);
+        } else {
+            $donnees = $this->service->getSankeyCohorteDepuisAnnee($annee, $formation, $filters);
+        }
+
+        http_response_code(200);
+        echo json_encode($donnees, JSON_UNESCAPED_UNICODE);
+
+    } catch (InvalidArgumentException $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()], JSON_UNESCAPED_UNICODE);
+
+    } catch (Throwable $e) {
+        http_response_code(500);
+        echo json_encode(['error' => 'Erreur serveur: ' . $e->getMessage()], JSON_UNESCAPED_UNICODE);
     }
+    exit;
+}
 
     /**
      * Action stats - retourne les statistiques de cohorte (effectif, diplomes, abandons, en cours)
