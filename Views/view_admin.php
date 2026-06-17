@@ -15,12 +15,15 @@
             <a href="/accueil/default" class="text-white text-xl font-bold flex items-center">
                 <i class="fas fa-home mr-2"></i> Accueil
             </a>
-            <button id="syncBtn"class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-2 focus:ring-gray-600 rounded-lg px-4 py-2">
-                Synchroniser
-            </button>
+            <button id="syncBtn"
+        type="button"
+        class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-2 focus:ring-gray-600 rounded-lg px-4 py-2">
+    Synchroniser
+</button>
         </div>
     </nav>
-     <div id="syncMessage" class="hidden mx-8 mt-6 px-4 py-3 rounded-lg shadow-lg text-white"></div>
+    <div id="syncMessage" class="hidden mx-8 mt-6 px-4 py-3 rounded-lg shadow-lg text-white"></div>
+
     <!-- Layout: contenu principal + panneau admins -->
     <div class="flex gap-8 mx-8 my-10">
         <!-- Contenu principal -->
@@ -145,112 +148,43 @@
     </div>
 
     <script src="/Content/script/AjouterFiltre.js"></script>
-    <!-- Remplace uniquement l'ancien bloc <script> du bouton par celui-ci. -->
-<script>
-document.addEventListener('DOMContentLoaded', () => {
+    <script>
+document.getElementById('syncBtn').addEventListener('click', async () => {
     const btn = document.getElementById('syncBtn');
     const box = document.getElementById('syncMessage');
 
-    if (!btn || !box) {
-        console.error('syncBtn ou syncMessage introuvable.');
-        return;
+    btn.disabled = true;
+    btn.textContent = 'Synchronisation...';
+
+    box.className = 'mx-8 mt-6 bg-blue-700 text-white px-4 py-3 rounded-lg shadow-lg';
+    box.textContent = 'Synchronisation en cours...';
+
+    try {
+        const response = await fetch('index.php?controller=admin&action=synchroniser', {
+            method: 'POST'
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+    box.className = 'mx-8 mt-6 bg-green-700 text-white px-4 py-3 rounded-lg shadow-lg';
+    box.textContent = data.message;
+} else {
+    box.className = 'mx-8 mt-6 bg-red-700 text-white px-4 py-3 rounded-lg shadow-lg';
+
+    box.textContent =
+        (data.message || 'Erreur pendant la synchronisation.') +
+        (data.json_error ? ' | JSON error: ' + data.json_error : '') +
+        (data.raw_output ? ' | Sortie: ' + data.raw_output.substring(0, 500) : '');
+}
+
+    } catch (error) {
+        box.className = 'mx-8 mt-6 bg-red-700 text-white px-4 py-3 rounded-lg shadow-lg';
+        box.textContent = 'Erreur AJAX : ' + error.message;
     }
 
-    btn.addEventListener('click', async () => {
-        if (btn.disabled) {
-            return;
-        }
-
-        btn.disabled = true;
-        btn.textContent = 'Synchronisation...';
-
-        box.className =
-            'mx-8 mt-6 bg-blue-700 text-white px-4 py-3 ' +
-            'rounded-lg shadow-lg';
-
-        box.textContent =
-            'Synchronisation en cours. Ne fermez pas la page.';
-
-        try {
-            /*
-             * Le slash initial est essentiel.
-             * Sans lui, le navigateur peut appeler /admin/index.php.
-             */
-            const response = await fetch(
-                '/index.php?controller=admin&action=synchroniser',
-                {
-                    method: 'POST',
-                    credentials: 'same-origin',
-                    cache: 'no-store',
-                    headers: {
-                        'Accept': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                }
-            );
-
-            const raw = await response.text();
-
-            let data;
-
-            try {
-                data = JSON.parse(raw);
-            } catch (error) {
-                throw new Error(
-                    'Le serveur n’a pas renvoyé du JSON : ' +
-                    raw.substring(0, 1500)
-                );
-            }
-
-            if (!response.ok || !data.success) {
-                const details = [
-                    data.message,
-                    data.json_error,
-                    data.error_output,
-                    data.raw_output
-                ]
-                    .filter(Boolean)
-                    .join(' | ');
-
-                throw new Error(
-                    details || `Erreur HTTP ${response.status}`
-                );
-            }
-
-            box.className =
-                'mx-8 mt-6 bg-green-700 text-white px-4 py-3 ' +
-                'rounded-lg shadow-lg';
-
-            const summary = data.resume || data.statistiques || {};
-
-            const insertions =
-                summary.insertions ??
-                data.insertions ??
-                null;
-
-            box.textContent =
-                data.message ||
-                (
-                    insertions !== null
-                        ? `Synchronisation terminée : ${insertions} insertion(s).`
-                        : 'Synchronisation terminée avec succès.'
-                );
-
-        } catch (error) {
-            console.error('Erreur de synchronisation :', error);
-
-            box.className =
-                'mx-8 mt-6 bg-red-700 text-white px-4 py-3 ' +
-                'rounded-lg shadow-lg';
-
-            box.textContent =
-                'Erreur de synchronisation : ' + error.message;
-
-        } finally {
-            btn.disabled = false;
-            btn.textContent = 'Synchroniser';
-        }
-    });
+    btn.disabled = false;
+    btn.textContent = 'Synchroniser';
 });
 </script>
 </body>
