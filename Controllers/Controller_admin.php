@@ -145,59 +145,109 @@ class Controller_admin extends Controller {
     exit;
 }
 
-public function action_synchroniser()
+public function action_synchroniser(): void
 {
+    $this->requireAdmin();
+
     header('Content-Type: application/json; charset=utf-8');
 
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
         http_response_code(405);
+
         echo json_encode([
             'success' => false,
             'message' => 'Méthode non autorisée.'
         ], JSON_UNESCAPED_UNICODE);
+
         exit;
     }
 
-    $scriptPath = '/var/www/html/scripts/ajout-donnees.py';
-    $pythonPath = '/var/www/html/venv/bin/python';
+    $scriptPath = realpath(__DIR__ . '/../scripts/ajout-donnees.py');
+    $pythonPath = getenv('PYTHON_BIN')
+    ?: '/opt/mnemosyne-venv/bin/python';
 
-    if ($scriptPath === false) {
+    if (!is_file($pythonPath) || !is_executable($pythonPath)) {
+    http_response_code(500);
+
+    echo json_encode([
+        'success' => false,
+        'message' => 'Interpréteur Python introuvable dans le conteneur.',
+        'path' => $pythonPath
+    ], JSON_UNESCAPED_UNICODE);
+
+    exit;
+}
+
+    if (!is_file($pythonPath) || !is_executable($pythonPath)) {
+        http_response_code(500);
+
         echo json_encode([
             'success' => false,
-            'message' => 'Script Python introuvable.'
+            'message' => 'Interpréteur Python introuvable dans le conteneur.'
         ], JSON_UNESCAPED_UNICODE);
+
         exit;
     }
 
-    if ($pythonPath === false) {
+    $descriptors = [
+        0 => ['pipe', 'r'],
+        1 => ['pipe', 'w'],
+        2 => ['pipe', 'w']
+    ];
+
+    /*
+     * L'utilisation d'un tableau évite les problèmes d'échappement
+     * entre Linux, Windows et macOS.
+     */
+    $process = proc_open(
+        [$pythonPath, $scriptPath],
+        $descriptors,
+        $pipes,
+        dirname($scriptPath)
+    );
+
+    if (!is_resource($process)) {
+        http_response_code(500);
+
         echo json_encode([
             'success' => false,
-            'message' => 'Environnement Python introuvable.'
+            'message' => 'Impossible de démarrer le script Python.'
         ], JSON_UNESCAPED_UNICODE);
+
         exit;
     }
 
-    $command =
-        'DB_HOST=mnemosyne-mnemosyne-mysql-1 ' .
-        'DB_USER=phpserv ' .
-        'DB_PASSWORD=phpserv ' .
-        'DB_NAME=scolarite ' .
-        escapeshellcmd($pythonPath) . ' ' .
-        escapeshellarg($scriptPath) . ' 2>&1';
+    fclose($pipes[0]);
 
-    $output = trim(shell_exec($command) ?? '');
-    $json = json_decode($output, true);
+    $stdout = trim(stream_get_contents($pipes[1]));
+    fclose($pipes[1]);
 
-    if (json_last_error() === JSON_ERROR_NONE && is_array($json)) {
+    $stderr = trim(stream_get_contents($pipes[2]));
+    fclose($pipes[2]);
+
+    $exitCode = proc_close($process);
+
+    $json = json_decode($stdout, true);
+
+    if (
+        $exitCode === 0 &&
+        json_last_error() === JSON_ERROR_NONE &&
+        is_array($json)
+    ) {
         echo json_encode($json, JSON_UNESCAPED_UNICODE);
-    } else {
-        echo json_encode([
-            'success' => false,
-            'message' => 'Réponse du script Python invalide.',
-            'json_error' => json_last_error_msg(),
-            'raw_output' => $output
-        ], JSON_UNESCAPED_UNICODE);
+        exit;
     }
+
+    http_response_code(500);
+
+    echo json_encode([
+        'success' => false,
+        'message' => 'Le script Python a échoué.',
+        'exit_code' => $exitCode,
+        'json_error' => json_last_error_msg(),
+        'stdout' => $stdout,
+        'stderr' => $stderr
+    ], JSON_UNESCAPED_UNICODE);
 
     exit;
 }
