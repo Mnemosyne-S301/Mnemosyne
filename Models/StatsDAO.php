@@ -25,7 +25,7 @@ class StatsDAO {
      * Constructeur privé.
      * Établit la connexion à la base de données.
      */
-    private function __construct()
+    public function __construct()
     {
         $this->conn = new PDO('mysql:host=' . DB_HOST . ';dbname=' . STATS_DB_NAME, DB_USER, STATS_DB_PASS);
     }
@@ -68,16 +68,17 @@ class StatsDAO {
      * Récupère le nombre d'élèves pour une formation donnée.
      *
      * @param string $formation Le nom de la formation.
-     * @return array Tableau des résultats.
+     * @return array Tableau des résultats. Les clés sont : 'annee_scolaire', 'departement',
+     *                                      'parcours', 'nombre_etudiants'
      */
     public function getNbEleveParFormation($formation){
 
         $query = "SELECT annee_scolaire, departement, parcours, nombre_etudiants
                 FROM nb_eleve_par_formation
-                WHERE formation = :formation ";
+                WHERE formation LIKE :formation ";
         
         $stmt = $this->conn->prepare($query);
-        $stmt->bindValue(':formation', $formation, PDO::PARAM_STR);
+        $stmt->bindValue(':formation', '%' . $formation . '%', PDO::PARAM_STR);
         $stmt->execute();
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);

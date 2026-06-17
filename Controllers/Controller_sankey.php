@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../Services/Service_api.php';
+require_once __DIR__ . '/../Services/Service_stats.php';
 
 /**
  * Controller pour la visualisation Sankey des cohortes BUT

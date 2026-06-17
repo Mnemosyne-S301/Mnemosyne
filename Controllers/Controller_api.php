@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . "/../Services/Service_api.php";
+require_once __DIR__ . "/../Services/Service_stats.php";
 
 /**
  * Controller API pour fournir les données en JSON
@@ -168,7 +168,9 @@ class Controller_api extends Controller {
                     }
                 }
                 
-                $effectif = count($dernierEtat);
+                //$effectif = count($dernierEtat);
+                $effectif = $this->service->getNbEleveParFormation($formation, $annee)[0]["nombre_etudiants"];
+                // le nombre d'étudiant sur la première année
                 
                 // Calculer le taux de réussite (diplômés / effectif total)
                 $tauxReussite = $effectif > 0 ? round(($diplomes / $effectif) * 100, 1) : 0;

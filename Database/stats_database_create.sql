@@ -22,14 +22,14 @@ DROP TABLE IF EXISTS repartition_rcue_par_parcours;
 CREATE TABLE nb_eleve_par_formation (
     id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     
-    dep VARCHAR(255),
+    departement VARCHAR(255),
     formation VARCHAR(255),
     parcours VARCHAR(255),
     annee_scolaire INT, -- Ajouté pour pouvoir suivre l'évolution par année
     nombre_etudiants INT,
     
     -- Sécurité : On ne veut qu'une seule ligne par promo/année
-    UNIQUE KEY idx_unique_promo (dep, formation, parcours, annee_scolaire)
+    UNIQUE KEY idx_unique_promo (departement, formation, parcours, annee_scolaire)
 );
 
 CREATE TABLE nb_ue_par_formation_semestre(

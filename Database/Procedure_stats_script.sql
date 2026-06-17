@@ -25,7 +25,7 @@ BEGIN
     TRUNCATE TABLE nb_eleve_par_formation; 
 
     INSERT INTO nb_eleve_par_formation (
-        dep,
+        departement,
         formation, 
         parcours, 
         annee_scolaire, 
@@ -34,7 +34,7 @@ BEGIN
     
     SELECT
         departement.description AS dep,
-        formation.titre AS formation,
+        formation.accronyme AS formation,
         parcours.libelle AS parcours,
         effectuerannee.annee_scolaire, -- AJOUT DE L'ANNÉE
         COUNT(DISTINCT etudiant.etudiant_id) AS nombre_etudiants
@@ -51,7 +51,7 @@ BEGIN
         ON (formation.dep_id = departement.dep_id)
     GROUP BY 
         departement.description, 
-        formation.titre, 
+        formation.accronyme, 
         parcours.libelle,
         effectuerannee.annee_scolaire; -- GROUPE PAR ANNEE
 END//

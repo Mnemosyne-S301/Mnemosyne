@@ -157,4 +157,31 @@ class Service_stats {
         return $this->scolariteDao->getCohorteParAnneeEtFormation($annee, $formation);
     }
 
+    /**
+     * Retourne le nombre d'élève dans la formation depuis la base de données.
+     * Si aucune années n'est renseignée, retourne toutes les années présente pour cette 
+     * formation dans la base de données. 
+     * @param string $formation L'accronyme de la formation.
+     * @param ?int $annee L'année voulu pour la formation donnée
+     * @return array Tableau contenant tableaux pour chaque années. (cf. doc StatsDAO)
+     */
+    public function getNbEleveParFormation(string $formation, ?int $annee = null): array
+    {
+        $all_years = $this->statsDao->getNbEleveParFormation($formation); // contains all years
+        if($annee == null)
+        {
+            return $all_years;
+        }
+        
+        // if new need a specific year only
+        foreach($all_years as $elem)
+        {
+            if($elem["annee_scolaire"] == $annee)
+            {
+                return [$elem];
+                // oui on garde la même structure de donnée, même s'il n'y a qu'un seul élement
+            }
+        }
+    }
+
 }
