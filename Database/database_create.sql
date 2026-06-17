@@ -177,3 +177,7 @@ CREATE TABLE Users (
     role          VARCHAR(50)  NOT NULL,
     PRIMARY KEY (user_id)
 );
+
+-- Admin par défaut test
+INSERT IGNORE INTO Users (username, password_hash, role)
+    VALUES ('testadmin', '$2y$10$wO0usZ4ju4ivozFYG3DWq.xF7N4oo9Zpy2G9k6dXaxOVxbgHjR5F.', 'admin');
