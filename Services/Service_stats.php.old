@@ -1,6 +1,11 @@
 <?php
 require_once __DIR__ . '../Models/StatsDAO.php';
 
+/* Deuxième classe  appelé Service_stats du projet. 
+* N'est utilisé nulle part. 
+* Je l'ai pas supprimé au cas où. NE PAS UTILISER.
+*/
+
 /**
  * Classe Service_stats.
  * Rôle : Couche de logique métier (Business Logic) entre le Contrôleur
