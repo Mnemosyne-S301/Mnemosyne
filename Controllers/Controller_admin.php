@@ -144,6 +144,62 @@ class Controller_admin extends Controller {
     header("Location: index.php?controller=admin&action=default");
     exit;
 }
+public function action_synchroniser()
+{
+    header('Content-Type: application/json; charset=utf-8');
+
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        http_response_code(405);
+        echo json_encode([
+            'success' => false,
+            'message' => 'Méthode non autorisée.'
+        ], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    $scriptPath = '/var/www/html/scripts/ajout-donnees.py';
+    $pythonPath = '/var/www/html/venv/bin/python';
+
+    if ($scriptPath === false) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Script Python introuvable.'
+        ], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    if ($pythonPath === false) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Environnement Python introuvable.'
+        ], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    $command =
+        'DB_HOST=mnemosyne-mnemosyne-mysql-1 ' .
+        'DB_USER=phpserv ' .
+        'DB_PASSWORD=phpserv ' .
+        'DB_NAME=scolarite ' .
+        escapeshellcmd($pythonPath) . ' ' .
+        escapeshellarg($scriptPath) . ' 2>&1';
+
+    $output = trim(shell_exec($command) ?? '');
+    $json = json_decode($output, true);
+
+    if (json_last_error() === JSON_ERROR_NONE && is_array($json)) {
+        echo json_encode($json, JSON_UNESCAPED_UNICODE);
+    } else {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Réponse du script Python invalide.',
+            'json_error' => json_last_error_msg(),
+            'raw_output' => $output
+        ], JSON_UNESCAPED_UNICODE);
+    }
+
+    exit;
+}
     
     
 
