@@ -147,12 +147,17 @@ function creerLigneRegle(regle = {}) {
     filtre2.textContent = "sont en ";
     option4.textContent = "réussite";
     option5.textContent = "échec";
+    const option6 = document.createElement("option");
 
     option4.value = "reussite";
     option5.value = "echec";
+    option6.value = "ignorer";
+
+    option6.textContent = "ignorer";
 
     select2.append(option4);
     select2.append(option5);
+    select2.append(option6);
     select2.value = regle.resultat || "reussite";
 
     div.append(filtre2);

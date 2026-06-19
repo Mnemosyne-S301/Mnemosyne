@@ -3,15 +3,9 @@
     "regles": [
         {
             "condition": "formation",
-            "valeur": "ADM",
-            "valeurType": null,
-            "resultat": "reussite"
-        },
-        {
-            "condition": "formation",
             "valeur": "RED",
             "valeurType": null,
-            "resultat": "echec"
+            "resultat": "reussite"
         }
     ]
 }

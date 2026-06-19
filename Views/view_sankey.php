@@ -321,19 +321,33 @@
                     let rules = null;
                     try {
                         const resp = await fetch('index.php?controller=api&action=rules');
-                        if (resp.ok) rules = await resp.json();
+                        if (resp.ok) {
+                            const json = await resp.json();
+                            // N'utiliser les règles serveur que si elles contiennent bien des règles actives
+                            if (json && Array.isArray(json.regles) && json.regles.length > 0) {
+                                rules = json;
+                                console.log('[Règles] Chargées depuis serveur:', rules.regles.length, 'règle(s), actif:', rules.actif);
+                            } else if (json && typeof json === 'object') {
+                                rules = json; // règles vides mais valides
+                                console.log('[Règles] Serveur: aucune règle enregistrée');
+                            }
+                        }
                     } catch (e) {
-                        // ignore
+                        console.warn('[Règles] Fetch serveur échoué:', e.message);
                     }
                     if (!rules || typeof rules !== 'object') {
-                        try { rules = JSON.parse(localStorage.getItem('SANKEY_REGLES') || 'null'); } catch { rules = null; }
+                        try {
+                            rules = JSON.parse(localStorage.getItem('SANKEY_REGLES') || 'null');
+                            if (rules) console.log('[Règles] Chargées depuis localStorage:', rules.regles?.length, 'règle(s), actif:', rules.actif);
+                        } catch { rules = null; }
                     }
                     if (!rules || typeof rules !== 'object') {
                         rules = { actif: false, regles: [] };
                     }
                     window.SANKEY_REGLES = rules;
+                    console.log('[Règles] window.SANKEY_REGLES =', JSON.stringify(window.SANKEY_REGLES));
                 } catch (e) {
-                    console.warn('Impossible de charger les règles, utilisation du fallback local');
+                    console.warn('Impossible de charger les règles:', e);
                     window.SANKEY_REGLES = { actif: false, regles: [] };
                 }
 

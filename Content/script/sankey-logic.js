@@ -65,53 +65,95 @@ const SankeyCohort = (function() {
         return { actif: false, regles: [] };
     }
 
-function appliquerReglesSurCode(codeDecision, etudiant) {
-    const configurationRegles = chargerReglesAdmin();
-    if (!configurationRegles.actif || !Array.isArray(configurationRegles.regles)) {
+    /**
+     * Transforme uniquement le code de décision (reussite→ADM, echec→AJ).
+     * Ne filtre JAMAIS ici — le filtrage se fait au niveau du trajet complet.
+     */
+    function appliquerReglesSurCode(codeDecision, etudiant) {
+        const config = chargerReglesAdmin();
+        if (!config.actif || !Array.isArray(config.regles) || config.regles.length === 0) {
+            return codeDecision;
+        }
+
+        const codeNorm = String(codeDecision || '').toUpperCase();
+
+        const matching = config.regles.filter(regle => {
+            const condition = String(regle.condition || '').toLowerCase();
+            const valeur = String(regle.valeur || '').toUpperCase();
+            const valeurType = String(regle.valeurType || '').toLowerCase();
+
+            if (condition === 'formation' || condition === 'code_annuel') {
+                return valeur === codeNorm;
+            }
+            if (condition === 'plus' || condition === 'moins') {
+                if (!etudiant || typeof etudiant !== 'object') return false;
+                if (valeurType === 'moyenne') {
+                    const moyenne = parseFloat(etudiant?.annee?.moyenne ?? etudiant?.moyenne ?? NaN);
+                    if (Number.isNaN(moyenne)) return false;
+                    const threshold = parseFloat(valeur);
+                    if (Number.isNaN(threshold)) return false;
+                    return condition === 'plus' ? moyenne > threshold : moyenne < threshold;
+                }
+                if (valeurType === 'ues validées') {
+                    const ues = parseInt(etudiant?.annee?.ues_validees ?? etudiant?.ues_validees ?? NaN, 10);
+                    if (Number.isNaN(ues)) return false;
+                    const threshold = parseInt(valeur, 10);
+                    if (Number.isNaN(threshold)) return false;
+                    return condition === 'plus' ? ues > threshold : ues < threshold;
+                }
+            }
+            return false;
+        });
+
+        // Transformations uniquement (jamais null)
+        if (matching.some(r => r.resultat === 'reussite')) return 'ADM';
+        if (matching.some(r => r.resultat === 'echec')) return 'AJ';
         return codeDecision;
     }
 
-    const codeNormalise = String(codeDecision || "").toUpperCase();
-
-    const regleApplicable = configurationRegles.regles.find(regle => {
-        const condition = String(regle.condition || "").toLowerCase();
-        const valeur = String(regle.valeur || "").toUpperCase();
-        const valeurType = String(regle.valeurType || "").toLowerCase();
-
-        if (condition === "formation" || condition === "code_annuel") {
-            return valeur === codeNormalise;
+    /**
+     * Filtre la Map d'étudiants selon les règles conserver/supprimer.
+     * Un étudiant est CONSERVÉ si au moins une de ses années a un code
+     * correspondant à une règle "conserver".
+     * Un étudiant est SUPPRIMÉ si au moins une de ses années correspond
+     * à une règle "supprimer".
+     */
+    function filtrerEtudiantsParRegles(etudiants) {
+        const config = chargerReglesAdmin();
+        if (!config.actif || !Array.isArray(config.regles) || config.regles.length === 0) {
+            return etudiants;
         }
 
-        if (condition === "plus" || condition === "moins") {
-            if (!etudiant || typeof etudiant !== 'object') {
-                return false;
-            }
+        // 'ignorer' (ou 'supprimer' pour compat) = exclure explicitement
+        const reglesIgnorer = config.regles.filter(r => r.resultat === 'ignorer' || r.resultat === 'supprimer');
+        // Toute autre règle (reussite, echec, et l'ancien conserver) = inclusion implicite
+        const reglesInclure = config.regles.filter(r => r.resultat !== 'ignorer' && r.resultat !== 'supprimer');
 
-            if (valeurType === "moyenne") {
-                const moyenne = parseFloat(etudiant?.annee?.moyenne ?? etudiant?.moyenne ?? NaN);
-                if (Number.isNaN(moyenne)) return false;
-                const threshold = parseFloat(valeur);
-                if (Number.isNaN(threshold)) return false;
-                return condition === "plus" ? moyenne > threshold : moyenne < threshold;
-            }
-
-            if (valeurType === "ues validées") {
-                const ues = parseInt(etudiant?.annee?.ues_validees ?? etudiant?.ues_validees ?? NaN, 10);
-                if (Number.isNaN(ues)) return false;
-                const threshold = parseInt(valeur, 10);
-                if (Number.isNaN(threshold)) return false;
-                return condition === "plus" ? ues > threshold : ues < threshold;
-            }
+        if (reglesIgnorer.length === 0 && reglesInclure.length === 0) {
+            return etudiants;
         }
 
-        return false;
-    });
+        // On compare sur codeOriginal (avant transformation) pour rester cohérent
+        const codesIgnorer = new Set(reglesIgnorer.map(r => String(r.valeur || '').toUpperCase()));
+        const codesInclure = new Set(reglesInclure.map(r => String(r.valeur || '').toUpperCase()));
 
-    if (!regleApplicable) return codeDecision;
-    if (regleApplicable.resultat === "reussite") return "ADM";
-    if (regleApplicable.resultat === "echec") return "AJ";
-    return codeDecision;
-}
+        const filtered = new Map();
+        etudiants.forEach((etudiant, etudId) => {
+            const codes = etudiant.annees.map(a => String(a.codeOriginal || a.code || '').toUpperCase());
+
+            // Exclusion explicite
+            if (codesIgnorer.size > 0 && codes.some(c => codesIgnorer.has(c))) return;
+
+            // Inclusion implicite : si des règles d'inclusion existent, seuls les étudiants
+            // ayant au moins un code correspondant sont gardés
+            if (codesInclure.size > 0 && !codes.some(c => codesInclure.has(c))) return;
+
+            filtered.set(etudId, etudiant);
+        });
+
+        console.log(`[Règles] ${filtered.size}/${etudiants.size} étudiants conservés (inclure:${[...codesInclure]}, ignorer:${[...codesIgnorer]})`);
+        return filtered;
+    }
 
 
     function processCohortData(dataByYear) {
@@ -124,7 +166,10 @@ function appliquerReglesSurCode(codeDecision, etudiant) {
 
         console.log(`=== ${etudiants.size} étudiants uniques trouvés ===`);
 
-        const { links, stats } = buildLinks(etudiants);
+        // Filtrage des trajectoires complètes selon les règles conserver/supprimer
+        const etudiantsFiltres = filtrerEtudiantsParRegles(etudiants);
+
+        const { links, stats } = buildLinks(etudiantsFiltres);
         const nodes = extractNodes(links);
 
         console.log('=== STATISTIQUES FINALES ===');
@@ -152,7 +197,7 @@ function appliquerReglesSurCode(codeDecision, etudiant) {
                 console.warn('Étudiant avec données incomplètes:', etud);
                 return;
             }
-            
+
             if (!etudiants.has(etud.etudid)) {
                 etudiants.set(etud.etudid, { 
                     annees: [],
@@ -161,10 +206,12 @@ function appliquerReglesSurCode(codeDecision, etudiant) {
             }
             
             const etudData = etudiants.get(etud.etudid);
+            const codeOriginal = String(etud.annee.code || '').toUpperCase();
             etudData.annees.push({
                 annee: year,
                 ordre: etud.annee.ordre || 1,
                 code: appliquerReglesSurCode(etud.annee.code, etud),
+                codeOriginal,
                 etat: etud.etat,
                 annee_scolaire: etud.annee.annee_scolaire
             });
@@ -626,7 +673,8 @@ function appliquerReglesSurCode(codeDecision, etudiant) {
                 sankey.style.transition = 'opacity 0.3s ease';
                 
                 setTimeout(() => {
-                    const processed = buildLinks(etudiants);
+                    const etudiantsFiltres = filtrerEtudiantsParRegles(etudiants);
+                    const processed = buildLinks(etudiantsFiltres);
                     const nodes = extractNodes(processed.links);
                     
                     const chartData = {
