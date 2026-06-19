@@ -250,6 +250,18 @@ btn_save?.addEventListener("click", () => {
         if (j.ok) {
             afficherStatutRegles(`${reglesConfig.regles.length} règle(s) enregistrée(s) sur le serveur.`);
             alert('Règles enregistrées');
+            // Recharger le Sankey si la page l'affiche
+            try {
+                const formation = document.getElementById('formation-select')?.value || window.SANKEY_CONFIG?.formation || 'INFO';
+                const annee = document.getElementById('annee-select')?.value || window.SANKEY_CONFIG?.anneeDepart || 2021;
+                const source = document.getElementById('source-select')?.value || window.SANKEY_CONFIG?.source || 'json';
+                const modalite = document.getElementById('modalite-select')?.value || window.SANKEY_CONFIG?.modalite || 'FI';
+                if (typeof loadSankeyData === 'function') {
+                    loadSankeyData(formation, annee, source, modalite);
+                }
+            } catch (e) {
+                // ignore
+            }
         } else {
             afficherStatutRegles('Enregistré localement, échec serveur.');
         }

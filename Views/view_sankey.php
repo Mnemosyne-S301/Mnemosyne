@@ -316,7 +316,24 @@
                 // Effacer le message "Chargement des données..." avant d'afficher le diagramme
                 if (plotDiv) plotDiv.innerHTML = '';
                 
-                // Initialiser le diagramme Sankey
+                // Charger les règles sauvegardées (serveur > localStorage) avant l'init client-side
+                try {
+                    let rules = null;
+                    try {
+                        const resp = await fetch('index.php?controller=api&action=rules');
+                        if (resp.ok) rules = await resp.json();
+                    } catch (e) {
+                        // ignore
+                    }
+                    if (!rules) {
+                        try { rules = JSON.parse(localStorage.getItem('SANKEY_REGLES') || 'null'); } catch { rules = null; }
+                    }
+                    window.SANKEY_REGLES = rules;
+                } catch (e) {
+                    console.warn('Impossible de charger les règles, utilisation du fallback local');
+                }
+
+                // Initialiser le diagramme Sankey (client-side rules application)
                 if (typeof SankeyCohort !== 'undefined') {
                     SankeyCohort.init();
                         // Charger et afficher les statistiques de cohorte (depuis l'API stats)
@@ -451,24 +468,8 @@
    
 
     <script>
-    // charger les règles admin sauvegardées
-    try {
-        // Priorité: charger depuis l'API serveur, fallback sur localStorage
-        (async function(){
-            try {
-                const resp = await fetch('index.php?controller=api&action=rules');
-                if (resp.ok) {
-                    window.SANKEY_REGLES = await resp.json();
-                    return;
-                }
-            } catch (e) {
-                // ignore
-            }
-            window.SANKEY_REGLES = JSON.parse(localStorage.getItem("SANKEY_REGLES") || "null");
-        })();
-    } catch {
+        // Règles admin : initialement null, chargées avant l'init du Sankey dans loadSankeyData
         window.SANKEY_REGLES = null;
-    }
     
     // ===============================
     // Configuration des graphiques Chart.js
