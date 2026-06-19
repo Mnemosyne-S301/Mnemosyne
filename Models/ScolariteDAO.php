@@ -669,7 +669,7 @@ class ScolariteDAO
         // 1. Sous-requête pour identifier les étudiants entrés en BUT1 à l'année de cohorte
         // 2. Récupère les données de ces étudiants pour l'année demandée
         $sql = "
-            SELECT
+            SELECT DISTINCT
                 e.etudiant_id AS etudid,
                 e.etat AS etat,
                 af.ordre AS ordre,

@@ -423,7 +423,7 @@ class Controller_api extends Controller {
      * @param string $mode Mode de chargement (json ou testdata)
      * @param bool $isApprentissage Si true, charge uniquement les fichiers d'apprentissage
      */
-    private function loadJsonFilesForYear(int $annee, string $pattern, string $jsonPath = null, string $mode = 'json', bool $isApprentissage = false): array {
+    private function loadJsonFilesForYear(int $annee, string $pattern, ?string $jsonPath = null, string $mode = 'json', bool $isApprentissage = false): array {
         $result = [];
         $jsonPath = $jsonPath ?? $this->jsonPath;
         

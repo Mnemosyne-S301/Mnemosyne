@@ -32,8 +32,8 @@ CREATE TABLE Formation (
     titre           VARCHAR(100) NOT NULL,
     version         TINYINT UNSIGNED,
     formation_code  VARCHAR(50)  NOT NULL,
-    type_parcours   TINYINT UNSIGNED,
-    titre_officiel  VARCHAR(100) NOT NULL,
+    type_parcours   INT UNSIGNED,
+    titre_officiel  VARCHAR(255) NOT NULL,
     commentaire     VARCHAR(255) DEFAULT NULL,
     code_specialite VARCHAR(50)  DEFAULT NULL,
     archived        BOOLEAN      DEFAULT FALSE,
@@ -115,21 +115,21 @@ CREATE TABLE AnneeScolaire (
 CREATE TABLE CodeRCUE (
     codercue_id    BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     code           VARCHAR(50)  NOT NULL,
-    signification  VARCHAR(100),
+    signification  VARCHAR(255),
     PRIMARY KEY (codercue_id)
 );
 
 CREATE TABLE CodeUE (
     codeue_id     BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     code          VARCHAR(50)  NOT NULL,
-    signification VARCHAR(100),
+    signification VARCHAR(255),
     PRIMARY KEY (codeue_id)
 );
 
 CREATE TABLE CodeAnnee (
     codeannee_id  BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     code          VARCHAR(50)  NOT NULL,
-    signification VARCHAR(100),
+    signification VARCHAR(255),
     PRIMARY KEY (codeannee_id)
 );
 
