@@ -36,6 +36,7 @@
     </div>
     </body>
     <style>
+
 @keyframes gradient {
     0% {
         background-position: 0% 0%;
@@ -95,12 +96,36 @@
         transform: translateX(1);
     }
 }
+
+.chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 14px;
+    border-radius: 999px;
+    background: rgba(227,191,129,0.08);
+    border: 1px solid rgba(227,191,129,0.22);
+    color: #E3BF81;
+    font-size: 0.78rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: background 0.2s, border-color 0.2s, color 0.2s;
+    white-space: nowrap;
+}
+.chip:hover {
+    background: rgba(227,191,129,0.18);
+    border-color: rgba(227,191,129,0.50);
+    color: #FBEDD3;
+}
+.chip-icon { opacity: 0.5; font-style: normal; }
+
     </style>
 
     <!-- ============================
          MAIN : Formulaire centré e
     ============================= -->
     <main class="flex items-center justify-center flex-1">
+        <div class="flex flex-col items-center gap-5">
 
         <!-- Formulaire principal -->
         <form action="index.php"
@@ -183,58 +208,46 @@
         <!-- ============================
              DERNIÈRES CONSULTATIONS
         ============================= -->
-        <div id="recent-consultations" class="hidden mt-6 w-96">
-            <p class="text-[#FBEDD3] text-sm font-semibold mb-3 opacity-70 tracking-wide uppercase">
-                Dernières consultations
+        <div id="recent-consultations" class="hidden w-96">
+            <p class="text-[#FFFFFF40] text-xs mb-2 tracking-widest uppercase text-center">
+            Reprendre où vous en étiez
             </p>
-            <div id="recent-list" class="flex flex-col gap-2"></div>
+            <div id="recent-list" class="flex flex-wrap justify-center gap-2"></div>
         </div>
 
         <script>
-        (function () {
-            const container = document.getElementById('recent-consultations');
-            const list      = document.getElementById('recent-list');
+            (function () {
+                const container = document.getElementById('recent-consultations');
+                const list      = document.getElementById('recent-list');
 
-            let history = [];
-            try {
-                history = JSON.parse(localStorage.getItem('mnemosyne_history') ?? '[]');
-            } catch (e) { history = []; }
+                let history = [];
+                try {
+                    history = JSON.parse(localStorage.getItem('mnemosyne_history') ?? '[]');
+                } 
+                catch (e) { 
+                    history = []; 
+                }
 
-            if (!Array.isArray(history) || history.length === 0) return;
+                if (!Array.isArray(history) || history.length === 0) return;
 
-            history.forEach(function (entry) {
-                const a = document.createElement('a');
-                a.href = 'index.php?controller=sankey&formation='
-                       + encodeURIComponent(entry.formation)
-                       + '&anneeDepart='
-                       + encodeURIComponent(entry.annee);
-                a.className = [
-                    'flex items-center justify-between',
-                    'px-4 py-2.5 rounded-lg',
-                    'bg-[#FFFFFF0A] border border-[#FFFFFF15]',
-                    'hover:bg-[#FFFFFF18] hover:border-[#E3BF8160]',
-                    'transition-all duration-200 group',
-                ].join(' ');
+                history.forEach(function (entry) {
+                    const a = document.createElement('a');
+                    a.href = 'index.php?controller=sankey&formation='
+                        + encodeURIComponent(entry.formation)
+                        + '&anneeDepart='
+                        + encodeURIComponent(entry.annee);
+                    a.className = 'chip';
+                    a.innerHTML = '<i class="chip-icon">↩</i>'
+                        + entry.formation
+                        + ' <span style="opacity:.5">' + (entry.anneeLabel ?? entry.annee) + '</span>';
+                    list.appendChild(a);
+    });
 
-                a.innerHTML = `
-                    <div class="flex items-center gap-3">
-                        <span class="text-[#E3BF81] text-lg">🕐</span>
-                        <div class="flex flex-col">
-                            <span class="text-[#FBEDD3] text-sm font-medium group-hover:text-[#E3BF81] transition-colors">
-                                ${entry.formationLabel ?? entry.formation}
-                            </span>
-                            <span class="text-[#FFFFFF60] text-xs">${entry.anneeLabel ?? entry.annee}</span>
-                        </div>
-                    </div>
-                    <span class="text-[#FFFFFF40] group-hover:text-[#E3BF81] text-sm transition-colors">→</span>
-                `;
+    container.classList.remove('hidden');
+})();
 
-                list.appendChild(a);
-            });
+</script>
 
-            container.classList.remove('hidden');
-        })();
-        </script>
         <a href="index.php?controller=auth&action=login">
             <input id="logo_admin"
                 type="image"
@@ -244,7 +257,7 @@
                         backdrop-blur-md bg-[#FFFFFF0A] shadow-2xl
                         transition-all duration-300 hover:scale-105 hover:opacity-90" />
         </a>
-
+        </div>
     </main>
 
 </body>
