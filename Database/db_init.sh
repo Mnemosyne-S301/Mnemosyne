@@ -11,5 +11,5 @@ mysql -u root -e "CREATE DATABASE IF NOT EXISTS stats;"
 mysql -u root stats < /tmp/stats_database_create.sql
 mysql -u root stats < /tmp/Procedure_stats_script.sql
 
-mysql -u root -e "GRANT SELECT, INSERT, UPDATE, DELETE, DROP ON scolarite.* TO 'phpserv'@'%';"
-mysql -u root -e "GRANT SELECT, INSERT, UPDATE, DELETE, DROP ON stats.* TO 'phpserv'@'%';"
+mysql -u root -e "GRANT SELECT, PROCESS, LOCK TABLES, INSERT, UPDATE, DELETE, DROP ON scolarite.* TO 'phpserv'@'%';"
+mysql -u root -e "GRANT SELECT, PROCESS, LOCK TABLES,INSERT, UPDATE, DELETE, DROP ON stats.* TO 'phpserv'@'%';"
