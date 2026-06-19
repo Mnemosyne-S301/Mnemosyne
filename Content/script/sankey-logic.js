@@ -66,6 +66,70 @@ const SankeyCohort = (function() {
     }
 
     /**
+     * Retourne true si la règle correspond à ce code et cet étudiant.
+     * Gère les deux formats : nouveau (code/seuilSens) et ancien (condition/valeur).
+     */
+    function regleMatchCode(regle, codeNorm, etudiant) {
+        const formationCourante = String(window.SANKEY_FORMATION || '').toUpperCase();
+
+        // Filtre par formation : si la règle précise une formation, elle ne s'applique
+        // qu'à la formation actuellement visualisée.
+        if (regle.formation) {
+            if (String(regle.formation).toUpperCase() !== formationCourante) return false;
+        }
+
+        // ── Nouveau format ────────────────────────────────────────────────
+        if (regle.code !== undefined) {
+            return String(regle.code || '').toUpperCase() === codeNorm;
+        }
+        if (regle.seuilSens) {
+            if (!etudiant || typeof etudiant !== 'object') return false;
+            const sens   = String(regle.seuilSens).toLowerCase();
+            const thresh = parseFloat(regle.seuilValeur ?? NaN);
+            if (Number.isNaN(thresh)) return false;
+
+            if ((regle.seuilType || '').toLowerCase().includes('moyenne')) {
+                const v = parseFloat(etudiant?.annee?.moyenne ?? etudiant?.moyenne ?? NaN);
+                if (Number.isNaN(v)) return false;
+                return sens === 'plus' ? v > thresh : v < thresh;
+            }
+            if ((regle.seuilType || '').toLowerCase().includes('ue')) {
+                const v = parseInt(etudiant?.annee?.ues_validees ?? etudiant?.ues_validees ?? NaN, 10);
+                if (Number.isNaN(v)) return false;
+                return sens === 'plus' ? v > thresh : v < thresh;
+            }
+            return false;
+        }
+        // Si la règle n'a ni code ni seuil, elle s'applique à tous les étudiants
+        // (utile pour une règle formation seule, ex: filtrer une formation)
+        if (regle.formation) return true;
+
+        // ── Ancien format (compat) ────────────────────────────────────────
+        const condition  = String(regle.condition || '').toLowerCase();
+        const valeur     = String(regle.valeur || '').toUpperCase();
+        const valeurType = String(regle.valeurType || '').toLowerCase();
+        if (condition === 'formation' || condition === 'code_annuel') return valeur === codeNorm;
+        if (condition === 'plus' || condition === 'moins') {
+            if (!etudiant || typeof etudiant !== 'object') return false;
+            if (valeurType === 'moyenne') {
+                const v = parseFloat(etudiant?.annee?.moyenne ?? etudiant?.moyenne ?? NaN);
+                if (Number.isNaN(v)) return false;
+                const t = parseFloat(valeur);
+                if (Number.isNaN(t)) return false;
+                return condition === 'plus' ? v > t : v < t;
+            }
+            if (valeurType.includes('ue')) {
+                const v = parseInt(etudiant?.annee?.ues_validees ?? etudiant?.ues_validees ?? NaN, 10);
+                if (Number.isNaN(v)) return false;
+                const t = parseInt(valeur, 10);
+                if (Number.isNaN(t)) return false;
+                return condition === 'plus' ? v > t : v < t;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Transforme uniquement le code de décision (reussite→ADM, echec→AJ).
      * Ne filtre JAMAIS ici — le filtrage se fait au niveau du trajet complet.
      */
@@ -74,49 +138,21 @@ const SankeyCohort = (function() {
         if (!config.actif || !Array.isArray(config.regles) || config.regles.length === 0) {
             return codeDecision;
         }
-
         const codeNorm = String(codeDecision || '').toUpperCase();
+        // Ignorer les règles marquées comme inactives
+        const matching = config.regles
+            .filter(r => r.actif !== false)
+            .filter(r => regleMatchCode(r, codeNorm, etudiant));
 
-        const matching = config.regles.filter(regle => {
-            const condition = String(regle.condition || '').toLowerCase();
-            const valeur = String(regle.valeur || '').toUpperCase();
-            const valeurType = String(regle.valeurType || '').toLowerCase();
-
-            if (condition === 'formation' || condition === 'code_annuel') {
-                return valeur === codeNorm;
-            }
-            if (condition === 'plus' || condition === 'moins') {
-                if (!etudiant || typeof etudiant !== 'object') return false;
-                if (valeurType === 'moyenne') {
-                    const moyenne = parseFloat(etudiant?.annee?.moyenne ?? etudiant?.moyenne ?? NaN);
-                    if (Number.isNaN(moyenne)) return false;
-                    const threshold = parseFloat(valeur);
-                    if (Number.isNaN(threshold)) return false;
-                    return condition === 'plus' ? moyenne > threshold : moyenne < threshold;
-                }
-                if (valeurType === 'ues validées') {
-                    const ues = parseInt(etudiant?.annee?.ues_validees ?? etudiant?.ues_validees ?? NaN, 10);
-                    if (Number.isNaN(ues)) return false;
-                    const threshold = parseInt(valeur, 10);
-                    if (Number.isNaN(threshold)) return false;
-                    return condition === 'plus' ? ues > threshold : ues < threshold;
-                }
-            }
-            return false;
-        });
-
-        // Transformations uniquement (jamais null)
         if (matching.some(r => r.resultat === 'reussite')) return 'ADM';
-        if (matching.some(r => r.resultat === 'echec')) return 'AJ';
+        if (matching.some(r => r.resultat === 'echec'))    return 'AJ';
         return codeDecision;
     }
 
     /**
-     * Filtre la Map d'étudiants selon les règles conserver/supprimer.
-     * Un étudiant est CONSERVÉ si au moins une de ses années a un code
-     * correspondant à une règle "conserver".
-     * Un étudiant est SUPPRIMÉ si au moins une de ses années correspond
-     * à une règle "supprimer".
+     * Filtre la Map d'étudiants selon les règles ignorer / inclusion implicite.
+     * Toute règle non-ignorer = les étudiants correspondants sont conservés.
+     * Une règle formation seule filtre par formation (cache les autres).
      */
     function filtrerEtudiantsParRegles(etudiants) {
         const config = chargerReglesAdmin();
@@ -124,18 +160,32 @@ const SankeyCohort = (function() {
             return etudiants;
         }
 
-        // 'ignorer' (ou 'supprimer' pour compat) = exclure explicitement
-        const reglesIgnorer = config.regles.filter(r => r.resultat === 'ignorer' || r.resultat === 'supprimer');
-        // Toute autre règle (reussite, echec, et l'ancien conserver) = inclusion implicite
-        const reglesInclure = config.regles.filter(r => r.resultat !== 'ignorer' && r.resultat !== 'supprimer');
+        const reglesActives  = config.regles.filter(r => r.actif !== false);
+        if (reglesActives.length === 0) return etudiants;
 
-        if (reglesIgnorer.length === 0 && reglesInclure.length === 0) {
-            return etudiants;
-        }
+        const reglesIgnorer  = reglesActives.filter(r => r.resultat === 'ignorer' || r.resultat === 'supprimer');
+        const reglesInclure  = reglesActives.filter(r => r.resultat !== 'ignorer' && r.resultat !== 'supprimer');
 
-        // On compare sur codeOriginal (avant transformation) pour rester cohérent
-        const codesIgnorer = new Set(reglesIgnorer.map(r => String(r.valeur || '').toUpperCase()));
-        const codesInclure = new Set(reglesInclure.map(r => String(r.valeur || '').toUpperCase()));
+        if (reglesIgnorer.length === 0 && reglesInclure.length === 0) return etudiants;
+
+        // Codes à ignorer/inclure (depuis le champ .code ou l'ancien .valeur)
+        const codesIgnorer = new Set(
+            reglesIgnorer.map(r => String(r.code || r.valeur || '').toUpperCase()).filter(Boolean)
+        );
+        // Les règles d'inclusion : on extrait leur code cible pour le matching par codeOriginal
+        const codesInclure = new Set(
+            reglesInclure.map(r => String(r.code || r.valeur || '').toUpperCase()).filter(Boolean)
+        );
+        // Règles formation-seule (pas de code) : filtrer par formation courante
+        const formationCourante = String(window.SANKEY_FORMATION || '').toUpperCase();
+        const avecFormationSeule = reglesInclure.some(
+            r => r.formation && !r.code && !r.seuilSens && !r.valeur
+        );
+        const formationsInclure = new Set(
+            reglesInclure
+                .filter(r => r.formation && !r.code && !r.seuilSens && !r.valeur)
+                .map(r => String(r.formation).toUpperCase())
+        );
 
         const filtered = new Map();
         etudiants.forEach((etudiant, etudId) => {
@@ -144,14 +194,18 @@ const SankeyCohort = (function() {
             // Exclusion explicite
             if (codesIgnorer.size > 0 && codes.some(c => codesIgnorer.has(c))) return;
 
-            // Inclusion implicite : si des règles d'inclusion existent, seuls les étudiants
-            // ayant au moins un code correspondant sont gardés
+            // Filtrage par formation seule : si la règle ne vise que la formation courante,
+            // on garde uniquement les étudiants visualisés dans cette formation.
+            // (En pratique le Sankey ne charge qu'une formation, donc ce filtre est un guard.)
+            if (formationsInclure.size > 0 && !formationsInclure.has(formationCourante)) return;
+
+            // Inclusion implicite par code
             if (codesInclure.size > 0 && !codes.some(c => codesInclure.has(c))) return;
 
             filtered.set(etudId, etudiant);
         });
 
-        console.log(`[Règles] ${filtered.size}/${etudiants.size} étudiants conservés (inclure:${[...codesInclure]}, ignorer:${[...codesIgnorer]})`);
+        console.log(`[Règles] ${filtered.size}/${etudiants.size} étudiants conservés`);
         return filtered;
     }
 

@@ -251,7 +251,7 @@
         /**
          * Charge les données depuis l'API
          */
-        async function loadSankeyData(formation, anneeDepart, source, modalite = 'FI') {
+        async function loadSankeyData(formation, anneeDepart, source, modalite = 'FI', ignoreRules = false) {
             // Réinitialiser le diagramme et les filtres
             const plotDiv = document.getElementById('sankey-plot');
             if (plotDiv) {
@@ -300,6 +300,7 @@
                 });
 
                 window.SANKEY_DATA = sankeyData;
+                window.SANKEY_FORMATION = String(formation || '').toUpperCase();
                 window.SANKEY_SOURCE = source;
 
                 console.log('Données chargées depuis:', source === 'json' ? 'Fichiers JSON' : 'Base de données');
@@ -344,8 +345,10 @@
                     if (!rules || typeof rules !== 'object') {
                         rules = { actif: false, regles: [] };
                     }
-                    window.SANKEY_REGLES = rules;
-                    console.log('[Règles] window.SANKEY_REGLES =', JSON.stringify(window.SANKEY_REGLES));
+                    window.SANKEY_REGLES = rules;                    if (ignoreRules) {
+                        window.SANKEY_REGLES = { actif: false, regles: rules?.regles || [] };
+                        console.log('[R\u00e8gles] Ignor\u00e9es (rechargement manuel)');
+                    }                    console.log('[Règles] window.SANKEY_REGLES =', JSON.stringify(window.SANKEY_REGLES));
                 } catch (e) {
                     console.warn('Impossible de charger les règles:', e);
                     window.SANKEY_REGLES = { actif: false, regles: [] };
@@ -450,8 +453,8 @@
             url.searchParams.set('modalite', modalite);
             history.pushState({}, '', url);
             
-            // Charger les nouvelles données via l'API
-            await loadSankeyData(formation, annee, source, modalite);
+            // Charger sans appliquer les règles actives
+            await loadSankeyData(formation, annee, source, modalite, true);
         });
 
         // Ajout : recharger automatiquement quand on change un sélecteur

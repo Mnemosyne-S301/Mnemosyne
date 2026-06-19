@@ -2,10 +2,9 @@
     "actif": true,
     "regles": [
         {
-            "condition": "formation",
-            "valeur": "RED",
-            "valeurType": null,
-            "resultat": "reussite"
+            "resultat": "reussite",
+            "actif": true,
+            "formation": "INFO"
         }
     ]
 }
