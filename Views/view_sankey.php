@@ -559,7 +559,7 @@
                 url.searchParams.set('source', source);
                 url.searchParams.set('modalite', modalite);
                 history.pushState({}, '', url);
-                await loadSankeyData(formation, annee, source, modalite);
+                await loadSankeyData(formation, annee, source, modalite, true); // sans règles
             });
         });
 
@@ -569,7 +569,7 @@
             const annee = document.getElementById('annee-select').value;
             const source = document.getElementById('source-select').value;
             const modalite = document.getElementById('modalite-select').value;
-            loadSankeyData(formation, annee, source, modalite);
+            loadSankeyData(formation, annee, source, modalite, true); // sans règles par défaut
         });
     </script>
    

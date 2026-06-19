@@ -24,15 +24,15 @@ let COHORTES    = []; // années de cohorte disponibles
 
 // ─── Éléments UI ─────────────────────────────────────────────────────────────
 const btn_ajt       = document.getElementById("Ajt");
-const btn_supp      = document.getElementById("Supp");
+
 const btn_save      = document.getElementById("saveRules");
 const rulesStatus   = document.getElementById("rulesStatus");
 const formContainer = document.body.querySelector("form");
 
 // ─── Classes CSS partagées ───────────────────────────────────────────────────
-const CLS_SELECT  = "bg-[#1E3A52] text-white text-sm py-2 px-3 rounded-md border border-white/20 focus:outline-none focus:ring-2 focus:ring-[#60A5FA]/60 cursor-pointer";
-const CLS_BTN_ADD = "text-xs bg-[#0E2233] hover:bg-[#1A3A5C] text-[#60A5FA] border border-[#60A5FA]/40 rounded px-3 py-1 transition-colors";
-const CLS_BTN_RM  = "text-xs text-red-400 hover:text-red-300 border border-red-400/40 hover:border-red-300/40 rounded px-2 py-1 transition-colors ml-1";
+const CLS_SELECT  = "bg-[#071624] text-white text-sm py-1.5 px-3 rounded-lg border border-white/15 focus:outline-none focus:ring-2 focus:ring-[#60A5FA]/40 focus:border-[#60A5FA]/50 cursor-pointer transition-colors";
+const CLS_BTN_ADD = "flex items-center gap-1.5 text-xs bg-[#60A5FA]/10 hover:bg-[#60A5FA]/20 text-[#60A5FA] border border-[#60A5FA]/20 hover:border-[#60A5FA]/40 rounded-lg px-3 py-1.5 transition-colors font-medium";
+const CLS_BTN_RM  = "flex items-center justify-center w-6 h-6 text-white/30 hover:text-red-400 hover:bg-red-900/30 rounded-md transition-colors ml-1 text-xs border border-white/5 hover:border-red-600/30";
 
 // ─── Utilitaires ─────────────────────────────────────────────────────────────
 
@@ -52,7 +52,8 @@ function mkSelect(extraClass, options /* [{value, label}] */, selected = "") {
 function mkBtnRemove(onClick) {
     const btn = document.createElement("button");
     btn.type = "button";
-    btn.textContent = "×";
+    btn.innerHTML = "<i class='fas fa-xmark'></i>";
+    btn.title = "Retirer ce bloc";
     btn.className = CLS_BTN_RM;
     btn.addEventListener("click", onClick);
     return btn;
@@ -60,14 +61,14 @@ function mkBtnRemove(onClick) {
 
 function mkBloc(extraClass, ...children) {
     const div = document.createElement("div");
-    div.className = "flex items-center gap-2 bg-[#0E2233] border border-white/10 rounded-lg px-3 py-2 text-sm " + extraClass;
+    div.className = "inline-flex items-center gap-2 bg-[#0A1929] border border-white/10 rounded-lg px-3 py-1.5 text-sm " + extraClass;
     children.forEach(c => div.append(c));
     return div;
 }
 
 function mkLabel(text) {
     const span = document.createElement("span");
-    span.className = "text-[#FBEDD3]/60 whitespace-nowrap select-none";
+    span.className = "text-white/40 text-xs whitespace-nowrap select-none font-medium tracking-wide";
     span.textContent = text;
     return span;
 }
@@ -143,14 +144,34 @@ function creerBlocSeuil(seuilSens, seuilValeur, seuilType, card) {
 
 function creerLigneRegle(regle = {}) {
     const card = document.createElement("div");
-    card.className = "rule-card d flex flex-col gap-3 bg-[#122738] p-4 rounded-xl w-full max-w-5xl my-4 text-white border border-white/10 shadow";
+    card.className = "rule-card relative flex flex-col bg-[#0A1E2F] rounded-2xl w-full text-white border border-white/[0.08] shadow-lg overflow-hidden transition-all duration-300";
 
-    // Ligne principale
+    // Barre colorée à gauche (accent)
+    const accent = document.createElement("div");
+    accent.className = "rule-accent absolute left-0 top-0 bottom-0 w-[3px] rounded-l-2xl bg-[#EDB85C]";
+    card.append(accent);
+
+    // En-tête de la carte
+    const cardHeader = document.createElement("div");
+    cardHeader.className = "flex items-center gap-3 px-5 py-3 border-b border-white/[0.06] bg-white/[0.02]";
+
+    const headerLabel = document.createElement("span");
+    headerLabel.className = "text-xs font-semibold text-white/40 uppercase tracking-widest select-none";
+    headerLabel.textContent = "Règle";
+
+    const headerSpacer = document.createElement("div");
+    headerSpacer.className = "flex-1";
+
+    // Corps de la carte
+    const cardBody = document.createElement("div");
+    cardBody.className = "flex flex-col gap-4 px-5 pt-4 pb-5";
+
+    // Ligne principale (phrase)
     const mainRow = document.createElement("div");
-    mainRow.className = "flex items-center gap-3 flex-wrap";
+    mainRow.className = "flex items-center gap-2 flex-wrap";
 
     const blocsArea = document.createElement("div");
-    blocsArea.className = "blocs-area flex flex-wrap gap-2 flex-1 min-w-0";
+    blocsArea.className = "blocs-area flex flex-wrap gap-2";
 
     // Cohorte — toujours visible
     const selCohorte = mkSelect("regle-cohorte w-24",
@@ -178,12 +199,16 @@ function creerLigneRegle(regle = {}) {
     btnToggle.type = "button";
     btnToggle.dataset.actif = estActif ? "1" : "0";
     const updateToggleStyle = (actif) => {
-        btnToggle.textContent = actif ? "● Actif" : "○ Ignorée";
+        btnToggle.innerHTML = actif
+            ? "<span class='w-2 h-2 rounded-full bg-green-400 inline-block mr-1.5'></span>Actif"
+            : "<span class='w-2 h-2 rounded-full bg-white/30 inline-block mr-1.5'></span>Ignorée";
         btnToggle.className = actif
-            ? "rule-toggle text-xs bg-green-900/50 hover:bg-green-800/50 text-green-300 border border-green-600/30 rounded-lg px-3 py-1 transition-colors"
-            : "rule-toggle text-xs bg-gray-700/50 hover:bg-gray-600/50 text-gray-400 border border-gray-600/30 rounded-lg px-3 py-1 transition-colors";
-        card.style.opacity = actif ? "1" : "0.55";
-        card.style.filter  = actif ? "" : "grayscale(0.4)";
+            ? "rule-toggle flex items-center text-xs bg-green-900/30 hover:bg-green-800/40 text-green-400 border border-green-700/40 rounded-lg px-3 py-1.5 transition-colors font-medium"
+            : "rule-toggle flex items-center text-xs bg-white/5 hover:bg-white/10 text-white/40 border border-white/10 rounded-lg px-3 py-1.5 transition-colors font-medium";
+        accent.className = actif
+            ? "rule-accent absolute left-0 top-0 bottom-0 w-[3px] rounded-l-2xl bg-[#EDB85C]"
+            : "rule-accent absolute left-0 top-0 bottom-0 w-[3px] rounded-l-2xl bg-white/15";
+        card.style.opacity = actif ? "1" : "0.6";
     };
     updateToggleStyle(estActif);
     btnToggle.addEventListener("click", () => {
@@ -194,46 +219,50 @@ function creerLigneRegle(regle = {}) {
 
     const btnDelete = document.createElement("button");
     btnDelete.type = "button";
-    btnDelete.textContent = "Supprimer la règle";
-    btnDelete.className = "ml-auto text-xs bg-red-900/40 hover:bg-red-800/50 text-red-300 border border-red-600/30 rounded-lg px-3 py-1 transition-colors";
+    btnDelete.innerHTML = "<i class='fas fa-trash-can'></i>";
+    btnDelete.title = "Supprimer cette règle";
+    btnDelete.className = "flex items-center justify-center w-7 h-7 text-white/30 hover:text-red-400 hover:bg-red-900/30 rounded-lg transition-colors border border-white/5 hover:border-red-600/30 text-xs";
     btnDelete.addEventListener("click", () => {
         card.remove();
         sauvegarderSilencieusement();
     });
 
-    mainRow.append(mkLabel("Les étudiants"), blocsArea, mkLabel("de la cohorte"), selCohorte, mkLabel("sont en"), selResultat, btnToggle, btnDelete);
+    cardHeader.append(headerLabel, headerSpacer, btnToggle, btnDelete);
+
+    mainRow.append(mkLabel("Les étudiants"), blocsArea, mkLabel("de la cohorte"), selCohorte, mkLabel("sont en"), selResultat);
 
     // Boutons d'ajout de blocs
     const addRow = document.createElement("div");
-    addRow.className = "flex gap-2 flex-wrap";
+    addRow.className = "flex gap-2 flex-wrap pt-1 border-t border-white/[0.05]";
 
-    function mkBtnAdd(text, cls, onClick) {
+    function mkBtnAdd(icon, text, cls, onClick) {
         const btn = document.createElement("button");
         btn.type = "button";
-        btn.textContent = text;
+        btn.innerHTML = "<i class='fas " + icon + " text-[10px]'></i><span>" + text + "</span>";
         btn.className = CLS_BTN_ADD + " " + cls;
         btn.addEventListener("click", onClick);
         return btn;
     }
 
-    const btnAddFormation = mkBtnAdd("+ Formation", "btn-add-formation", () => {
+    const btnAddFormation = mkBtnAdd("fa-building-columns", "Formation", "btn-add-formation", () => {
         blocsArea.append(creerBlocFormation("", card));
         btnAddFormation.hidden = true;
     });
 
-    const btnAddCode = mkBtnAdd("+ Code décision jury", "btn-add-code", () => {
+    const btnAddCode = mkBtnAdd("fa-tag", "Code décision", "btn-add-code", () => {
         blocsArea.append(creerBlocCode("", card));
         btnAddCode.hidden = true;
     });
 
-    const btnAddSeuil = mkBtnAdd("+ Seuil numérique", "btn-add-seuil", () => {
+    const btnAddSeuil = mkBtnAdd("fa-sliders", "Seuil numérique", "btn-add-seuil", () => {
         blocsArea.append(creerBlocSeuil("plus", "", "moyenne", card));
         btnAddSeuil.hidden = true;
     });
 
     addRow.append(btnAddFormation, btnAddCode, btnAddSeuil);
 
-    card.append(mainRow, addRow);
+    cardBody.append(mainRow, addRow);
+    card.append(cardHeader, cardBody);
     formContainer.append(card);
 
     // Restaurer les blocs depuis une règle sauvegardée
@@ -333,30 +362,34 @@ async function restaurerReglesSauvegardees() {
         }
     }
 
+    const emptyState = document.getElementById('rulesEmptyState');
+
     if (!reglesConfig || !Array.isArray(reglesConfig.regles) || reglesConfig.regles.length === 0) {
         afficherStatutRegles("Aucune règle enregistrée pour le moment.");
+        if (emptyState) emptyState.classList.remove('hidden');
         return;
     }
 
+    if (emptyState) emptyState.classList.add('hidden');
     reglesConfig.regles.forEach(creerLigneRegle);
     afficherStatutRegles(`${reglesConfig.regles.length} règle(s) chargée(s).`);
 }
 
 // ─── Événements ──────────────────────────────────────────────────────────────
 
-btn_ajt?.addEventListener("click", () => creerLigneRegle());
-
-btn_supp?.addEventListener("click", () => {
-    const cards = document.querySelectorAll(".rule-card");
-    if (cards.length > 0) {
-        cards[cards.length - 1].remove();
-        sauvegarderSilencieusement();
-    }
+btn_ajt?.addEventListener("click", () => {
+    creerLigneRegle();
+    const empty = document.getElementById('rulesEmptyState');
+    if (empty) empty.classList.add('hidden');
 });
 
 btn_save?.addEventListener("click", () => {
     const reglesConfig = recupererReglesDepuisFormulaire();
     localStorage.setItem("SANKEY_REGLES", JSON.stringify(reglesConfig));
+
+    const origHTML = btn_save.innerHTML;
+    btn_save.disabled = true;
+    btn_save.innerHTML = "<i class='fas fa-spinner fa-spin text-xs'></i><span>Enregistrement…</span>";
 
     fetch('index.php?controller=api&action=rules', {
         method: 'POST',
@@ -366,13 +399,18 @@ btn_save?.addEventListener("click", () => {
         .then(r => r.json())
         .then(j => {
             if (j.ok) {
-                afficherStatutRegles(`${reglesConfig.regles.length} règle(s) enregistrée(s).`);
-                alert('Règles enregistrées');
+                afficherStatutRegles(`${reglesConfig.regles.length} r\u00e8gle(s) enregistr\u00e9e(s).`);
+                btn_save.innerHTML = "<i class='fas fa-check text-xs'></i><span>Enregistr\u00e9</span>";
+                setTimeout(() => { btn_save.disabled = false; btn_save.innerHTML = origHTML; }, 2000);
             } else {
-                afficherStatutRegles('Enregistré localement, échec serveur.');
+                afficherStatutRegles('Enregistrement échoué c\u00f4t\u00e9 serveur.');
+                btn_save.disabled = false; btn_save.innerHTML = origHTML;
             }
         })
-        .catch(() => afficherStatutRegles('Enregistré localement, impossible de joindre le serveur.'));
+        .catch(() => {
+            afficherStatutRegles('Enregistr\u00e9 localement uniquement.');
+            btn_save.disabled = false; btn_save.innerHTML = origHTML;
+        });
 });
 
 // ─── Chargement formations + init ────────────────────────────────────────────

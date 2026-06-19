@@ -59,8 +59,9 @@ const SankeyCohort = (function() {
     }
 
 
-    function regleMatchCode(regle, codeNorm, etudiant) {
-        const formationCourante = String(window.SANKEY_FORMATION || '').toUpperCase();
+    function regleMatchCode(regle, codeNorm, etudiant, etudFormation) {
+        // En mode custom SANKEY_FORMATION=null, on utilise la formation par étudiant
+        const formationCourante = String(etudFormation || window.SANKEY_FORMATION || '').toUpperCase();
 
         if (regle.formation) {
             if (String(regle.formation).toUpperCase() !== formationCourante) return false;
@@ -124,10 +125,12 @@ const SankeyCohort = (function() {
             return codeDecision;
         }
         const codeNorm = String(codeDecision || '').toUpperCase();
+        // Priorité à la formation de l'étudiant (mode custom multi-formations)
+        const etudFormation = String(etudiant?._formation || window.SANKEY_FORMATION || '').toUpperCase();
 
         const matching = config.regles
             .filter(r => r.actif !== false)
-            .filter(r => regleMatchCode(r, codeNorm, etudiant));
+            .filter(r => regleMatchCode(r, codeNorm, etudiant, etudFormation));
 
         if (matching.some(r => r.resultat === 'reussite')) return 'ADM';
         if (matching.some(r => r.resultat === 'echec'))    return 'AJ';
@@ -143,48 +146,34 @@ const SankeyCohort = (function() {
             return etudiants;
         }
 
-        const formationCourante = String(window.SANKEY_FORMATION || '').toUpperCase();
-
-
-        const reglesActives = config.regles.filter(r => {
-            if (r.actif === false) return false;
-
-            if (r.formation && String(r.formation).toUpperCase() !== formationCourante) return false;
-            return true;
-        });
-
-        if (reglesActives.length === 0) return etudiants;
-
-        const reglesIgnorer = reglesActives.filter(r => r.resultat === 'ignorer' || r.resultat === 'supprimer');
-        const reglesInclure = reglesActives.filter(r => r.resultat !== 'ignorer' && r.resultat !== 'supprimer');
-
-        if (reglesIgnorer.length === 0 && reglesInclure.length === 0) return etudiants;
-
-
-        const codesIgnorer = new Set(
-            reglesIgnorer.map(r => String(r.code || r.valeur || '').toUpperCase()).filter(Boolean)
+        // Seules les règles "ignorer" filtrent les étudiants.
+        // Les règles "réussite"/"echec" ne font que transformer les codes (dans appliquerReglesSurCode).
+        const reglesIgnorer = config.regles.filter(
+            r => r.actif !== false && (r.resultat === 'ignorer' || r.resultat === 'supprimer')
         );
 
-  
-        const inclusionSansCode = reglesInclure.some(r => !r.code && !r.seuilSens && !r.valeur);
-        const codesInclure = inclusionSansCode
-            ? null
-            : new Set(reglesInclure.map(r => String(r.code || r.valeur || '').toUpperCase()).filter(Boolean));
+        if (reglesIgnorer.length === 0) return etudiants;
 
         const filtered = new Map();
         etudiants.forEach((etudiant, etudId) => {
+            // Formation de l'étudiant : priorité au champ stocké, sinon formation globale
+            const etudFormation = String(etudiant.formation || window.SANKEY_FORMATION || '').toUpperCase();
             const codes = etudiant.annees.map(a => String(a.codeOriginal || a.code || '').toUpperCase());
 
-            if (codesIgnorer.size > 0 && codes.some(c => codesIgnorer.has(c))) return;
+            const doitIgnorer = reglesIgnorer.some(r => {
+                // La règle ne s'applique pas si elle cible une autre formation
+                if (r.formation && String(r.formation).toUpperCase() !== etudFormation) return false;
+                const codeRegle = String(r.code || '').toUpperCase();
+                // Règle avec code : exclure si l'étudiant a ce code
+                if (codeRegle) return codes.some(c => c === codeRegle);
+                // Règle sans code : exclure tous les étudiants de cette formation
+                return true;
+            });
 
-            if (codesInclure !== null && codesInclure.size > 0 && !codes.some(c => codesInclure.has(c))) return;
-
-            filtered.set(etudId, etudiant);
+            if (!doitIgnorer) filtered.set(etudId, etudiant);
         });
 
-        console.log(`[Règles] ${filtered.size}/${etudiants.size} étudiants conservés` +
-            (codesInclure ? ` (codes requis: ${[...codesInclure]})` : ' (tous codes acceptés)') +
-            (codesIgnorer.size ? `, ignorés: ${[...codesIgnorer]}` : ''));
+        console.log(`[Règles] Filtre ignorer : ${filtered.size}/${etudiants.size} étudiants conservés`);
         return filtered;
     }
 
@@ -231,14 +220,19 @@ const SankeyCohort = (function() {
                 return;
             }
 
-            if (!etudiants.has(etud.etudid)) {
-                etudiants.set(etud.etudid, { 
+            // Clé composite en mode custom (plusieurs formations dans le même dataset)
+            const formation = etud._formation || null;
+            const etudKey   = formation ? `${formation}-${etud.etudid}` : etud.etudid;
+
+            if (!etudiants.has(etudKey)) {
+                etudiants.set(etudKey, { 
                     annees: [],
-                    premierNiveau: null 
+                    premierNiveau: null,
+                    formation  // utilisé par filtrerEtudiantsParRegles
                 });
             }
             
-            const etudData = etudiants.get(etud.etudid);
+            const etudData = etudiants.get(etudKey);
             const codeOriginal = String(etud.annee.code || '').toUpperCase();
             etudData.annees.push({
                 annee: year,
