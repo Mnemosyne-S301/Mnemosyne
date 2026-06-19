@@ -88,6 +88,9 @@ MIN_TARGET_PER_CELL = env_int("MIN_TARGET_PER_CELL", 5, 1)
 REBUILD_GENERATED = env_bool("REBUILD_GENERATED", False)
 USE_REFERENCE_CAPS = env_bool("USE_REFERENCE_CAPS", False)
 BRIDGE_EMPTY_YEARS = env_bool("BRIDGE_EMPTY_YEARS", True)
+COMPLETE_COHORTS = env_bool("COMPLETE_COHORTS", True)
+FIRST_COHORT_YEAR = env_int("FIRST_COHORT_YEAR", 2021, 2000)
+LAST_COHORT_YEAR = env_int("LAST_COHORT_YEAR", 2024, FIRST_COHORT_YEAR)
 LOCK_TIMEOUT = env_int("LOCK_TIMEOUT", 8, 0)
 REPORT_LIMIT = env_int("REPORT_LIMIT", 250, 1)
 SEED = env_int("SEED", 301)
@@ -109,9 +112,8 @@ REFERENCE_BUT1_CAPS = {
     "GEA": 140,
     "CJ": 150,
 }
-
-PASS_CODES = {"ADM", "ADJ", "PASD", "PAS1NCI"}
-REPEAT_CODES = {"RED"}
+PASS_CODES = {"ADM", "ADJ", "ADSUP", "CMP", "PASD", "PAS1NCI"}
+REPEAT_CODES = {"RED", "AJ"}
 EXIT_CODES = {"NAR", "DEM", "ABL", "ABAN", "DEF"}
 
 CODE_MEANINGS = {
@@ -626,6 +628,7 @@ def load_state(cursor: Any, structures_by_id: Mapping[int, Structure]) -> DataSt
 
     state = DataState()
     for year, anneeformation_id, student_id, code, code_nip, etat in cursor.fetchall():
+        state.year_students[int(year)].add(int(student_id))
         structure = structures_by_id.get(int(anneeformation_id))
         if structure is None:
             continue
@@ -1069,6 +1072,53 @@ def build_plan(
     return plans, skipped
 
 
+def add_missing_initial_cohorts(
+    plans: list[CellPlan],
+    structures_by_key: Mapping[ProgramKey, Sequence[Structure]],
+    state: DataState,
+) -> None:
+    planned = {
+        (plan.year, plan.key.specialty)
+        for plan in plans
+        if plan.key.order == 1
+    }
+
+    for year in range(FIRST_COHORT_YEAR, LAST_COHORT_YEAR + 1):
+        for specialty, reference_size in REFERENCE_BUT1_CAPS.items():
+            existing_students: set[int] = set()
+            for (record_year, root, order), students in state.root_order_students.items():
+                if record_year == year and root[0] == specialty and order == 1:
+                    existing_students.update(students)
+            if existing_students or (year, specialty) in planned:
+                continue
+
+            structures = [
+                structure
+                for key, candidates in structures_by_key.items()
+                if key.specialty == specialty and key.order == 1
+                for structure in candidates
+            ]
+            if not structures:
+                continue
+
+            structure = choose_canonical_structure(year, structures)
+            plans.append(
+                CellPlan(
+                    year=year,
+                    key=structure.key,
+                    structure=structure,
+                    current=0,
+                    estimate=TargetEstimate(
+                        target=reference_size,
+                        confidence=1.0,
+                        method="cohorte_demo_reference",
+                        evidence=["aucun_BUT1_source", f"reference={reference_size}"],
+                    ),
+                    requested=reference_size,
+                )
+            )
+
+    plans.sort(key=lambda plan: (plan.year, plan.key.order, plan.key.label))
 # ============================================================
 # CANDIDATS RÉELS ET DÉCISIONS
 # ============================================================
@@ -1352,7 +1402,10 @@ def insert_annual_record(
         raise RuntimeError(
             f"L'étudiant {student_id} possède déjà une ligne en {plan.year}."
         )
-
+    cursor.execute(
+        "INSERT IGNORE INTO AnneeScolaire (annee_scolaire) VALUES (%s)",
+        (plan.year,),
+    )
     code_id = get_code_id(cursor, code_ids, code)
     cursor.execute(
         """
@@ -1468,6 +1521,116 @@ def execute_plan(
 
 
 # ============================================================
+# CONTINUITE DES COHORTES DE DEMONSTRATION
+# ============================================================
+
+
+def continuation_order(record: AnnualRecord) -> int | None:
+    if record.code in PASS_CODES and record.key.order < 3:
+        return record.key.order + 1
+    if record.code in REPEAT_CODES:
+        return record.key.order
+    return None
+
+
+def continuation_structure(
+    year: int,
+    record: AnnualRecord,
+    target_order: int,
+    structures_by_key: Mapping[ProgramKey, Sequence[Structure]],
+) -> Structure | None:
+    exact_key = record.key.with_order(target_order)
+    exact = structures_by_key.get(exact_key, [])
+    if exact:
+        return choose_canonical_structure(year, exact)
+
+    same_program = [
+        structure
+        for key, structures in structures_by_key.items()
+        if key.root == record.key.root and key.order == target_order
+        for structure in structures
+    ]
+    if not same_program:
+        return None
+    return choose_canonical_structure(year, same_program)
+
+
+def complete_cohort_transitions(
+    cursor: Any,
+    state: DataState,
+    structures_by_key: Mapping[ProgramKey, Sequence[Structure]],
+    code_ids: dict[str, int],
+    insertion_budget: int,
+) -> tuple[int, dict[int, int]]:
+    if not COMPLETE_COHORTS:
+        return 0, {}
+
+    inserted = 0
+    inserted_by_year: Counter[int] = Counter()
+    last_transition_year = LAST_COHORT_YEAR + 1
+
+    for year in range(FIRST_COHORT_YEAR, last_transition_year + 1):
+        current_records = sorted(
+            (record for record in state.records if record.year == year),
+            key=lambda record: record.student_id,
+        )
+
+        for record in current_records:
+            entry_year = record.year - (record.key.order - 1)
+            if not FIRST_COHORT_YEAR <= entry_year <= LAST_COHORT_YEAR:
+                continue
+            if record.student_id in state.year_students.get(year + 1, set()):
+                continue
+
+            target_order = continuation_order(record)
+            if target_order is None:
+                continue
+
+            structure = continuation_structure(
+                year + 1,
+                record,
+                target_order,
+                structures_by_key,
+            )
+            if structure is None:
+                continue
+            if inserted >= insertion_budget:
+                raise RuntimeError(
+                    "Garde-fou MAX_INSERTIONS atteint pendant la complétion des cohortes."
+                )
+
+            plan = CellPlan(
+                year=year + 1,
+                key=structure.key,
+                structure=structure,
+                current=state.cell_count(year + 1, structure.key),
+                estimate=TargetEstimate(
+                    target=1,
+                    confidence=1.0,
+                    method="continuite_cohorte",
+                    evidence=[f"etudiant={record.student_id}", f"annee_source={year}"],
+                ),
+                requested=1,
+            )
+            rng = deterministic_rng("continuite", year + 1, record.student_id)
+            category = choose_category(plan, state, rng)
+            code = choose_code(structure.key, category, state, rng)
+            insert_annual_record(
+                cursor,
+                plan,
+                record.student_id,
+                code,
+                code_ids,
+                state,
+                synthetic=True,
+            )
+            inserted += 1
+            inserted_by_year[year + 1] += 1
+
+    return inserted, dict(sorted(inserted_by_year.items()))
+
+
+# ============================================================
 # VALIDATION APRÈS INSERTION
 # ============================================================
 
@@ -1493,8 +1656,10 @@ def validate_results(
     )
     actual_cells: dict[tuple[int, ProgramKey], set[int]] = defaultdict(set)
     student_orders: dict[tuple[int, int], set[int]] = defaultdict(set)
+    student_row_counts: Counter[tuple[int, int]] = Counter()
 
     for year, anneeformation_id, student_id in cursor.fetchall():
+        student_row_counts[(int(year), int(student_id))] += 1
         structure = structures_by_id.get(int(anneeformation_id))
         if structure is None:
             continue
@@ -1504,7 +1669,7 @@ def validate_results(
     mismatches = []
     for (year, key), expected in inserted_expectations.items():
         actual = len(actual_cells.get((year, key), set()))
-        if actual != expected:
+        if actual < expected:
             mismatches.append({
                 "annee": year,
                 "programme": key.label,
@@ -1512,6 +1677,15 @@ def validate_results(
                 "obtenu": actual,
             })
 
+    annual_conflicts = [
+        {
+            "annee": year,
+            "etudiant_id": student_id,
+            "lignes": count,
+        }
+        for (year, student_id), count in student_row_counts.items()
+        if count > 1
+    ]
     generated_conflicts = []
     for (year, student_id), orders in student_orders.items():
         if len(orders) <= 1:
@@ -1532,8 +1706,9 @@ def validate_results(
             })
 
     return {
-        "valide": not mismatches and not generated_conflicts,
+        "valide": not mismatches and not annual_conflicts and not generated_conflicts,
         "ecarts_effectifs": mismatches[:REPORT_LIMIT],
+        "conflits_annuels": annual_conflicts[:REPORT_LIMIT],
         "conflits_synthetiques": generated_conflicts[:REPORT_LIMIT],
     }
 
@@ -1556,6 +1731,9 @@ def main() -> None:
             "max_insertions": MAX_INSERTIONS,
             "rebuild_generated": REBUILD_GENERATED,
             "use_reference_caps": USE_REFERENCE_CAPS,
+            "complete_cohorts": COMPLETE_COHORTS,
+            "first_cohort_year": FIRST_COHORT_YEAR,
+            "last_cohort_year": LAST_COHORT_YEAR,
             "seed": SEED,
         },
         "annees": [],
@@ -1581,13 +1759,16 @@ def main() -> None:
         acquire_lock(cursor)
         lock_acquired = True
 
-        years = determine_years(cursor)
-        result["annees"] = years
-        result["nettoyage"] = rebuild_generated_rows(cursor, years)
+        detected_years = determine_years(cursor)
+        years = [year for year in detected_years if year <= LAST_COHORT_YEAR]
+        completion_years = list(range(FIRST_COHORT_YEAR, LAST_COHORT_YEAR + 3))
+        result["annees"] = completion_years
+        result["nettoyage"] = rebuild_generated_rows(cursor, completion_years)
 
         structures_by_id, structures_by_key = load_structures(cursor)
         state = load_state(cursor, structures_by_id)
         plans, skipped = build_plan(years, structures_by_key, state)
+        add_missing_initial_cohorts(plans, structures_by_key, state)
 
         planned_insertions = sum(plan.requested for plan in plans)
         if planned_insertions > MAX_INSERTIONS:
@@ -1608,7 +1789,15 @@ def main() -> None:
                 "comportement": "le plus petit identifiant est utilisé",
             })
 
-        total_inserted = execute_plan(cursor, plans, state, code_ids)
+        planned_inserted = execute_plan(cursor, plans, state, code_ids)
+        cohort_inserted, cohort_inserted_by_year = complete_cohort_transitions(
+            cursor,
+            state,
+            structures_by_key,
+            code_ids,
+            MAX_INSERTIONS - planned_inserted,
+        )
+        total_inserted = planned_inserted + cohort_inserted
         validation = validate_results(cursor, plans, structures_by_id)
         result["validation"] = validation
 
@@ -1628,6 +1817,9 @@ def main() -> None:
             "cellules_partielles": partial,
             "cellules_ignorees": len(skipped),
             "insertions": total_inserted,
+            "insertions_cellules_manquantes": planned_inserted,
+            "insertions_continuite_cohortes": cohort_inserted,
+            "insertions_continuite_par_annee": cohort_inserted_by_year,
             "etudiants_reels_reutilises": real_count,
             "etudiants_synthetiques": synthetic_count,
         }

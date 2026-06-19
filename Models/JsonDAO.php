@@ -43,7 +43,74 @@ class JsonDAO
                 $allFiles[] = $file->getFilename();
             }
         }
+        sort($allFiles, SORT_STRING);
         return $allFiles;
+    }
+
+    /**
+     * Charge les metadonnees des semestres, indexees par identifiant ScoDoc.
+     * Un meme semestre peut apparaitre dans plusieurs instantanes annuels.
+     */
+    private function getFormsemestreMetadata(): array
+    {
+        $metadata = [];
+
+        foreach ($this->__getAllJsonFiles() as $filename) {
+            if (!preg_match('/^formsemestres_[0-9]{4}\.json$/', $filename)) {
+                continue;
+            }
+
+            $content = file_get_contents($this->JSON_PATH . '/' . $filename);
+            $formsemestres = json_decode($content, true);
+            if (!is_array($formsemestres)) {
+                continue;
+            }
+
+            foreach ($formsemestres as $formsemestre) {
+                if (!isset($formsemestre['id'])) {
+                    continue;
+                }
+                $metadata[(int) $formsemestre['id']] = $formsemestre;
+            }
+        }
+
+        return $metadata;
+    }
+
+    private function getAcademicYear(array $formsemestre): ?int
+    {
+        if (isset($formsemestre['annee_scolaire'])) {
+            return (int) $formsemestre['annee_scolaire'];
+        }
+
+        $startDate = $formsemestre['date_debut_iso'] ?? null;
+        if ($startDate === null) {
+            return null;
+        }
+
+        $timestamp = strtotime($startDate);
+        if ($timestamp === false) {
+            return null;
+        }
+
+        $year = (int) date('Y', $timestamp);
+        return (int) date('n', $timestamp) >= 8 ? $year : $year - 1;
+    }
+
+    /**
+     * Departage plusieurs decisions du meme etudiant pour une annee universitaire.
+     * La decision du semestre se terminant le plus tard est la plus representative.
+     */
+    private function shouldReplaceDecision(array $current, array $candidate): bool
+    {
+        foreach (['date_fin', 'semestre_num', 'formsemestre_id'] as $criterion) {
+            if ($candidate[$criterion] === $current[$criterion]) {
+                continue;
+            }
+            return $candidate[$criterion] > $current[$criterion];
+        }
+
+        return false;
     }
 
     public function findall_etudiant()
@@ -171,81 +238,66 @@ class JsonDAO
     public function findall_decision()
     {
         $allFiles = $this->__getAllJsonFiles();
-        $allDecisionInstances = [];
-        $allDecisionCombinaison = []; // toutes les combinaisons faites, pour éviter les doublons
+        $formsemestreMetadata = $this->getFormsemestreMetadata();
+        $selectedDecisions = [];
 
         foreach($allFiles as $filename)
         {
-            if(preg_match("/^decisions_jury_[0-9]{4}_fs_[0-9]{3,4}_/", $filename)) // verifie qu'on lit bien que les decisions de jury ici
+            if(preg_match("/^decisions_jury_[0-9]{4}_fs_([0-9]{3,4})_/", $filename, $matches))
             {
+                $current_formsemestre_id = (int) $matches[1];
+                $formsemestre = $formsemestreMetadata[$current_formsemestre_id] ?? null;
+                if ($formsemestre === null || !str_contains($formsemestre['titre'] ?? '', 'BUT')) {
+                    continue;
+                }
+
+                $current_annee_scolaire = $this->getAcademicYear($formsemestre);
+                if ($current_annee_scolaire === null) {
+                    continue;
+                }
+
                 $current_file_path = $this->JSON_PATH . "/" . $filename;
                 $current_file_content = file_get_contents($current_file_path);
                 $current_data = json_decode($current_file_content, true);
+                if (!is_array($current_data)) {
+                    continue;
+                }
 
-                // parcours des différents array de chaques fichiers
                 foreach($current_data as $current_decision)
                 {
-                    // on vérifie pas les doublons ici, non
-
-                    if($current_decision['annee'] == null)
-                    {
-                        continue; // on skip l'iteration actuelle, pas très propre mais temporaire
+                    $code = $current_decision['annee']['code'] ?? null;
+                    $codeNip = $current_decision['code_nip'] ?? null;
+                    if ($code === null || $codeNip === null) {
+                        continue;
                     }
 
-                    // recherche des valeurs de l'année scolaire et de l'id formsemestre dans le nom de fichier
-                    preg_match("/^decisions_jury_([0-9]{4})_fs_([0-9]{3,4})/", $filename, $matches);
-                    $current_annee_scolaire = $matches[1];  // qui a matché le 1er groupe de la regex
-                    $current_formsemstre_id = $matches[2];  // qui a matché le 2eme groupe
+                    $candidate = [
+                        'code' => $code,
+                        'code_nip' => $codeNip,
+                        'annee_scolaire' => $current_annee_scolaire,
+                        'formsemestre_id' => $current_formsemestre_id,
+                        'semestre_num' => (int) ($formsemestre['semestre_id'] ?? 0),
+                        'date_fin' => strtotime($formsemestre['date_fin_iso'] ?? '') ?: 0,
+                    ];
+                    $decisionKey = $current_annee_scolaire . "\0" . $codeNip;
 
-                    //************  A CHANGER **************/
-                    // temporaire pour faire marcher le peuplement de la BD
-                    if($current_annee_scolaire == '2022')
-                    {
-                        continue; // condition temporaire pour faire marcher le peuplement
-                    }
-
-                    $current_formsemestre_list_file_name = "formsemestres_" . $current_annee_scolaire . ".json";
-                    $current_formsemestre_list_file_path = $this->JSON_PATH . "/" . $current_formsemestre_list_file_name;
-
-                    /*On va rechercher le formation_id auquelle le formsemestre est rataché pour éviter d'avoir
-                    * deux formsemestre qui sont rataché à la même formation la même année scolaire. Car certain étudiant 
-                    * y sont en double. 
-                    * FAQ : 
-                    * Q : Pourquoi ne pas checké les code_nip des étudiants plutôt pour enlever juste ceux qui sont en doublons ? 
-                    * R : Trop long à faire. Pas le temps à J-1 du rendu finale. Merci de votre compréhension. 
-                    */
-
-                    $current_annee_scolaire_all_formsemestre_data = json_decode(file_get_contents($current_formsemestre_list_file_path), true);
-                    $current_formation_id = null;
-                    foreach($current_annee_scolaire_all_formsemestre_data as $fs)
-                    {
-                        if($fs['id'] == $current_formsemstre_id)
-                        {
-                            $current_formation_id = $fs['formation_id'];
-                            break;
-                        }
-                    }
-
-                    /**************************************/
-                    $current_combinaision_string = (string)$current_annee_scolaire . '-' . (string)$current_formation_id . '-' . $current_decision['code_nip'] . '-' . $current_decision['annee']['code'];
-                    
-                    if(!in_array($current_combinaision_string, $allDecisionCombinaison))
-                    {
-                        // création du dico nous même
-                        $current_decision_array = array(
-                            'code'              => $current_decision['annee']['code'],
-                            'code_nip'          => $current_decision['code_nip'],
-                            'annee_scolaire'    => $current_annee_scolaire,
-                            'formsemestre_id'   => $current_formsemstre_id
-                        );
-                        $allDecisionCombinaison[] = $current_combinaision_string;
-                        // ajout à la liste des combinaisons parcourus
-
-                        // instanciate the object
-                        $allDecisionInstances[] = new Decision($current_decision_array);
+                    if (!isset($selectedDecisions[$decisionKey])
+                        || $this->shouldReplaceDecision($selectedDecisions[$decisionKey], $candidate)) {
+                        $selectedDecisions[$decisionKey] = $candidate;
                     }
                 }
             }
+        }
+
+        ksort($selectedDecisions, SORT_STRING);
+        $allDecisionInstances = [];
+        foreach ($selectedDecisions as $decision) {
+            $allDecisionInstances[] = new Decision([
+                'code' => $decision['code'],
+                'code_nip' => $decision['code_nip'],
+                'annee_scolaire' => $decision['annee_scolaire'],
+                'formsemestre_id' => $decision['formsemestre_id'],
+            ]);
         }
 
         return $allDecisionInstances;

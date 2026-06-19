@@ -52,18 +52,7 @@ class Service_auth {
      */
     public function login($username, $password) {
         $user = $this->dao->authenticate($username, $password);
-
-        if ($user) {
-            return $user;
-        } else {
-            return false;
-        }
-
-        if (password_verify($password, $user->getMdp())) {
-            return $user;
-        }
-
-        return false;
+        return $user ?: false;
     }
 
     /**

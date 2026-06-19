@@ -31,6 +31,22 @@ class ScolariteDAO
         return self::$instance;
     }
 
+    private function addAnneeScolaireValues(array $anneesScolaires): void
+    {
+        $anneesScolaires = array_values(array_unique(array_filter($anneesScolaires)));
+
+        if (count($anneesScolaires) === 0) {
+            return;
+        }
+
+        $query = "INSERT IGNORE INTO AnneeScolaire(annee_scolaire) VALUES ";
+        $query .= implode(", ", array_fill(0, count($anneesScolaires), "(?)"));
+        $query .= ";";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute($anneesScolaires);
+    }
+
     /** Permet d'ajouter des etudiants à la base de données. Les données doivent être fournis dans
      * un array contenant des array associatifs d'étudiant.
      * 
@@ -422,6 +438,8 @@ class ScolariteDAO
      */
     public function addEffectuerAnnee(array $effectuerAnnees)
     {
+        $this->addAnneeScolaireValues(array_column($effectuerAnnees, 'annee_scolaire'));
+
         // query writting
         $query = "INSERT INTO EffectuerAnnee(annee_scolaire, anneeformation_id, etudiant_id, codeannee_id)";
         for ($i = 0; $i < count($effectuerAnnees); $i++)
@@ -478,6 +496,8 @@ class ScolariteDAO
      */
     public function addEffectuerRCUE(array $effectuerRCUEs)
     {
+        $this->addAnneeScolaireValues(array_column($effectuerRCUEs, 'annee_scolaire'));
+
         // query writting
         $query = "INSERT INTO EffectuerRCUE(annee_scolaire, rcue_id, etudiant_id, codercue_id)";
         for ($i = 0; $i < count($effectuerRCUEs); $i++)
@@ -533,6 +553,8 @@ class ScolariteDAO
      */
     public function addEffectuerUE(array $effectuerUEs)
     {
+        $this->addAnneeScolaireValues(array_column($effectuerUEs, 'annee_scolaire'));
+
         // query writting
         $query = "INSERT INTO EffectuerUE(annee_scolaire, ue_id, etudiant_id, codeue_id)";
         for ($i = 0; $i < count($effectuerUEs); $i++)
@@ -573,7 +595,8 @@ class ScolariteDAO
 
      public function resetDatabase(){
         $this->conn->exec("SET FOREIGN_KEY_CHECKS=0;");
-        $tables =['EffectuerUE',
+        $tables =['ContribuerUE',
+        'EffectuerUE',
         'EffectuerRCUE',
         'EffectuerAnnee',
         'UE',
@@ -585,6 +608,7 @@ class ScolariteDAO
         'CodeUE',
         'CodeRCUE',
         'CodeAnnee',
+        'AnneeScolaire',
         'Etudiant',
         'Departement'
     ];
@@ -645,7 +669,7 @@ class ScolariteDAO
         // 1. Sous-requête pour identifier les étudiants entrés en BUT1 à l'année de cohorte
         // 2. Récupère les données de ces étudiants pour l'année demandée
         $sql = "
-            SELECT
+            SELECT DISTINCT
                 e.etudiant_id AS etudid,
                 e.etat AS etat,
                 af.ordre AS ordre,

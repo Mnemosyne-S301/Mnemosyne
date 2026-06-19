@@ -12,20 +12,13 @@ RUN apt-get update \
         python3-venv \
     && rm -rf /var/lib/apt/lists/*
 
-RUN docker-php-ext-install \
-        pdo \
-        pdo_mysql \
-        mysqli
+RUN docker-php-ext-install pdo pdo_mysql mysqli
 
 RUN a2enmod rewrite
 
 RUN python3 -m venv /opt/mnemosyne-venv \
-    && /opt/mnemosyne-venv/bin/pip install \
-        --no-cache-dir \
-        --upgrade pip \
-    && /opt/mnemosyne-venv/bin/pip install \
-        --no-cache-dir \
-        mysql-connector-python
+    && /opt/mnemosyne-venv/bin/pip install --no-cache-dir --upgrade pip \
+    && /opt/mnemosyne-venv/bin/pip install --no-cache-dir mysql-connector-python
 
 WORKDIR /var/www/html
 
@@ -40,7 +33,7 @@ COPY ./*.php /var/www/html/
 COPY ./.htaccess /var/www/html/
 
 RUN chmod +x /var/www/html/scripts/ajout-donnees.py \
-    && chown -R www-data:www-data /var/www/html
+    && chown -R www-data:www-data /var/www/html/
 
 EXPOSE 80
 
