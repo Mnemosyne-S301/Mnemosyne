@@ -238,6 +238,46 @@ class Controller_api extends Controller {
         }
 
     /**
+     * API pour récupérer / sauvegarder les règles Sankey
+     * GET  -> retourne le JSON des règles
+     * POST -> sauvegarde le JSON envoyé dans le corps
+     */
+    public function action_rules() {
+        try {
+            require_once __DIR__ . '/../Services/Service_filtres.php';
+            $service = new Service_filtres();
+
+            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+                $payload = file_get_contents('php://input');
+                $data = json_decode($payload, true);
+                if (!is_array($data)) {
+                    http_response_code(400);
+                    echo json_encode(['error' => 'Payload JSON invalide'], JSON_UNESCAPED_UNICODE);
+                    exit;
+                }
+                $ok = $service->saveRules($data);
+                if (!$ok) {
+                    http_response_code(500);
+                    echo json_encode(['error' => 'Impossible d\'enregistrer les règles'], JSON_UNESCAPED_UNICODE);
+                    exit;
+                }
+                http_response_code(200);
+                echo json_encode(['ok' => true], JSON_UNESCAPED_UNICODE);
+                exit;
+            } else {
+                $rules = $service->getRules();
+                http_response_code(200);
+                echo json_encode($rules, JSON_UNESCAPED_UNICODE);
+                exit;
+            }
+        } catch (Throwable $e) {
+            http_response_code(500);
+            echo json_encode(['error' => $e->getMessage()], JSON_UNESCAPED_UNICODE);
+            exit;
+        }
+    }
+
+    /**
      * Charge les données Sankey depuis les fichiers JSON de test
      * CORRIGÉ: Suit une vraie cohorte (étudiants BUT1 de l'année de départ)
      * 

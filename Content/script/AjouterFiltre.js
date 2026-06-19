@@ -237,9 +237,26 @@ function restaurerReglesSauvegardees() {
 //  clic sur "Enregistrer règles" => stockage dans localStorage
 btn_save?.addEventListener("click", () => {
     const reglesConfig = recupererReglesDepuisFormulaire();
+    // Sauvegarde locale
     localStorage.setItem("SANKEY_REGLES", JSON.stringify(reglesConfig));
-    afficherStatutRegles(`${reglesConfig.regles.length} règle(s) enregistrée(s).`);
-    alert("Règles enregistrées");
+    afficherStatutRegles(`${reglesConfig.regles.length} règle(s) enregistrée(s) localement.`);
+
+    // Envoyer au serveur pour persistance
+    fetch('index.php?controller=api&action=rules', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(reglesConfig)
+    }).then(resp => resp.json()).then(j => {
+        if (j.ok) {
+            afficherStatutRegles(`${reglesConfig.regles.length} règle(s) enregistrée(s) sur le serveur.`);
+            alert('Règles enregistrées');
+        } else {
+            afficherStatutRegles('Enregistré localement, échec serveur.');
+        }
+    }).catch(err => {
+        console.warn('Erreur sauvegarde règles serveur', err);
+        afficherStatutRegles('Enregistré localement, impossible de joindre le serveur.');
+    });
 });
 
 if (document.readyState === "loading") {

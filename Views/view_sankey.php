@@ -453,7 +453,19 @@
     <script>
     // charger les règles admin sauvegardées
     try {
-        window.SANKEY_REGLES = JSON.parse(localStorage.getItem("SANKEY_REGLES") || "null");
+        // Priorité: charger depuis l'API serveur, fallback sur localStorage
+        (async function(){
+            try {
+                const resp = await fetch('index.php?controller=api&action=rules');
+                if (resp.ok) {
+                    window.SANKEY_REGLES = await resp.json();
+                    return;
+                }
+            } catch (e) {
+                // ignore
+            }
+            window.SANKEY_REGLES = JSON.parse(localStorage.getItem("SANKEY_REGLES") || "null");
+        })();
     } catch {
         window.SANKEY_REGLES = null;
     }
