@@ -20,6 +20,7 @@ const CODE_ANNEE_OPTIONS = [
 
 // Rempli dynamiquement via l'API
 let FORMATIONS = [];
+let COHORTES    = []; // années de cohorte disponibles
 
 // ─── Éléments UI ─────────────────────────────────────────────────────────────
 const btn_ajt       = document.getElementById("Ajt");
@@ -151,6 +152,20 @@ function creerLigneRegle(regle = {}) {
     const blocsArea = document.createElement("div");
     blocsArea.className = "blocs-area flex flex-wrap gap-2 flex-1 min-w-0";
 
+    // Cohorte — toujours visible
+    const selCohorte = mkSelect("regle-cohorte w-24",
+        COHORTES.length
+            ? COHORTES.map(y => ({ value: String(y), label: String(y) }))
+            : [{ value: String(new Date().getFullYear() - 3), label: String(new Date().getFullYear() - 3) }],
+        regle.cohorte ? String(regle.cohorte) : ""
+    );
+    // Option neutre par défaut ("année...")
+    const optVide = document.createElement("option");
+    optVide.value = "";
+    optVide.textContent = "année…";
+    selCohorte.prepend(optVide);
+    if (!regle.cohorte) selCohorte.value = "";
+
     const selResultat = mkSelect("regle-resultat", [
         { value: "reussite", label: "réussite" },
         { value: "echec",    label: "échec" },
@@ -186,7 +201,7 @@ function creerLigneRegle(regle = {}) {
         sauvegarderSilencieusement();
     });
 
-    mainRow.append(mkLabel("Les étudiants"), blocsArea, mkLabel("sont en"), selResultat, btnToggle, btnDelete);
+    mainRow.append(mkLabel("Les étudiants"), blocsArea, mkLabel("de la cohorte"), selCohorte, mkLabel("sont en"), selResultat, btnToggle, btnDelete);
 
     // Boutons d'ajout de blocs
     const addRow = document.createElement("div");
@@ -269,6 +284,9 @@ function recupererReglesDepuisFormulaire() {
         // État actif/ignoré de la règle
         const toggleBtn = card.querySelector(".rule-toggle");
         regle.actif = !toggleBtn || toggleBtn.dataset.actif !== "0";
+
+        const cohorte = card.querySelector(".regle-cohorte")?.value;
+        if (cohorte) regle.cohorte = parseInt(cohorte, 10);
 
         const formation = card.querySelector(".bloc-formation-select")?.value;
         if (formation) regle.formation = formation;
@@ -376,8 +394,18 @@ async function chargerFormations() {
     }
 }
 
+async function chargerCohortes() {
+    try {
+        const resp = await fetch('index.php?controller=sankey&action=getAnnees');
+        if (resp.ok) COHORTES = await resp.json();
+    } catch (e) {
+        console.warn('Impossible de charger les cohortes', e);
+        COHORTES = [2021, 2022, 2023, 2024];
+    }
+}
+
 async function init() {
-    await chargerFormations();
+    await Promise.all([chargerFormations(), chargerCohortes()]);
     await restaurerReglesSauvegardees();
 }
 

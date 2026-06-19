@@ -4,7 +4,9 @@
         {
             "resultat": "reussite",
             "actif": true,
-            "formation": "INFO"
+            "cohorte": 2021,
+            "formation": "INFO",
+            "code": "DEM"
         }
     ]
 }

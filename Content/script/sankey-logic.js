@@ -1,10 +1,3 @@
-/**
- * Module de visualisation Sankey pour le suivi de cohorte BUT
- * VERSION CORRIGÉE - Logique robuste et cohérente
- * 
- * À placer dans : /js/sankey-logic.js
- */
-
 const SankeyCohort = (function() {
     'use strict';
 
@@ -32,13 +25,13 @@ const SankeyCohort = (function() {
         'DEFAULT': '#6B7280'
     };
 
-    // Codes qui indiquent une validation complète
+
     const CODES_VALIDATION = ['ADM', 'ADSUP'];
-    // Codes qui indiquent un passage avec difficultees
+
     const CODES_PASSAGE_DIFFICILE = ['PASD', 'CMP'];
-    // Codes qui indiquent un redoublement
+
     const CODES_REDOUBLEMENT = ['RED', 'AJ', 'ADJ'];
-    // Codes qui indiquent un abandon ou situation spéciale
+
     const CODES_ABANDON_DEFINITIF = ['NAR', 'DEM', 'DEF'];
 
     function hexToRgba(hex, alpha = 1) {
@@ -59,26 +52,21 @@ const SankeyCohort = (function() {
                 return parsed;
             }
         } catch {
-            // fallback silent
+            // fallback
         }
 
         return { actif: false, regles: [] };
     }
 
-    /**
-     * Retourne true si la règle correspond à ce code et cet étudiant.
-     * Gère les deux formats : nouveau (code/seuilSens) et ancien (condition/valeur).
-     */
+
     function regleMatchCode(regle, codeNorm, etudiant) {
         const formationCourante = String(window.SANKEY_FORMATION || '').toUpperCase();
 
-        // Filtre par formation : si la règle précise une formation, elle ne s'applique
-        // qu'à la formation actuellement visualisée.
         if (regle.formation) {
             if (String(regle.formation).toUpperCase() !== formationCourante) return false;
         }
 
-        // ── Nouveau format ────────────────────────────────────────────────
+        // Nouveau format
         if (regle.code !== undefined) {
             return String(regle.code || '').toUpperCase() === codeNorm;
         }
@@ -100,11 +88,10 @@ const SankeyCohort = (function() {
             }
             return false;
         }
-        // Si la règle n'a ni code ni seuil, elle s'applique à tous les étudiants
-        // (utile pour une règle formation seule, ex: filtrer une formation)
+        // Si la règle n'a pas de code ou de seuil elle compte pout tous les étudiants
         if (regle.formation) return true;
 
-        // ── Ancien format (compat) ────────────────────────────────────────
+        // ancien format
         const condition  = String(regle.condition || '').toLowerCase();
         const valeur     = String(regle.valeur || '').toUpperCase();
         const valeurType = String(regle.valeurType || '').toLowerCase();
@@ -129,17 +116,15 @@ const SankeyCohort = (function() {
         return false;
     }
 
-    /**
-     * Transforme uniquement le code de décision (reussite→ADM, echec→AJ).
-     * Ne filtre JAMAIS ici — le filtrage se fait au niveau du trajet complet.
-     */
+
+
     function appliquerReglesSurCode(codeDecision, etudiant) {
         const config = chargerReglesAdmin();
         if (!config.actif || !Array.isArray(config.regles) || config.regles.length === 0) {
             return codeDecision;
         }
         const codeNorm = String(codeDecision || '').toUpperCase();
-        // Ignorer les règles marquées comme inactives
+
         const matching = config.regles
             .filter(r => r.actif !== false)
             .filter(r => regleMatchCode(r, codeNorm, etudiant));
@@ -150,9 +135,7 @@ const SankeyCohort = (function() {
     }
 
     /**
-     * Filtre la Map d'étudiants selon les règles ignorer / inclusion implicite.
-     * Toute règle non-ignorer = les étudiants correspondants sont conservés.
-     * Une règle formation seule filtre par formation (cache les autres).
+
      */
     function filtrerEtudiantsParRegles(etudiants) {
         const config = chargerReglesAdmin();
@@ -160,52 +143,48 @@ const SankeyCohort = (function() {
             return etudiants;
         }
 
-        const reglesActives  = config.regles.filter(r => r.actif !== false);
+        const formationCourante = String(window.SANKEY_FORMATION || '').toUpperCase();
+
+
+        const reglesActives = config.regles.filter(r => {
+            if (r.actif === false) return false;
+
+            if (r.formation && String(r.formation).toUpperCase() !== formationCourante) return false;
+            return true;
+        });
+
         if (reglesActives.length === 0) return etudiants;
 
-        const reglesIgnorer  = reglesActives.filter(r => r.resultat === 'ignorer' || r.resultat === 'supprimer');
-        const reglesInclure  = reglesActives.filter(r => r.resultat !== 'ignorer' && r.resultat !== 'supprimer');
+        const reglesIgnorer = reglesActives.filter(r => r.resultat === 'ignorer' || r.resultat === 'supprimer');
+        const reglesInclure = reglesActives.filter(r => r.resultat !== 'ignorer' && r.resultat !== 'supprimer');
 
         if (reglesIgnorer.length === 0 && reglesInclure.length === 0) return etudiants;
 
-        // Codes à ignorer/inclure (depuis le champ .code ou l'ancien .valeur)
+
         const codesIgnorer = new Set(
             reglesIgnorer.map(r => String(r.code || r.valeur || '').toUpperCase()).filter(Boolean)
         );
-        // Les règles d'inclusion : on extrait leur code cible pour le matching par codeOriginal
-        const codesInclure = new Set(
-            reglesInclure.map(r => String(r.code || r.valeur || '').toUpperCase()).filter(Boolean)
-        );
-        // Règles formation-seule (pas de code) : filtrer par formation courante
-        const formationCourante = String(window.SANKEY_FORMATION || '').toUpperCase();
-        const avecFormationSeule = reglesInclure.some(
-            r => r.formation && !r.code && !r.seuilSens && !r.valeur
-        );
-        const formationsInclure = new Set(
-            reglesInclure
-                .filter(r => r.formation && !r.code && !r.seuilSens && !r.valeur)
-                .map(r => String(r.formation).toUpperCase())
-        );
+
+  
+        const inclusionSansCode = reglesInclure.some(r => !r.code && !r.seuilSens && !r.valeur);
+        const codesInclure = inclusionSansCode
+            ? null
+            : new Set(reglesInclure.map(r => String(r.code || r.valeur || '').toUpperCase()).filter(Boolean));
 
         const filtered = new Map();
         etudiants.forEach((etudiant, etudId) => {
             const codes = etudiant.annees.map(a => String(a.codeOriginal || a.code || '').toUpperCase());
 
-            // Exclusion explicite
             if (codesIgnorer.size > 0 && codes.some(c => codesIgnorer.has(c))) return;
 
-            // Filtrage par formation seule : si la règle ne vise que la formation courante,
-            // on garde uniquement les étudiants visualisés dans cette formation.
-            // (En pratique le Sankey ne charge qu'une formation, donc ce filtre est un guard.)
-            if (formationsInclure.size > 0 && !formationsInclure.has(formationCourante)) return;
-
-            // Inclusion implicite par code
-            if (codesInclure.size > 0 && !codes.some(c => codesInclure.has(c))) return;
+            if (codesInclure !== null && codesInclure.size > 0 && !codes.some(c => codesInclure.has(c))) return;
 
             filtered.set(etudId, etudiant);
         });
 
-        console.log(`[Règles] ${filtered.size}/${etudiants.size} étudiants conservés`);
+        console.log(`[Règles] ${filtered.size}/${etudiants.size} étudiants conservés` +
+            (codesInclure ? ` (codes requis: ${[...codesInclure]})` : ' (tous codes acceptés)') +
+            (codesIgnorer.size ? `, ignorés: ${[...codesIgnorer]}` : ''));
         return filtered;
     }
 
@@ -213,14 +192,14 @@ const SankeyCohort = (function() {
     function processCohortData(dataByYear) {
         const etudiants = new Map();
 
-        // Traiter dynamiquement toutes les années disponibles
+
         Object.entries(dataByYear).forEach(([year, data]) => {
             processYearData(data, parseInt(year), etudiants);
         });
 
         console.log(`=== ${etudiants.size} étudiants uniques trouvés ===`);
 
-        // Filtrage des trajectoires complètes selon les règles conserver/supprimer
+
         const etudiantsFiltres = filtrerEtudiantsParRegles(etudiants);
 
         const { links, stats } = buildLinks(etudiantsFiltres);
@@ -277,18 +256,17 @@ const SankeyCohort = (function() {
     }
 
     function determineOrigine(firstStep, premierNiveau) {
-        // Les étudiants qui commencent en BUT1 viennent de Parcoursup
         if (premierNiveau === 1) {
             return 'Parcoursup';
         }
-        // Les étudiants qui arrivent directement en BUT2 ou BUT3 sont des passerelles
+        // Les étudiants directement en BUT2 ou + sont des passerelles
         if (premierNiveau === 2) {
             return 'Passerelle BUT2';
         }
         if (premierNiveau === 3) {
             return 'Passerelle BUT3';
         }
-        // Cas par défaut (ne devrait pas arriver)
+    
         return 'Parcoursup';
     }
 
@@ -315,7 +293,6 @@ const SankeyCohort = (function() {
             const firstStep = etudiant.annees[0];
             const lastStep = etudiant.annees[etudiant.annees.length - 1];
             
-            // Utiliser firstStep.ordre (après tri) pour déterminer l'origine réelle
             const origine = determineOrigine(firstStep, firstStep.ordre);
             const premierNiveau = `BUT${firstStep.ordre}`;
             addLink(origine, premierNiveau);
@@ -329,9 +306,8 @@ const SankeyCohort = (function() {
                 const isLastStep = i === etudiant.annees.length - 1;
                 const nextStep = i < etudiant.annees.length - 1 ? etudiant.annees[i + 1] : null;
                 
-                // Vérifier si c'est un abandon définitif
+                // Vérif si c'est un abandon définitif
                 if (CODES_ABANDON_DEFINITIF.includes(step.code)) {
-                    // Créer un nœud de sortie spécifique au niveau (ex: NAR_BUT1)
                     const sortieNode = `${step.code}_${niveauActuel}`;
                     addLink(niveauActuel, sortieNode);
                     stats.abandons++;
@@ -350,23 +326,23 @@ const SankeyCohort = (function() {
                             addLink(niveauActuel, 'Diplômé');
                             stats.diplomes++;
                         } else {
-                            // Validés en BUT1 ou BUT2 : comptés mais pas d'affichage dans le diagramme
+
                             stats.enCours++;
                         }
                     } else if (step.code === 'RED') {
-                        // Redoublement : affichage spécifique par niveau
+  
                         addLink(niveauActuel, `RED_${niveauActuel}`);
                         stats.enCours++;
                     } else if (step.code === 'AJ' || step.code === 'ADJ') {
-                        // Ajournés : affichage spécifique par niveau
+    
                         addLink(niveauActuel, `${step.code}_${niveauActuel}`);
                         stats.enCours++;
                     } else if (CODES_ABANDON_DEFINITIF.includes(step.code)) {
-                        // Abandons : affichage spécifique par niveau
+
                         addLink(niveauActuel, `${step.code}_${niveauActuel}`);
                         stats.abandons++;
                     } else {
-                        // Autres cas : comptés mais pas d'affichage dans le diagramme
+
                         stats.enCours++;
                     }
                 } else {
@@ -377,13 +353,12 @@ const SankeyCohort = (function() {
                         }
                     }
                     
-                    // Note: Les abandons définitifs sont déjà gérés plus haut dans la boucle
-                    // Ce bloc gère les cas où un étudiant disparaît entre deux années (gap > 1 an)
+
                     if (!nextStep || nextStep.annee - step.annee > 1) {
-                        // Étudiant disparu sans code d'abandon explicite -> Inconnu
+
                         if (!hasAbandon && !CODES_VALIDATION.includes(step.code) && !CODES_PASSAGE_DIFFICILE.includes(step.code)) {
                             addLink(niveauActuel, `Inconnu_${niveauActuel}`);
-                            stats.abandons++;  // Comptabilisé comme abandon pour les stats
+                            stats.abandons++; 
                             hasAbandon = true;
                             break;
                         }
@@ -412,27 +387,27 @@ const SankeyCohort = (function() {
         });
         
         const orderedNodes = [];
-        // Ordre de base pour les nœuds principaux
+  
         const nodeOrder = [
-            // Origines - classées par niveau d'entrée
+
             'Parcoursup',
             'Passerelle BUT2',
             'Passerelle BUT3',
-            // Niveaux BUT
+
             'BUT1', 'BUT2', 'BUT3',
-            // Codes de validation
+
             'ADM', 'PASD', 'ADSUP', 'CMP',
-            // Redoublements par niveau
+
             'RED_BUT1', 'RED_BUT2', 'RED_BUT3',
             'AJ_BUT1', 'AJ_BUT2', 'AJ_BUT3',
             'ADJ_BUT1', 'ADJ_BUT2', 'ADJ_BUT3',
-            // Abandons par niveau
+ 
             'NAR_BUT1', 'NAR_BUT2', 'NAR_BUT3',
             'DEF_BUT1', 'DEF_BUT2', 'DEF_BUT3',
             'DEM_BUT1', 'DEM_BUT2', 'DEM_BUT3',
-            // Inconnus (disparus sans code explicite)
+
             'Inconnu_BUT1', 'Inconnu_BUT2', 'Inconnu_BUT3',
-            // Sorties finales
+ 
             'Diplômé', 'En cours'
         ];
         
@@ -440,7 +415,7 @@ const SankeyCohort = (function() {
             if (nodes.has(n)) orderedNodes.push(n);
         });
         
-        // Ajouter les nœuds restants qui ne sont pas dans l'ordre prédéfini
+   
         nodes.forEach(n => {
             if (!orderedNodes.includes(n)) orderedNodes.push(n);
         });
@@ -449,7 +424,7 @@ const SankeyCohort = (function() {
     }
 
     function getNodeColor(label) {
-        // Gérer les nœuds composés (ex: NAR_BUT1)
+    
         if (label.includes('_')) {
             const baseCode = label.split('_')[0];
             return COLORS[baseCode] || COLORS.DEFAULT;
@@ -458,7 +433,7 @@ const SankeyCohort = (function() {
     }
 
     function getLinkColor(target) {
-        // Gérer les nœuds composés (ex: NAR_BUT1)
+
         let colorKey = target;
         if (target.includes('_')) {
             colorKey = target.split('_')[0];
@@ -468,8 +443,7 @@ const SankeyCohort = (function() {
     }
 
     function getDisplayLabel(nodeId) {
-        // Convertir l'identifiant interne en label d'affichage
-        // Ex: NAR_BUT1 -> NAR, RED_BUT2 -> RED
+
         if (nodeId.includes('_BUT')) {
             return nodeId.split('_')[0];
         }
@@ -477,33 +451,30 @@ const SankeyCohort = (function() {
     }
 
     function getNodePositions(nodeLabels) {
-        // Définir les positions x et y pour chaque nœud
-        // x: position horizontale (0 = gauche, 1 = droite)
-        // y: position verticale (0 = haut, 1 = bas)
+
         
-        // Positions de base pour les nœuds principaux
+        // Positions de base 
         const basePositions = {
-            // Origines (colonne 0) - alignées avec leur niveau de destination
+            // Origine
             'Parcoursup': { x: 0.01, y: 0.25 },
             'Passerelle BUT2': { x: 0.25, y: 0.8 },
             'Passerelle BUT3': { x: 0.50, y: 1.0 },
             
-            // Niveaux BUT - positions de référence
+
             'BUT1': { x: 0.25, y: 0.25 },
             'BUT2': { x: 0.50, y: 0.25 },
             'BUT3': { x: 0.75, y: 0.25 },
             
-            // Diplômé (fin)
+  
             'Diplômé': { x: 0.99, y: 0.35 },
             'En cours': { x: 0.99, y: 0.45 },
         };
         
-        // Les sorties de chaque année vont VERS l'année suivante
-        // BUT1 → sorties vers BUT2, BUT2 → sorties vers BUT3, BUT3 → sorties vers Diplômé
+
         const sortieDestinations = {
-            'BUT1': basePositions['BUT2'].x,   // Sorties BUT1 vont vers la colonne de BUT2
-            'BUT2': basePositions['BUT3'].x,   // Sorties BUT2 vont vers la colonne de BUT3
-            'BUT3': basePositions['Diplômé'].x, // Sorties BUT3 vont vers la colonne de Diplômé
+            'BUT1': basePositions['BUT2'].x, 
+            'BUT2': basePositions['BUT3'].x, 
+            'BUT3': basePositions['Diplômé'].x, 
         };
         
         // Décalages verticaux pour les différents types de sortie
@@ -519,7 +490,7 @@ const SankeyCohort = (function() {
         
         const positions = { ...basePositions };
         
-        // Générer dynamiquement les positions des sorties basées sur les destinations
+        // Générer  les positions des noeuds qui sortent par rapport aux destinations
         ['BUT1', 'BUT2', 'BUT3'].forEach(but => {
             const destX = sortieDestinations[but];
             
@@ -537,8 +508,7 @@ const SankeyCohort = (function() {
                 xPositions.push(positions[label].x);
                 yPositions.push(positions[label].y);
             } else {
-                // Position par défaut pour les nœuds non définis
-                // Les placer progressivement à droite
+                //On les pousse à droite
                 xPositions.push(0.5 + (index * 0.02));
                 yPositions.push(0.5);
             }
@@ -551,10 +521,10 @@ const SankeyCohort = (function() {
         const nodeLabels = data.nodes;
         const nodeIndices = new Map(nodeLabels.map((n, i) => [n, i]));
         
-        // Labels d'affichage (simplifiés)
+
         const displayLabels = nodeLabels.map(getDisplayLabel);
         
-        // Positions des nœuds
+  
         const nodePositions = getNodePositions(nodeLabels);
         
         const sources = [];
@@ -573,7 +543,7 @@ const SankeyCohort = (function() {
                 targets.push(tgtIdx);
                 values.push(val);
                 colors.push(getLinkColor(tgt));
-                linkLabels.push(val);  // Ajouter le nombre d'étudiants
+                linkLabels.push(val);  
             }
         });
 
@@ -621,7 +591,7 @@ const SankeyCohort = (function() {
             modeBarButtonsToRemove: ['lasso2d', 'select2d']
         };
 
-        // Animation de fade-in
+ 
         const sankey = document.getElementById('sankey-plot');
         sankey.style.transition = 'opacity 0.3s ease';
         sankey.style.opacity = '0';
@@ -634,7 +604,7 @@ const SankeyCohort = (function() {
         }, 50);
     }
 
-    // Extraire les années disponibles depuis SANKEY_DATA
+
     function extractAvailableYears(data) {
         const years = {};
         Object.keys(data).forEach(key => {
@@ -647,7 +617,7 @@ const SankeyCohort = (function() {
     }
 
     async function init() {
-                    // Activer le bouton 'Toutes les années' par défaut
+  
                     document.querySelectorAll('.but-filter').forEach(btn => {
                         btn.classList.remove('bg-[#60A5FA]', 'bg-[#93C5FD]', 'bg-[#DBEAFE]', 'bg-[#E3BF81]', 'text-white', 'text-[#0A1E2F]');
                         btn.classList.add('bg-transparent');
@@ -670,7 +640,7 @@ const SankeyCohort = (function() {
             renderChart(processed);
             setupLegendToggle();
 
-            // Réinitialiser les handlers des boutons filtres pour utiliser les données courantes
+    
             document.querySelectorAll('.but-filter').forEach(btn => {
                 const newBtn = btn.cloneNode(true);
                 btn.parentNode.replaceChild(newBtn, btn);
@@ -691,24 +661,24 @@ const SankeyCohort = (function() {
             btn.addEventListener('click', (e) => {
                 const level = e.target.dataset.level;
                 
-                // Mettre à jour l'apparence des boutons
+    
                 buttons.forEach(b => {
                     b.classList.remove('bg-[#60A5FA]', 'bg-[#93C5FD]', 'bg-[#DBEAFE]', 'bg-[#E3BF81]', 'text-white', 'text-[#0A1E2F]');
                     b.classList.add('bg-transparent');
                 });
                 e.target.classList.remove('bg-transparent');
                 
-                // Déterminer les données à afficher
+
                 let etudiants = new Map();
                 
                 if (level === 'all') {
-                    // Afficher toutes les années
+      
                     e.target.classList.add('bg-[#E3BF81]', 'text-[#0A1E2F]');
                     Object.entries(availableYears).forEach(([year, data]) => {
                         processYearData(data, parseInt(year), etudiants);
                     });
                 } else {
-                    // Filtrer par niveau BUT
+  
                     const numLevel = parseInt(level);
                     const colors = { 1: '#60A5FA', 2: '#93C5FD', 3: '#DBEAFE' };
                     e.target.classList.add(`bg-[${colors[numLevel]}]`, 'text-white');
@@ -721,7 +691,7 @@ const SankeyCohort = (function() {
                     });
                 }
                 
-                // Animation fade-out avant la mise à jour
+      
                 const sankey = document.getElementById('sankey-plot');
                 sankey.style.opacity = '0';
                 sankey.style.transition = 'opacity 0.3s ease';
@@ -761,6 +731,3 @@ const SankeyCohort = (function() {
     return { init };
 
 })();
-
-
-// (Suppression de l'auto-init : l'init doit être déclenchée uniquement après le chargement effectif des données via loadSankeyData)

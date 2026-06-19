@@ -87,8 +87,12 @@
                         </div>
 
                         <!-- Bouton recharger -->
-                        <button id="reload-data" class="w-full px-4 py-2 bg-[#E3BF81] text-[#0A1E2F] rounded-lg font-semibold hover:bg-[#d4a85c] transition-colors mb-6">
+                        <button id="reload-data" class="w-full px-4 py-2 bg-[#E3BF81] text-[#0A1E2F] rounded-lg font-semibold hover:bg-[#d4a85c] transition-colors mb-2">
                             Recharger
+                        </button>
+                        <!-- Bouton Sankey avec règles -->
+                        <button id="custom-sankey-btn" class="w-full px-4 py-2 bg-[#60A5FA] text-[#0A1E2F] rounded-lg font-semibold hover:bg-[#3B82F6] transition-colors mb-6">
+                            Voir Sankey avec règles
                         </button>
 
                         <!-- Séparateur -->
@@ -437,6 +441,90 @@
                 }
             }
         }
+
+        // ─── Sankey avec règles (mode custom multi-formations) ───────────────────
+        async function loadSankeyCustom() {
+            const rules = window.SANKEY_REGLES;
+            const activeRules = (rules?.regles || []).filter(r => r.actif !== false);
+
+            if (!activeRules.length) {
+                alert('Aucune règle active. Créez et enregistrez des règles sur la page Admin.');
+                return;
+            }
+
+            const currentFormation = document.getElementById('formation-select').value;
+            const currentCohorte   = document.getElementById('annee-select').value;
+            const source           = document.getElementById('source-select').value;
+            const modalite         = document.getElementById('modalite-select').value;
+
+            // Construire la liste unique (formation, cohorte) depuis les règles
+            const pairsMap = new Map();
+            activeRules.forEach(r => {
+                const f = r.formation || currentFormation;
+                const c = r.cohorte   || currentCohorte;
+                pairsMap.set(`${f}-${c}`, { formation: f, cohorte: c });
+            });
+
+            const plotDiv = document.getElementById('sankey-plot');
+            if (plotDiv) {
+                if (window.Plotly && plotDiv.data) window.Plotly.purge(plotDiv);
+                plotDiv.innerHTML = '<div id="loader" class="flex items-center justify-center h-full"><p class="animate-pulse text-xl">Chargement du Sankey personnalisé…</p></div>';
+            }
+
+            try {
+                const mergedData = { annees: new Set() };
+                let anneeDepart = null;
+
+                for (const { formation, cohorte } of pairsMap.values()) {
+                    const url = `index.php?controller=api&action=sankey&formation=${formation}&anneeDepart=${cohorte}&source=${source}&modalite=${modalite}`;
+                    const resp = await fetch(url);
+                    if (!resp.ok) throw new Error(`Erreur HTTP ${resp.status} pour ${formation} ${cohorte}`);
+                    const data = await resp.json();
+                    if (data.error) throw new Error(data.error);
+
+                    // Fusionner les années
+                    (data.annees || []).forEach(y => mergedData.annees.add(y));
+                    if (anneeDepart === null || data.annee_depart < anneeDepart) {
+                        anneeDepart = data.annee_depart;
+                    }
+
+                    // Fusionner les étudiants (tagués avec leur formation)
+                    (data.annees || []).forEach(annee => {
+                        const key = 'data' + annee;
+                        const students = (data.data?.[annee] || []).map(s => ({ ...s, _formation: formation }));
+                        mergedData[key] = [...(mergedData[key] || []), ...students];
+                    });
+                }
+
+                mergedData.annees       = Array.from(mergedData.annees).sort();
+                mergedData.annee_depart = anneeDepart;
+
+                window.SANKEY_DATA      = mergedData;
+                window.SANKEY_FORMATION = null; // mode custom : pas de formation unique
+                window.SANKEY_REGLES    = { ...(window.SANKEY_REGLES || {}), actif: true };
+
+                if (plotDiv) plotDiv.innerHTML = '';
+
+                if (typeof SankeyCohort !== 'undefined') {
+                    SankeyCohort.init();
+                }
+            } catch (err) {
+                console.error('[Sankey custom]', err);
+                if (plotDiv) plotDiv.innerHTML = `<p class="text-red-400 p-4">⚠ Erreur : ${err.message}</p>`;
+            }
+        }
+
+        document.getElementById('custom-sankey-btn')?.addEventListener('click', async () => {
+            // Charger les règles depuis le serveur avant de construire le Sankey custom
+            try {
+                const resp = await fetch('index.php?controller=api&action=rules');
+                if (resp.ok) {
+                    const json = await resp.json();
+                    if (json && typeof json === 'object') window.SANKEY_REGLES = json;
+                }
+            } catch { /* utiliser les règles déjà en mémoire */ }
+            await loadSankeyCustom();
+        });
 
         // Gestionnaire pour le bouton de rechargement (sans recharger la page)
         document.getElementById('reload-data')?.addEventListener('click', async function() {
