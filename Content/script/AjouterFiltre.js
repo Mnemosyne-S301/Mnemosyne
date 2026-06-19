@@ -215,14 +215,28 @@ function recupererReglesDepuisFormulaire() {
     };
 }
 
-function restaurerReglesSauvegardees() {
+async function restaurerReglesSauvegardees() {
     let reglesConfig = null;
 
     try {
-        reglesConfig = JSON.parse(localStorage.getItem("SANKEY_REGLES") || "null");
-    } catch {
-        afficherStatutRegles("Impossible de charger les règles sauvegardées.");
-        return;
+        const resp = await fetch('index.php?controller=api&action=rules');
+        if (resp.ok) {
+            const json = await resp.json();
+            if (json && Array.isArray(json.regles) && json.regles.length > 0) {
+                reglesConfig = json;
+            }
+        }
+    } catch (e) {
+        console.warn('Impossible de charger les règles depuis le serveur', e);
+    }
+
+    if (!reglesConfig) {
+        try {
+            reglesConfig = JSON.parse(localStorage.getItem("SANKEY_REGLES") || "null");
+        } catch {
+            afficherStatutRegles("Impossible de charger les règles sauvegardées.");
+            return;
+        }
     }
 
     if (!reglesConfig || !Array.isArray(reglesConfig.regles) || reglesConfig.regles.length === 0) {

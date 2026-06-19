@@ -46,6 +46,9 @@
                 <button id="saveRules" class="text-white bg-green-700 hover:bg-green-800 focus:ring-2 focus:ring-gray-600 rounded-lg px-4 py-2 mx-4">
                     Enregistrer règles
                 </button>
+                <a href="index.php?controller=sankey" class="text-[#0A1E2F] bg-[#60A5FA] hover:bg-[#3B82F6] focus:ring-2 focus:ring-gray-600 rounded-lg px-4 py-2 mx-4 font-semibold inline-flex items-center">
+                    Voir Sankey
+                </a>
             </div>
 
             <p id="rulesStatus" class="text-sm text-[#FBEDD3]/80 mb-4"></p>

@@ -325,12 +325,16 @@
                     } catch (e) {
                         // ignore
                     }
-                    if (!rules) {
+                    if (!rules || typeof rules !== 'object') {
                         try { rules = JSON.parse(localStorage.getItem('SANKEY_REGLES') || 'null'); } catch { rules = null; }
+                    }
+                    if (!rules || typeof rules !== 'object') {
+                        rules = { actif: false, regles: [] };
                     }
                     window.SANKEY_REGLES = rules;
                 } catch (e) {
                     console.warn('Impossible de charger les règles, utilisation du fallback local');
+                    window.SANKEY_REGLES = { actif: false, regles: [] };
                 }
 
                 // Initialiser le diagramme Sankey (client-side rules application)
@@ -468,8 +472,8 @@
    
 
     <script>
-        // Règles admin : initialement null, chargées avant l'init du Sankey dans loadSankeyData
-        window.SANKEY_REGLES = null;
+        // Règles admin : initialement vide, chargées avant l'init du Sankey dans loadSankeyData
+        window.SANKEY_REGLES = { actif: false, regles: [] };
     
     // ===============================
     // Configuration des graphiques Chart.js

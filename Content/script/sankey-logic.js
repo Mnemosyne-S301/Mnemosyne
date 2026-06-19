@@ -48,33 +48,68 @@ const SankeyCohort = (function() {
         return `rgba(${r}, ${g}, ${b}, ${alpha})`;
     }
     function chargerReglesAdmin() {
-  
-    if (window.SANKEY_REGLES) return window.SANKEY_REGLES;
+        const config = window.SANKEY_REGLES;
+        if (config && typeof config === 'object' && Array.isArray(config.regles)) {
+            return config;
+        }
 
-   
-    try {
-        return JSON.parse(localStorage.getItem("SANKEY_REGLES") || "null");
-    } catch {
-        return null;
+        try {
+            const parsed = JSON.parse(localStorage.getItem("SANKEY_REGLES") || "null");
+            if (parsed && typeof parsed === 'object' && Array.isArray(parsed.regles)) {
+                return parsed;
+            }
+        } catch {
+            // fallback silent
+        }
+
+        return { actif: false, regles: [] };
     }
-}
 
-function appliquerReglesSurCode(codeDecision) {
+function appliquerReglesSurCode(codeDecision, etudiant) {
     const configurationRegles = chargerReglesAdmin();
-    if (!configurationRegles || !configurationRegles.actif) return codeDecision;
+    if (!configurationRegles.actif || !Array.isArray(configurationRegles.regles)) {
+        return codeDecision;
+    }
 
     const codeNormalise = String(codeDecision || "").toUpperCase();
-    const regleApplicable = (configurationRegles.regles || [])
-        .find(regle => {
-            const conditionCode = regle.condition === "formation" || regle.condition === "code_annuel";
-            return conditionCode && String(regle.valeur || "").toUpperCase() === codeNormalise;
-        });
+
+    const regleApplicable = configurationRegles.regles.find(regle => {
+        const condition = String(regle.condition || "").toLowerCase();
+        const valeur = String(regle.valeur || "").toUpperCase();
+        const valeurType = String(regle.valeurType || "").toLowerCase();
+
+        if (condition === "formation" || condition === "code_annuel") {
+            return valeur === codeNormalise;
+        }
+
+        if (condition === "plus" || condition === "moins") {
+            if (!etudiant || typeof etudiant !== 'object') {
+                return false;
+            }
+
+            if (valeurType === "moyenne") {
+                const moyenne = parseFloat(etudiant?.annee?.moyenne ?? etudiant?.moyenne ?? NaN);
+                if (Number.isNaN(moyenne)) return false;
+                const threshold = parseFloat(valeur);
+                if (Number.isNaN(threshold)) return false;
+                return condition === "plus" ? moyenne > threshold : moyenne < threshold;
+            }
+
+            if (valeurType === "ues validées") {
+                const ues = parseInt(etudiant?.annee?.ues_validees ?? etudiant?.ues_validees ?? NaN, 10);
+                if (Number.isNaN(ues)) return false;
+                const threshold = parseInt(valeur, 10);
+                if (Number.isNaN(threshold)) return false;
+                return condition === "plus" ? ues > threshold : ues < threshold;
+            }
+        }
+
+        return false;
+    });
 
     if (!regleApplicable) return codeDecision;
-
     if (regleApplicable.resultat === "reussite") return "ADM";
     if (regleApplicable.resultat === "echec") return "AJ";
-
     return codeDecision;
 }
 
@@ -129,7 +164,7 @@ function appliquerReglesSurCode(codeDecision) {
             etudData.annees.push({
                 annee: year,
                 ordre: etud.annee.ordre || 1,
-                code: appliquerReglesSurCode(etud.annee.code),
+                code: appliquerReglesSurCode(etud.annee.code, etud),
                 etat: etud.etat,
                 annee_scolaire: etud.annee.annee_scolaire
             });
