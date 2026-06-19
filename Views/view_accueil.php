@@ -181,8 +181,60 @@
         </form>
 
         <!-- ============================
-             BOUTON ADMIN (collé en bas)
+             DERNIÈRES CONSULTATIONS
         ============================= -->
+        <div id="recent-consultations" class="hidden mt-6 w-96">
+            <p class="text-[#FBEDD3] text-sm font-semibold mb-3 opacity-70 tracking-wide uppercase">
+                Dernières consultations
+            </p>
+            <div id="recent-list" class="flex flex-col gap-2"></div>
+        </div>
+
+        <script>
+        (function () {
+            const container = document.getElementById('recent-consultations');
+            const list      = document.getElementById('recent-list');
+
+            let history = [];
+            try {
+                history = JSON.parse(localStorage.getItem('mnemosyne_history') ?? '[]');
+            } catch (e) { history = []; }
+
+            if (!Array.isArray(history) || history.length === 0) return;
+
+            history.forEach(function (entry) {
+                const a = document.createElement('a');
+                a.href = 'index.php?controller=sankey&formation='
+                       + encodeURIComponent(entry.formation)
+                       + '&anneeDepart='
+                       + encodeURIComponent(entry.annee);
+                a.className = [
+                    'flex items-center justify-between',
+                    'px-4 py-2.5 rounded-lg',
+                    'bg-[#FFFFFF0A] border border-[#FFFFFF15]',
+                    'hover:bg-[#FFFFFF18] hover:border-[#E3BF8160]',
+                    'transition-all duration-200 group',
+                ].join(' ');
+
+                a.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="text-[#E3BF81] text-lg">🕐</span>
+                        <div class="flex flex-col">
+                            <span class="text-[#FBEDD3] text-sm font-medium group-hover:text-[#E3BF81] transition-colors">
+                                ${entry.formationLabel ?? entry.formation}
+                            </span>
+                            <span class="text-[#FFFFFF60] text-xs">${entry.anneeLabel ?? entry.annee}</span>
+                        </div>
+                    </div>
+                    <span class="text-[#FFFFFF40] group-hover:text-[#E3BF81] text-sm transition-colors">→</span>
+                `;
+
+                list.appendChild(a);
+            });
+
+            container.classList.remove('hidden');
+        })();
+        </script>
         <a href="index.php?controller=auth&action=login">
             <input id="logo_admin"
                 type="image"
