@@ -85,10 +85,14 @@
                                 <option value="bdd" <?= ($source ?? '') === 'bdd' ? 'selected' : '' ?>>Base de données</option>
                             </select>
                         </div>
-                        
+
                         <!-- Bouton recharger -->
-                        <button id="reload-data" class="w-full px-4 py-2 bg-[#E3BF81] text-[#0A1E2F] rounded-lg font-semibold hover:bg-[#d4a85c] transition-colors mb-6">
+                        <button id="reload-data" class="w-full px-4 py-2 bg-[#E3BF81] text-[#0A1E2F] rounded-lg font-semibold hover:bg-[#d4a85c] transition-colors mb-2">
                             Recharger
+                        </button>
+                        <!-- Bouton Sankey avec règles -->
+                        <button id="custom-sankey-btn" class="w-full px-4 py-2 bg-[#60A5FA] text-[#0A1E2F] rounded-lg font-semibold hover:bg-[#3B82F6] transition-colors mb-6">
+                            Voir Sankey avec règles
                         </button>
 
                         <!-- Séparateur -->
@@ -251,7 +255,7 @@
         /**
          * Charge les données depuis l'API
          */
-        async function loadSankeyData(formation, anneeDepart, source, modalite = 'FI') {
+        async function loadSankeyData(formation, anneeDepart, source, modalite = 'FI', ignoreRules = false) {
             // Réinitialiser le diagramme et les filtres
             const plotDiv = document.getElementById('sankey-plot');
             if (plotDiv) {
@@ -300,6 +304,7 @@
                 });
 
                 window.SANKEY_DATA = sankeyData;
+                window.SANKEY_FORMATION = String(formation || '').toUpperCase();
                 window.SANKEY_SOURCE = source;
 
                 console.log('Données chargées depuis:', source === 'json' ? 'Fichiers JSON' : 'Base de données');
@@ -316,7 +321,44 @@
                 // Effacer le message "Chargement des données..." avant d'afficher le diagramme
                 if (plotDiv) plotDiv.innerHTML = '';
                 
-                // Initialiser le diagramme Sankey
+                // Charger les règles sauvegardées (serveur > localStorage) avant l'init client-side
+                try {
+                    let rules = null;
+                    try {
+                        const resp = await fetch('index.php?controller=api&action=rules');
+                        if (resp.ok) {
+                            const json = await resp.json();
+                            // N'utiliser les règles serveur que si elles contiennent bien des règles actives
+                            if (json && Array.isArray(json.regles) && json.regles.length > 0) {
+                                rules = json;
+                                console.log('[Règles] Chargées depuis serveur:', rules.regles.length, 'règle(s), actif:', rules.actif);
+                            } else if (json && typeof json === 'object') {
+                                rules = json; // règles vides mais valides
+                                console.log('[Règles] Serveur: aucune règle enregistrée');
+                            }
+                        }
+                    } catch (e) {
+                        console.warn('[Règles] Fetch serveur échoué:', e.message);
+                    }
+                    if (!rules || typeof rules !== 'object') {
+                        try {
+                            rules = JSON.parse(localStorage.getItem('SANKEY_REGLES') || 'null');
+                            if (rules) console.log('[Règles] Chargées depuis localStorage:', rules.regles?.length, 'règle(s), actif:', rules.actif);
+                        } catch { rules = null; }
+                    }
+                    if (!rules || typeof rules !== 'object') {
+                        rules = { actif: false, regles: [] };
+                    }
+                    window.SANKEY_REGLES = rules;                    if (ignoreRules) {
+                        window.SANKEY_REGLES = { actif: false, regles: rules?.regles || [] };
+                        console.log('[R\u00e8gles] Ignor\u00e9es (rechargement manuel)');
+                    }                    console.log('[Règles] window.SANKEY_REGLES =', JSON.stringify(window.SANKEY_REGLES));
+                } catch (e) {
+                    console.warn('Impossible de charger les règles:', e);
+                    window.SANKEY_REGLES = { actif: false, regles: [] };
+                }
+
+                // Initialiser le diagramme Sankey (client-side rules application)
                 if (typeof SankeyCohort !== 'undefined') {
                     SankeyCohort.init();
                         // Charger et afficher les statistiques de cohorte (depuis l'API stats)
@@ -400,6 +442,90 @@
             }
         }
 
+        // ─── Sankey avec règles (mode custom multi-formations) ───────────────────
+        async function loadSankeyCustom() {
+            const rules = window.SANKEY_REGLES;
+            const activeRules = (rules?.regles || []).filter(r => r.actif !== false);
+
+            if (!activeRules.length) {
+                alert('Aucune règle active. Créez et enregistrez des règles sur la page Admin.');
+                return;
+            }
+
+            const currentFormation = document.getElementById('formation-select').value;
+            const currentCohorte   = document.getElementById('annee-select').value;
+            const source           = document.getElementById('source-select').value;
+            const modalite         = document.getElementById('modalite-select').value;
+
+            // Construire la liste unique (formation, cohorte) depuis les règles
+            const pairsMap = new Map();
+            activeRules.forEach(r => {
+                const f = r.formation || currentFormation;
+                const c = r.cohorte   || currentCohorte;
+                pairsMap.set(`${f}-${c}`, { formation: f, cohorte: c });
+            });
+
+            const plotDiv = document.getElementById('sankey-plot');
+            if (plotDiv) {
+                if (window.Plotly && plotDiv.data) window.Plotly.purge(plotDiv);
+                plotDiv.innerHTML = '<div id="loader" class="flex items-center justify-center h-full"><p class="animate-pulse text-xl">Chargement du Sankey personnalisé…</p></div>';
+            }
+
+            try {
+                const mergedData = { annees: new Set() };
+                let anneeDepart = null;
+
+                for (const { formation, cohorte } of pairsMap.values()) {
+                    const url = `index.php?controller=api&action=sankey&formation=${formation}&anneeDepart=${cohorte}&source=${source}&modalite=${modalite}`;
+                    const resp = await fetch(url);
+                    if (!resp.ok) throw new Error(`Erreur HTTP ${resp.status} pour ${formation} ${cohorte}`);
+                    const data = await resp.json();
+                    if (data.error) throw new Error(data.error);
+
+                    // Fusionner les années
+                    (data.annees || []).forEach(y => mergedData.annees.add(y));
+                    if (anneeDepart === null || data.annee_depart < anneeDepart) {
+                        anneeDepart = data.annee_depart;
+                    }
+
+                    // Fusionner les étudiants (tagués avec leur formation)
+                    (data.annees || []).forEach(annee => {
+                        const key = 'data' + annee;
+                        const students = (data.data?.[annee] || []).map(s => ({ ...s, _formation: formation }));
+                        mergedData[key] = [...(mergedData[key] || []), ...students];
+                    });
+                }
+
+                mergedData.annees       = Array.from(mergedData.annees).sort();
+                mergedData.annee_depart = anneeDepart;
+
+                window.SANKEY_DATA      = mergedData;
+                window.SANKEY_FORMATION = null; // mode custom : pas de formation unique
+                window.SANKEY_REGLES    = { ...(window.SANKEY_REGLES || {}), actif: true };
+
+                if (plotDiv) plotDiv.innerHTML = '';
+
+                if (typeof SankeyCohort !== 'undefined') {
+                    SankeyCohort.init();
+                }
+            } catch (err) {
+                console.error('[Sankey custom]', err);
+                if (plotDiv) plotDiv.innerHTML = `<p class="text-red-400 p-4">⚠ Erreur : ${err.message}</p>`;
+            }
+        }
+
+        document.getElementById('custom-sankey-btn')?.addEventListener('click', async () => {
+            // Charger les règles depuis le serveur avant de construire le Sankey custom
+            try {
+                const resp = await fetch('index.php?controller=api&action=rules');
+                if (resp.ok) {
+                    const json = await resp.json();
+                    if (json && typeof json === 'object') window.SANKEY_REGLES = json;
+                }
+            } catch { /* utiliser les règles déjà en mémoire */ }
+            await loadSankeyCustom();
+        });
+
         // Gestionnaire pour le bouton de rechargement (sans recharger la page)
         document.getElementById('reload-data')?.addEventListener('click', async function() {
             const formation = document.getElementById('formation-select').value;
@@ -415,8 +541,8 @@
             url.searchParams.set('modalite', modalite);
             history.pushState({}, '', url);
             
-            // Charger les nouvelles données via l'API
-            await loadSankeyData(formation, annee, source, modalite);
+            // Charger sans appliquer les règles actives
+            await loadSankeyData(formation, annee, source, modalite, true);
         });
 
         // Ajout : recharger automatiquement quand on change un sélecteur
@@ -433,7 +559,7 @@
                 url.searchParams.set('source', source);
                 url.searchParams.set('modalite', modalite);
                 history.pushState({}, '', url);
-                await loadSankeyData(formation, annee, source, modalite);
+                await loadSankeyData(formation, annee, source, modalite, true); // sans règles
             });
         });
 
@@ -443,7 +569,7 @@
             const annee = document.getElementById('annee-select').value;
             const source = document.getElementById('source-select').value;
             const modalite = document.getElementById('modalite-select').value;
-            loadSankeyData(formation, annee, source, modalite);
+            loadSankeyData(formation, annee, source, modalite, true); // sans règles par défaut
         });
     </script>
    
@@ -451,12 +577,8 @@
    
 
     <script>
-    // charger les règles admin sauvegardées
-    try {
-        window.SANKEY_REGLES = JSON.parse(localStorage.getItem("SANKEY_REGLES") || "null");
-    } catch {
-        window.SANKEY_REGLES = null;
-    }
+        // Règles admin : initialement vide, chargées avant l'init du Sankey dans loadSankeyData
+        window.SANKEY_REGLES = { actif: false, regles: [] };
     
     // ===============================
     // Configuration des graphiques Chart.js

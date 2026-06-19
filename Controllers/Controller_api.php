@@ -69,42 +69,50 @@ class Controller_api extends Controller {
      * Paramètres GET : anneeDepart, formation, source (json|bdd), modalite (FI|FAP)
      */
     public function action_sankey() {
-        try {
-            // Validation des paramètres
-            if (!isset($_GET['anneeDepart']) || trim($_GET['anneeDepart']) === '') {
-                throw new InvalidArgumentException("Paramètre 'anneeDepart' obligatoire.");
-            }
-            if (!isset($_GET['formation']) || trim($_GET['formation']) === '') {
-                throw new InvalidArgumentException("Paramètre 'formation' obligatoire.");
-            }
-
-            $annee = (int)substr(trim($_GET['anneeDepart']), 0, 4);
-            $formation = strtoupper(trim($_GET['formation']));
-            $source = isset($_GET['source']) ? strtolower(trim($_GET['source'])) : 'json';
-            $modalite = isset($_GET['modalite']) ? strtoupper(trim($_GET['modalite'])) : 'FI';
-
-            // Récupérer les données selon la source
-            if ($source === 'json') {
-                $donnees = $this->getSankeyDataFromJson($annee, $formation, 'json', $modalite);
-            } elseif ($source === 'testdata') {
-                $donnees = $this->getSankeyDataFromJson($annee, $formation, 'testdata', $modalite);
-            } else {
-                $donnees = $this->service->getSankeyCohorteDepuisAnnee($annee, $formation);
-            }
-
-            http_response_code(200);
-            echo json_encode($donnees, JSON_UNESCAPED_UNICODE);
-
-        } catch (InvalidArgumentException $e) {
-            http_response_code(400);
-            echo json_encode(['error' => $e->getMessage()], JSON_UNESCAPED_UNICODE);
-
-        } catch (Throwable $e) {
-            http_response_code(500);
-            echo json_encode(['error' => 'Erreur serveur: ' . $e->getMessage()], JSON_UNESCAPED_UNICODE);
+    try {
+        // Validation des paramètres
+        if (!isset($_GET['anneeDepart']) || trim($_GET['anneeDepart']) === '') {
+            throw new InvalidArgumentException("Paramètre 'anneeDepart' obligatoire.");
         }
-        exit;
+        if (!isset($_GET['formation']) || trim($_GET['formation']) === '') {
+            throw new InvalidArgumentException("Paramètre 'formation' obligatoire.");
+        }
+
+        $annee = (int)substr(trim($_GET['anneeDepart']), 0, 4);
+        $formation = strtoupper(trim($_GET['formation']));
+        $source = isset($_GET['source']) ? strtolower(trim($_GET['source'])) : 'json';
+        $modalite = isset($_GET['modalite']) ? strtoupper(trim($_GET['modalite'])) : 'FI';
+
+        // Nouveaux filtres
+        $filters = [
+            'redoublant' => isset($_GET['redoublant']) ? strtolower(trim($_GET['redoublant'])) : 'all',
+            'parcours' => isset($_GET['parcours']) && trim($_GET['parcours']) !== ''
+                ? strtoupper(trim($_GET['parcours']))
+                : null
+        ];
+
+        // Récupérer les données selon la source
+        if ($source === 'json') {
+            $donnees = $this->getSankeyDataFromJson($annee, $formation, 'json', $modalite);
+        } elseif ($source === 'testdata') {
+            $donnees = $this->getSankeyDataFromJson($annee, $formation, 'testdata', $modalite);
+        } else {
+            $donnees = $this->service->getSankeyCohorteDepuisAnnee($annee, $formation, $filters);
+        }
+
+        http_response_code(200);
+        echo json_encode($donnees, JSON_UNESCAPED_UNICODE);
+
+    } catch (InvalidArgumentException $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()], JSON_UNESCAPED_UNICODE);
+
+    } catch (Throwable $e) {
+        http_response_code(500);
+        echo json_encode(['error' => 'Erreur serveur: ' . $e->getMessage()], JSON_UNESCAPED_UNICODE);
     }
+    exit;
+}
 
     /**
      * Action stats - retourne les statistiques de cohorte (effectif, diplomes, abandons, en cours)
@@ -228,6 +236,46 @@ class Controller_api extends Controller {
             }
             exit;
         }
+
+    /**
+     * API pour récupérer / sauvegarder les règles Sankey
+     * GET  -> retourne le JSON des règles
+     * POST -> sauvegarde le JSON envoyé dans le corps
+     */
+    public function action_rules() {
+        try {
+            require_once __DIR__ . '/../Services/Service_filtres.php';
+            $service = new Service_filtres();
+
+            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+                $payload = file_get_contents('php://input');
+                $data = json_decode($payload, true);
+                if (!is_array($data)) {
+                    http_response_code(400);
+                    echo json_encode(['error' => 'Payload JSON invalide'], JSON_UNESCAPED_UNICODE);
+                    exit;
+                }
+                $ok = $service->saveRules($data);
+                if (!$ok) {
+                    http_response_code(500);
+                    echo json_encode(['error' => 'Impossible d\'enregistrer les règles'], JSON_UNESCAPED_UNICODE);
+                    exit;
+                }
+                http_response_code(200);
+                echo json_encode(['ok' => true], JSON_UNESCAPED_UNICODE);
+                exit;
+            } else {
+                $rules = $service->getRules();
+                http_response_code(200);
+                echo json_encode($rules, JSON_UNESCAPED_UNICODE);
+                exit;
+            }
+        } catch (Throwable $e) {
+            http_response_code(500);
+            echo json_encode(['error' => $e->getMessage()], JSON_UNESCAPED_UNICODE);
+            exit;
+        }
+    }
 
     /**
      * Charge les données Sankey depuis les fichiers JSON de test

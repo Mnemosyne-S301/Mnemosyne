@@ -1,0 +1,12 @@
+{
+    "actif": true,
+    "regles": [
+        {
+            "resultat": "reussite",
+            "actif": true,
+            "cohorte": 2021,
+            "formation": "RT",
+            "code": "RED"
+        }
+    ]
+}
