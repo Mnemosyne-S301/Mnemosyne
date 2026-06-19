@@ -433,9 +433,48 @@
                 url.searchParams.set('source', source);
                 url.searchParams.set('modalite', modalite);
                 history.pushState({}, '', url);
+                saveConsultation(formation, annee);
                 await loadSankeyData(formation, annee, source, modalite);
             });
         });
+
+        // ============================================================
+        // DERNIÈRES CONSULTATIONS — sauvegarde dans le localStorage
+        // ============================================================
+        const FORMATION_LABELS = {
+            'INFO': 'BUT Informatique',
+            'GEA':  'BUT GEA',
+            'RT':   'BUT R&T',
+            'GEII': 'BUT GEII',
+            'CJ':   'BUT Carrières Juridiques',
+            'SD':   'BUT Science des Données',
+        };
+
+        function saveConsultation(formation, annee) {
+            const MAX = 3;
+            const label = FORMATION_LABELS[formation] ?? formation;
+            const entry = {
+                formation:      formation,
+                formationLabel: label,
+                annee:          String(annee),
+                anneeLabel:     annee + '–' + (parseInt(annee) + 1),
+                visitedAt:      new Date().toISOString(),
+            };
+
+            let history = [];
+            try {
+                history = JSON.parse(localStorage.getItem('mnemosyne_history') ?? '[]');
+            } catch (e) { history = []; }
+
+            // Supprimer un éventuel doublon (même formation + même année)
+            history = history.filter(h => !(h.formation === formation && h.annee === String(annee)));
+
+            // Ajouter en tête et tronquer à MAX
+            history.unshift(entry);
+            history = history.slice(0, MAX);
+
+            localStorage.setItem('mnemosyne_history', JSON.stringify(history));
+        }
 
         // Chargement initial des données au démarrage
         document.addEventListener('DOMContentLoaded', function() {
@@ -443,6 +482,7 @@
             const annee = document.getElementById('annee-select').value;
             const source = document.getElementById('source-select').value;
             const modalite = document.getElementById('modalite-select').value;
+            saveConsultation(formation, annee);
             loadSankeyData(formation, annee, source, modalite);
         });
     </script>
