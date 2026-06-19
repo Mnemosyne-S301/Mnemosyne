@@ -31,6 +31,22 @@ class ScolariteDAO
         return self::$instance;
     }
 
+    private function addAnneeScolaireValues(array $anneesScolaires): void
+    {
+        $anneesScolaires = array_values(array_unique(array_filter($anneesScolaires)));
+
+        if (count($anneesScolaires) === 0) {
+            return;
+        }
+
+        $query = "INSERT IGNORE INTO AnneeScolaire(annee_scolaire) VALUES ";
+        $query .= implode(", ", array_fill(0, count($anneesScolaires), "(?)"));
+        $query .= ";";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute($anneesScolaires);
+    }
+
     /** Permet d'ajouter des etudiants à la base de données. Les données doivent être fournis dans
      * un array contenant des array associatifs d'étudiant.
      * 
@@ -422,6 +438,8 @@ class ScolariteDAO
      */
     public function addEffectuerAnnee(array $effectuerAnnees)
     {
+        $this->addAnneeScolaireValues(array_column($effectuerAnnees, 'annee_scolaire'));
+
         // query writting
         $query = "INSERT INTO EffectuerAnnee(annee_scolaire, anneeformation_id, etudiant_id, codeannee_id)";
         for ($i = 0; $i < count($effectuerAnnees); $i++)
@@ -478,6 +496,8 @@ class ScolariteDAO
      */
     public function addEffectuerRCUE(array $effectuerRCUEs)
     {
+        $this->addAnneeScolaireValues(array_column($effectuerRCUEs, 'annee_scolaire'));
+
         // query writting
         $query = "INSERT INTO EffectuerRCUE(annee_scolaire, rcue_id, etudiant_id, codercue_id)";
         for ($i = 0; $i < count($effectuerRCUEs); $i++)
@@ -533,6 +553,8 @@ class ScolariteDAO
      */
     public function addEffectuerUE(array $effectuerUEs)
     {
+        $this->addAnneeScolaireValues(array_column($effectuerUEs, 'annee_scolaire'));
+
         // query writting
         $query = "INSERT INTO EffectuerUE(annee_scolaire, ue_id, etudiant_id, codeue_id)";
         for ($i = 0; $i < count($effectuerUEs); $i++)
@@ -573,7 +595,8 @@ class ScolariteDAO
 
      public function resetDatabase(){
         $this->conn->exec("SET FOREIGN_KEY_CHECKS=0;");
-        $tables =['EffectuerUE',
+        $tables =['ContribuerUE',
+        'EffectuerUE',
         'EffectuerRCUE',
         'EffectuerAnnee',
         'UE',
@@ -585,6 +608,7 @@ class ScolariteDAO
         'CodeUE',
         'CodeRCUE',
         'CodeAnnee',
+        'AnneeScolaire',
         'Etudiant',
         'Departement'
     ];
@@ -630,12 +654,149 @@ class ScolariteDAO
      * @return array Liste des étudiants avec leurs décisions annuelles
      *               Format: [['etudid', 'etat', 'ordre', 'code', 'annee_scolaire'], ...]
      */
+<<<<<<< HEAD
     public function getCohorteParAnneeEtFormation(int $anneeScolaire, string $formationAccronyme, ?int $anneeCohorte = null, ?string $parcours = null): array
-{
-    $pattern = $this->getFormationPattern($formationAccronyme);
+    {
+        $pattern = $this->getFormationPattern($formationAccronyme);
 
-    if ($anneeCohorte === null) {
-        $anneeCohorte = $anneeScolaire;
+        // Par défaut l'année de cohorte = année demandée
+        if ($anneeCohorte === null) {
+            $anneeCohorte = $anneeScolaire;
+        }
+
+        error_log("[BDD Cohorte] Recherche: anneeScolaire=$anneeScolaire, anneeCohorte=$anneeCohorte, formation=$formationAccronyme, pattern=$pattern, parcours=$parcours");
+
+        // Requête qui suit une vraie cohorte: récupère les étudiants entrés en année 1
+        $sql = "
+            SELECT DISTINCT
+                e.etudiant_id AS etudid,
+                e.etat AS etat,
+                af.ordre AS ordre,
+                ca.code AS code,
+                ea.annee_scolaire AS annee_scolaire
+            FROM EffectuerAnnee ea
+            INNER JOIN Etudiant e 
+                ON e.etudiant_id = ea.etudiant_id
+            INNER JOIN AnneeFormation af 
+                ON af.anneeformation_id = ea.anneeformation_id
+            INNER JOIN Parcours p 
+                ON p.parcours_id = af.parcours_id
+            INNER JOIN Formation f 
+                ON f.formation_id = p.formation_id
+            INNER JOIN CodeAnnee ca 
+                ON ca.codeannee_id = ea.codeannee_id
+            WHERE ea.annee_scolaire = :annee
+              AND f.accronyme LIKE :formation
+        ";
+
+        if ($parcours !== null && $parcours !== '') {
+            $sql .= " AND p.code = :parcours ";
+        }
+
+        $sql .= "
+              AND e.etudiant_id IN (
+                  SELECT DISTINCT ea2.etudiant_id
+                  FROM EffectuerAnnee ea2
+                  INNER JOIN AnneeFormation af2 
+                      ON af2.anneeformation_id = ea2.anneeformation_id
+                  INNER JOIN Parcours p2 
+                      ON p2.parcours_id = af2.parcours_id
+                  INNER JOIN Formation f2 
+                      ON f2.formation_id = p2.formation_id
+                  WHERE ea2.annee_scolaire = :annee_cohorte
+                    AND af2.ordre = 1
+                    AND f2.accronyme LIKE :formation2
+              )
+        ";
+
+        try {
+            $stmt = $this->conn->prepare($sql);
+            $stmt->bindValue(':annee', $anneeScolaire, PDO::PARAM_INT);
+            $stmt->bindValue(':annee_cohorte', $anneeCohorte, PDO::PARAM_INT);
+            $stmt->bindValue(':formation', $pattern, PDO::PARAM_STR);
+            $stmt->bindValue(':formation2', $pattern, PDO::PARAM_STR);
+
+            if ($parcours !== null && $parcours !== '') {
+                $stmt->bindValue(':parcours', $parcours, PDO::PARAM_STR);
+            }
+
+            $stmt->execute();
+            $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            error_log("[BDD Cohorte] Résultat: " . count($results) . " étudiants trouvés");
+
+            return $results;
+        } catch (PDOException $e) {
+            error_log('[ERREUR SQL] Requete getCohorteParAnneeEtFormation : ' . $e->getMessage());
+            throw new Exception('Erreur SQL getCohorteParAnneeEtFormation : ' . $e->getMessage());
+        }
+    public function getCohorteParAnneeEtFormation(int $anneeScolaire, string $formationAccronyme, ?int $anneeCohorte = null): array
+    {
+        $pattern = $this->getFormationPattern($formationAccronyme);
+        
+        // Si pas d'année de cohorte spécifiée, on prend l'année demandée
+        if ($anneeCohorte === null) {
+            $anneeCohorte = $anneeScolaire;
+        }
+        
+        error_log("[BDD Cohorte] Recherche: anneeScolaire=$anneeScolaire, anneeCohorte=$anneeCohorte, formation=$formationAccronyme, pattern=$pattern");
+        
+        // Requête qui suit une vraie cohorte:
+        // 1. Sous-requête pour identifier les étudiants entrés en BUT1 à l'année de cohorte
+        // 2. Récupère les données de ces étudiants pour l'année demandée
+        $sql = "
+            SELECT DISTINCT
+                e.etudiant_id AS etudid,
+                e.etat AS etat,
+                af.ordre AS ordre,
+                ca.code AS code,
+                ea.annee_scolaire AS annee_scolaire
+            FROM EffectuerAnnee ea
+            INNER JOIN Etudiant e 
+                ON e.etudiant_id = ea.etudiant_id
+            INNER JOIN AnneeFormation af 
+                ON af.anneeformation_id = ea.anneeformation_id
+            INNER JOIN Parcours p 
+                ON p.parcours_id = af.parcours_id
+            INNER JOIN Formation f 
+                ON f.formation_id = p.formation_id
+            INNER JOIN CodeAnnee ca 
+                ON ca.codeannee_id = ea.codeannee_id
+            WHERE ea.annee_scolaire = :annee
+              AND f.accronyme LIKE :formation
+              AND e.etudiant_id IN (
+                  -- Sous-requête: étudiants entrés en BUT1 à l'année de cohorte
+                  SELECT DISTINCT ea2.etudiant_id
+                  FROM EffectuerAnnee ea2
+                  INNER JOIN AnneeFormation af2 
+                      ON af2.anneeformation_id = ea2.anneeformation_id
+                  INNER JOIN Parcours p2 
+                      ON p2.parcours_id = af2.parcours_id
+                  INNER JOIN Formation f2 
+                      ON f2.formation_id = p2.formation_id
+                  WHERE ea2.annee_scolaire = :annee_cohorte
+                    AND af2.ordre = 1
+                    AND f2.accronyme LIKE :formation2
+              )
+        ";
+        
+        try {
+            $stmt = $this->conn->prepare($sql);
+            $stmt->bindValue(':annee', $anneeScolaire, PDO::PARAM_INT);
+            $stmt->bindValue(':annee_cohorte', $anneeCohorte, PDO::PARAM_INT);
+            $stmt->bindValue(':formation', $pattern, PDO::PARAM_STR);
+            $stmt->bindValue(':formation2', $pattern, PDO::PARAM_STR);
+            $stmt->execute();
+            $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            error_log("[BDD Cohorte] Résultat: " . count($results) . " étudiants trouvés");
+            
+            return $results;
+        } catch (PDOException $e) {
+            error_log('[ERREUR SQL] Requete getCohorteParAnneeEtFormation : ' . $e->getMessage());
+            throw new Exception('Erreur SQL getCohorteParAnneeEtFormation : ' . $e->getMessage());
+        }
+>>>>>>> main
     }
 
     error_log("[BDD Cohorte] Recherche: anneeScolaire=$anneeScolaire, anneeCohorte=$anneeCohorte, formation=$formationAccronyme, pattern=$pattern, parcours=$parcours");

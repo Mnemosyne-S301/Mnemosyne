@@ -144,6 +144,113 @@ class Controller_admin extends Controller {
     header("Location: index.php?controller=admin&action=default");
     exit;
 }
+
+public function action_synchroniser(): void
+{
+    $this->requireAdmin();
+
+    header('Content-Type: application/json; charset=utf-8');
+
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        http_response_code(405);
+
+        echo json_encode([
+            'success' => false,
+            'message' => 'Méthode non autorisée.'
+        ], JSON_UNESCAPED_UNICODE);
+
+        exit;
+    }
+
+    $scriptPath = realpath(__DIR__ . '/../scripts/ajout-donnees.py');
+    $pythonPath = getenv('PYTHON_BIN')
+    ?: '/opt/mnemosyne-venv/bin/python';
+
+    if (!is_file($pythonPath) || !is_executable($pythonPath)) {
+    http_response_code(500);
+
+    echo json_encode([
+        'success' => false,
+        'message' => 'Interpréteur Python introuvable dans le conteneur.',
+        'path' => $pythonPath
+    ], JSON_UNESCAPED_UNICODE);
+
+    exit;
+}
+
+    if (!is_file($pythonPath) || !is_executable($pythonPath)) {
+        http_response_code(500);
+
+        echo json_encode([
+            'success' => false,
+            'message' => 'Interpréteur Python introuvable dans le conteneur.'
+        ], JSON_UNESCAPED_UNICODE);
+
+        exit;
+    }
+
+    $descriptors = [
+        0 => ['pipe', 'r'],
+        1 => ['pipe', 'w'],
+        2 => ['pipe', 'w']
+    ];
+
+    /*
+     * L'utilisation d'un tableau évite les problèmes d'échappement
+     * entre Linux, Windows et macOS.
+     */
+    $process = proc_open(
+        [$pythonPath, $scriptPath],
+        $descriptors,
+        $pipes,
+        dirname($scriptPath)
+    );
+
+    if (!is_resource($process)) {
+        http_response_code(500);
+
+        echo json_encode([
+            'success' => false,
+            'message' => 'Impossible de démarrer le script Python.'
+        ], JSON_UNESCAPED_UNICODE);
+
+        exit;
+    }
+
+    fclose($pipes[0]);
+
+    $stdout = trim(stream_get_contents($pipes[1]));
+    fclose($pipes[1]);
+
+    $stderr = trim(stream_get_contents($pipes[2]));
+    fclose($pipes[2]);
+
+    $exitCode = proc_close($process);
+
+    $json = json_decode($stdout, true);
+
+    if (
+        $exitCode === 0 &&
+        json_last_error() === JSON_ERROR_NONE &&
+        is_array($json)
+    ) {
+        echo json_encode($json, JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    http_response_code(500);
+
+    echo json_encode([
+        'success' => false,
+        'message' => 'Le script Python a échoué.',
+        'exit_code' => $exitCode,
+        'json_error' => json_last_error_msg(),
+        'stdout' => $stdout,
+        'stderr' => $stderr
+    ], JSON_UNESCAPED_UNICODE);
+
+    exit;
+}
     
     
 

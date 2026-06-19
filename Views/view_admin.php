@@ -15,11 +15,14 @@
             <a href="/accueil/default" class="text-white text-xl font-bold flex items-center">
                 <i class="fas fa-home mr-2"></i> Accueil
             </a>
-            <button class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-2 focus:ring-gray-600 rounded-lg px-4 py-2">
-                Synchroniser
-            </button>
+            <button id="syncBtn"
+        type="button"
+        class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-2 focus:ring-gray-600 rounded-lg px-4 py-2">
+    Synchroniser
+</button>
         </div>
     </nav>
+    <div id="syncMessage" class="hidden mx-8 mt-6 px-4 py-3 rounded-lg shadow-lg text-white"></div>
 
     <!-- Layout: contenu principal + panneau admins -->
     <div class="flex gap-8 mx-8 my-10">
@@ -146,5 +149,44 @@
     </div>
 
     <script src="/Content/script/AjouterFiltre.js"></script>
+    <script>
+document.getElementById('syncBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('syncBtn');
+    const box = document.getElementById('syncMessage');
+
+    btn.disabled = true;
+    btn.textContent = 'Synchronisation...';
+
+    box.className = 'mx-8 mt-6 bg-blue-700 text-white px-4 py-3 rounded-lg shadow-lg';
+    box.textContent = 'Synchronisation en cours...';
+
+    try {
+        const response = await fetch('index.php?controller=admin&action=synchroniser', {
+            method: 'POST'
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+    box.className = 'mx-8 mt-6 bg-green-700 text-white px-4 py-3 rounded-lg shadow-lg';
+    box.textContent = data.message;
+} else {
+    box.className = 'mx-8 mt-6 bg-red-700 text-white px-4 py-3 rounded-lg shadow-lg';
+
+    box.textContent =
+        (data.message || 'Erreur pendant la synchronisation.') +
+        (data.json_error ? ' | JSON error: ' + data.json_error : '') +
+        (data.raw_output ? ' | Sortie: ' + data.raw_output.substring(0, 500) : '');
+}
+
+    } catch (error) {
+        box.className = 'mx-8 mt-6 bg-red-700 text-white px-4 py-3 rounded-lg shadow-lg';
+        box.textContent = 'Erreur AJAX : ' + error.message;
+    }
+
+    btn.disabled = false;
+    btn.textContent = 'Synchroniser';
+});
+</script>
 </body>
 </html>

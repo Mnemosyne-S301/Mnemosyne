@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '../Models/StatsDAO.php';
+require_once __DIR__ . '/../Models/StatsDAO.php';
 
 /**
  * Classe Service_stats.
@@ -48,20 +48,14 @@ class Service_stats {
      * sont le nombre d'élèves correspondant.
      */
     public function recupererRepartitionUEADMISParFormationParSemesetre($Formation,$Annee,$Semestre){
-        $res=array();
-
-        $nbue = $this->dao->getNbUeParFormationParSemestre($Formation,$semestre);
-
-
+        $res = array_fill_keys(
+            array_map(static fn (int $numero): string => 'ue_' . $numero, range(1, 6)),
+            0
+        );
 
         // Récupération des données brutes de répartition du DAO (toutes années et parcours confondus)
         $list=$this->dao->getNbRepartitionUEADMISParFormation($Formation);
         
-        for($i=0;i<=$nbue;$i++){
-            $uei=$i+1;
-            array['ue_'.$uei]=
-        }
-
         // Parcours de toutes les lignes retournées par la BDD
         foreach($list as $ligne){
             
