@@ -63,28 +63,17 @@ function appliquerReglesSurCode(codeDecision) {
     const configurationRegles = chargerReglesAdmin();
     if (!configurationRegles || !configurationRegles.actif) return codeDecision;
 
- 
-    const activerScenarioReussite = (configurationRegles.regles || [])
-        .some(regle => regle.resultat === "reussite");
+    const codeNormalise = String(codeDecision || "").toUpperCase();
+    const regleApplicable = (configurationRegles.regles || [])
+        .find(regle => {
+            const conditionCode = regle.condition === "formation" || regle.condition === "code_annuel";
+            return conditionCode && String(regle.valeur || "").toUpperCase() === codeNormalise;
+        });
 
-    const activerScenarioEchec = (configurationRegles.regles || [])
-        .some(regle => regle.resultat === "echec");
+    if (!regleApplicable) return codeDecision;
 
-   
-    if (activerScenarioReussite) {
-        // Exemple demandé : CMP => ADM
-        if (codeDecision === "CMP") return "ADM";
-
-  
-    }
-
-
-    if (activerScenarioEchec) {
-     
-        if (codeDecision === "ADJ") return "AJ";
-
-   
-    }
+    if (regleApplicable.resultat === "reussite") return "ADM";
+    if (regleApplicable.resultat === "echec") return "AJ";
 
     return codeDecision;
 }

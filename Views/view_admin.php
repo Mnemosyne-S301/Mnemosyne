@@ -27,24 +27,25 @@
         <div class="flex-1">
             <div class="my-12 flex flex-col items-center justify-start text-white">
                 <h1 class="text-4xl font-bold mb-8">Bienvenue dans l'Espace Admin</h1>
-                <p class="text-lg">Vous pouvez ajouter des règles et les synchroniser avec ScoDoc</p>
+                <p class="text-lg">Vous pouvez ajouter des scénarii et les synchroniser avec ScoDoc</p>
                 <div class="mt-8 space-x-4"></div>
             </div>
 
-            <h2 class="flex justify-center text-3xl text-left font-bold my-10 text-white">Liste des filtres</h2>
+            <h2 class="flex justify-center text-3xl text-left font-bold my-10 text-white">Scénarios de suivi</h2>
 
             <div class="flex justify-start items-center my-12">
                 <button id="Ajt" class="text-white bg-[#EDB85C] hover:bg-[#E3BF81] focus:ring-2 focus:ring-gray-600 rounded-lg px-4 py-2 mx-4">
-                    Ajouter Filtre
+                    Ajouter règle
                 </button>
                 <button id="Supp" class="text-white bg-red-700 hover:bg-red-800 focus:ring-2 focus:ring-gray-600 rounded-lg px-4 py-2 mx-4">
-                    Supprimer Filtre
+                    Supprimer règle
                 </button>
                 <button id="saveRules" class="text-white bg-green-700 hover:bg-green-800 focus:ring-2 focus:ring-gray-600 rounded-lg px-4 py-2 mx-4">
                     Enregistrer règles
                 </button>
             </div>
 
+            <p id="rulesStatus" class="text-sm text-[#FBEDD3]/80 mb-4"></p>
             <form class="my-12 w-full max-w-5xl"></form>
         </div>
 

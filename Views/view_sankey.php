@@ -85,7 +85,7 @@
                                 <option value="bdd" <?= ($source ?? '') === 'bdd' ? 'selected' : '' ?>>Base de données</option>
                             </select>
                         </div>
-                        
+
                         <!-- Bouton recharger -->
                         <button id="reload-data" class="w-full px-4 py-2 bg-[#E3BF81] text-[#0A1E2F] rounded-lg font-semibold hover:bg-[#d4a85c] transition-colors mb-6">
                             Recharger

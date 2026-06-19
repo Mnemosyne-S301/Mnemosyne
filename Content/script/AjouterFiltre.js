@@ -4,6 +4,7 @@ const divp = document.body.querySelector("form");
 
 
 const btn_save = document.getElementById("saveRules");
+const rulesStatus = document.getElementById("rulesStatus");
 
 const CONDITION_CODE_VALUE = "formation";
 const VALEUR_FIELD_CLASS = "placeholder-gray-700 bg-[#999999] w-full mx-6 py-4 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-600";
@@ -12,7 +13,10 @@ const CODE_ANNEE_OPTIONS = [
     { code: "ABL", label: "ABL — Année Blanche" },
     { code: "ADM", label: "ADM — Admis" },
     { code: "ADJ", label: "ADJ — Admis par décision de jury" },
+    { code: "ADSUP", label: "ADSUP — Admis par décision supplémentaire" },
+    { code: "AJ", label: "AJ — Ajourné" },
     { code: "ATJ", label: "ATJ — Non validé pour une autre raison, voir règlement local" },
+    { code: "CMP", label: "CMP — Compensation" },
     { code: "DEF", label: "DEF — (défaillance) Non évalué par manque assiduité" },
     { code: "DEM", label: "DEM — Démission" },
     { code: "EXC", label: "EXC — Exclusion, décision réservée à des décisions disciplinaires" },
@@ -88,7 +92,13 @@ function mettreAJourChampValeur(container, conditionValue) {
     }
 }
 
-btn_ajt.addEventListener("click", () => {
+function afficherStatutRegles(message) {
+    if (rulesStatus) {
+        rulesStatus.textContent = message;
+    }
+}
+
+function creerLigneRegle(regle = {}) {
     const div = document.createElement("div");
     const filtre = document.createElement("label");
     const select = document.createElement("select");
@@ -116,7 +126,7 @@ btn_ajt.addEventListener("click", () => {
 
     
     filtre.textContent = "Les étudiants ";
-    option1.textContent = "ayant pour code";
+    option1.textContent = "ayant pour code annuel";
     option2.textContent = "ayant plus de";
     option3.textContent = "ayant moins de";
 
@@ -127,6 +137,7 @@ btn_ajt.addEventListener("click", () => {
     select.append(option1);
     select.append(option2);
     select.append(option3);
+    select.value = regle.condition || CONDITION_CODE_VALUE;
 
     div.append(filtre);
     div.append(select);
@@ -142,6 +153,7 @@ btn_ajt.addEventListener("click", () => {
 
     select2.append(option4);
     select2.append(option5);
+    select2.value = regle.resultat || "reussite";
 
     div.append(filtre2);
     div.append(select2);
@@ -152,12 +164,29 @@ btn_ajt.addEventListener("click", () => {
         mettreAJourChampValeur(div, select.value);
     });
     mettreAJourChampValeur(div, select.value);
+
+    const champValeur = div.querySelector(".regle-valeur");
+    if (champValeur && regle.valeur) {
+        champValeur.value = regle.valeur;
+    }
+
+    const champType = div.querySelector(".regle-valeur-type");
+    if (champType && regle.valeurType) {
+        champType.value = regle.valeurType;
+    }
+
+    return div;
+}
+
+btn_ajt.addEventListener("click", () => {
+    creerLigneRegle();
 });
 
 btn_supp.addEventListener("click", () => {
     const divs = document.querySelectorAll(".d");
     if(divs.length > 0){
         divs[divs.length - 1].remove();
+        afficherStatutRegles("Dernière règle supprimée. Pensez à enregistrer.");
     }
 });
 
@@ -186,9 +215,35 @@ function recupererReglesDepuisFormulaire() {
     };
 }
 
+function restaurerReglesSauvegardees() {
+    let reglesConfig = null;
+
+    try {
+        reglesConfig = JSON.parse(localStorage.getItem("SANKEY_REGLES") || "null");
+    } catch {
+        afficherStatutRegles("Impossible de charger les règles sauvegardées.");
+        return;
+    }
+
+    if (!reglesConfig || !Array.isArray(reglesConfig.regles) || reglesConfig.regles.length === 0) {
+        afficherStatutRegles("Aucune règle enregistrée pour le moment.");
+        return;
+    }
+
+    reglesConfig.regles.forEach(creerLigneRegle);
+    afficherStatutRegles(`${reglesConfig.regles.length} règle(s) chargée(s).`);
+}
+
 //  clic sur "Enregistrer règles" => stockage dans localStorage
 btn_save?.addEventListener("click", () => {
     const reglesConfig = recupererReglesDepuisFormulaire();
     localStorage.setItem("SANKEY_REGLES", JSON.stringify(reglesConfig));
-    alert("Règles enregistrées ✅");
+    afficherStatutRegles(`${reglesConfig.regles.length} règle(s) enregistrée(s).`);
+    alert("Règles enregistrées");
 });
+
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", restaurerReglesSauvegardees);
+} else {
+    restaurerReglesSauvegardees();
+}
