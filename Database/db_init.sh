@@ -13,5 +13,3 @@ mysql -u root stats < /tmp/Procedure_stats_script.sql
 mysql -u root -e "GRANT SELECT, LOCK TABLES, INSERT, UPDATE, DELETE, DROP ON scolarite.* TO 'phpserv'@'%';"
 mysql -u root -e "GRANT SELECT, LOCK TABLES, INSERT, UPDATE, DELETE, DROP ON stats.* TO 'phpserv'@'%';"
 mysql -u root -e "GRANT PROCESS ON *.* TO 'phpserv'@'%';"
-## default admin (testing only)
-mysql -u root -D scolarite -e "INSERT IGNORE INTO Users (username, password, role) VALUES ('admin', '$2y$10$wO0usZ4ju4ivozFYG3DWq.xF7N4oo9Zpy2G9k6dXaxOVxbgHjR5F.', 'admin');"
