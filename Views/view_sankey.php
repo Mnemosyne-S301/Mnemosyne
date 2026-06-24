@@ -361,6 +361,7 @@
                 // Initialiser le diagramme Sankey (client-side rules application)
                 if (typeof SankeyCohort !== 'undefined') {
                     SankeyCohort.init();
+                    saveConsultation(formation, anneeDepart);
                         // Charger et afficher les statistiques de cohorte (depuis l'API stats)
                         try {
                             const statsUrl = `index.php?controller=api&action=stats&formation=${formation}&anneeDepart=${anneeDepart}`;
