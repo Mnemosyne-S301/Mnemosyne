@@ -10,7 +10,7 @@ class Controller_sankey extends Controller {
     /**
      * @var Service_stats Instance du service pour accéder aux données
      */
-    private Service_stats $service;
+    private ?Service_stats $service = null;
     
     /**
      * @var string Chemin vers le dossier des fichiers JSON de test
@@ -20,8 +20,18 @@ class Controller_sankey extends Controller {
     /**
      * Constructeur - initialise le service et appelle le parent pour le routage
      */
+    /**
+     * Connexion DB paresseuse : Service_stats (et donc MySQL) n'est instancié
+     * que lorsqu'on en a besoin (source=bdd). La page et la démo JSON ne touchent pas la base.
+     */
+    private function service(): Service_stats {
+        if ($this->service === null) {
+            $this->service = new Service_stats();
+        }
+        return $this->service;
+    }
+
     public function __construct() {
-        $this->service = new Service_stats();
         $this->jsonPath = __DIR__ . '/../Database/example/json/';
         parent::__construct(); // Appel du parent pour gérer le routage des actions
     }
@@ -216,7 +226,7 @@ class Controller_sankey extends Controller {
             if ($source === 'json') {
                 $donnees = $this->getSankeyDataFromJson($annee, $formation);
             } else {
-                $donnees = $this->service->getSankeyCohorteDepuisAnnee($annee, $formation);
+                $donnees = $this->service()->getSankeyCohorteDepuisAnnee($annee, $formation);
             }
             
             http_response_code(200);

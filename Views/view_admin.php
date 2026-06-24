@@ -180,7 +180,7 @@
         </div>
     </div>
 
-    <script src="/Content/script/AjouterFiltre.js"></script>
+    <script src="/Content/script/AjouterFiltre.js?v=<?php echo @filemtime(__DIR__ . '/../Content/script/AjouterFiltre.js'); ?>"></script>
     <script>
     document.getElementById('syncBtn').addEventListener('click', async () => {
         const btn = document.getElementById('syncBtn');

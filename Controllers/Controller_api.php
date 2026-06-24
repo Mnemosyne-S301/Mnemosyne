@@ -42,11 +42,22 @@ class Controller_api extends Controller {
             return null;
         }
     
-    private Service_stats $service;
+    private ?Service_stats $service = null;
     private string $jsonPath;
 
+    /**
+     * Connexion DB paresseuse : on n'instancie Service_stats (et donc la connexion
+     * PDO/MySQL) que lorsqu'on en a réellement besoin (source=bdd ou stats).
+     * La démo en source=json ne touche ainsi jamais la base.
+     */
+    private function service(): Service_stats {
+        if ($this->service === null) {
+            $this->service = new Service_stats();
+        }
+        return $this->service;
+    }
+
     public function __construct() {
-        $this->service = new Service_stats();
         $this->jsonPath = __DIR__ . '/../Database/example/json/';
         
         // Définir le header JSON avant tout
@@ -97,7 +108,7 @@ class Controller_api extends Controller {
         } elseif ($source === 'testdata') {
             $donnees = $this->getSankeyDataFromJson($annee, $formation, 'testdata', $modalite);
         } else {
-            $donnees = $this->service->getSankeyCohorteDepuisAnnee($annee, $formation, $filters);
+            $donnees = $this->service()->getSankeyCohorteDepuisAnnee($annee, $formation, $filters);
         }
 
         http_response_code(200);
@@ -131,7 +142,7 @@ class Controller_api extends Controller {
                 $formation = strtoupper(trim($_GET['formation']));
 
                 // Récupérer les données Sankey pour calculer les stats à partir des codes de décision
-                $sankeyData = $this->service->getSankeyCohorteDepuisAnnee($annee, $formation);
+                $sankeyData = $this->service()->getSankeyCohorteDepuisAnnee($annee, $formation);
                 
                 // Codes de décision pour classifier les étudiants
                 $codesValidation = ['ADM', 'ADSUP', 'PASD', 'CMP'];

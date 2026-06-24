@@ -187,11 +187,30 @@ function creerLigneRegle(regle = {}) {
     selCohorte.prepend(optVide);
     if (!regle.cohorte) selCohorte.value = "";
 
-    const selResultat = mkSelect("regle-resultat", [
-        { value: "reussite", label: "réussite" },
-        { value: "echec",    label: "échec" },
-        { value: "ignorer",  label: "ignorer" },
-    ], regle.resultat || "reussite");
+    // Résultat : 2 catégories distinctes pour lever l'ambiguïté
+    //  - Transformer le code (réussite→ADM, échec→AJ) : garde TOUT le monde, change le code.
+    //  - Filtrer l'affichage (afficher uniquement / masquer) : restreint la population affichée.
+    const selResultat = document.createElement("select");
+    selResultat.className = CLS_SELECT + " regle-resultat";
+    // Option neutre par défaut : aucune action tant que rien n'est choisi (pas de transformation imposée)
+    const optActionNeutre = document.createElement("option");
+    optActionNeutre.value = "";
+    optActionNeutre.textContent = "— choisir une action —";
+    selResultat.append(optActionNeutre);
+    const ajouterGroupeResultat = (labelGroupe, options) => {
+        const grp = document.createElement("optgroup");
+        grp.label = labelGroupe;
+        options.forEach(([value, label]) => {
+            const opt = document.createElement("option");
+            opt.value = value;
+            opt.textContent = label;
+            grp.append(opt);
+        });
+        selResultat.append(grp);
+    };
+    ajouterGroupeResultat("Transformer le code", [["reussite", "réussite (ADM)"], ["echec", "échec (AJ)"]]);
+    ajouterGroupeResultat("Filtrer l'affichage", [["conserver", "afficher uniquement"], ["ignorer", "masquer"]]);
+    selResultat.value = regle.resultat || "";
 
     // Toggle actif / ignoré
     const estActif = regle.actif !== false;
@@ -229,7 +248,7 @@ function creerLigneRegle(regle = {}) {
 
     cardHeader.append(headerLabel, headerSpacer, btnToggle, btnDelete);
 
-    mainRow.append(mkLabel("Les étudiants"), blocsArea, mkLabel("de la cohorte"), selCohorte, mkLabel("sont en"), selResultat);
+    mainRow.append(mkLabel("Les étudiants"), blocsArea, mkLabel("de la cohorte"), selCohorte, mkLabel("→"), selResultat);
 
     // Boutons d'ajout de blocs
     const addRow = document.createElement("div");

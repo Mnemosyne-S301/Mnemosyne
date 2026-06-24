@@ -2,10 +2,10 @@
     "actif": true,
     "regles": [
         {
-            "resultat": "reussite",
+            "resultat": "conserver",
             "actif": true,
-            "cohorte": 2021,
-            "formation": "RT",
+            "cohorte": 2022,
+            "formation": "INFO",
             "code": "RED"
         }
     ]

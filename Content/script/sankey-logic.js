@@ -146,34 +146,53 @@ const SankeyCohort = (function() {
             return etudiants;
         }
 
-        // Seules les règles "ignorer" filtrent les étudiants.
-        // Les règles "réussite"/"echec" ne font que transformer les codes (dans appliquerReglesSurCode).
-        const reglesIgnorer = config.regles.filter(
-            r => r.actif !== false && (r.resultat === 'ignorer' || r.resultat === 'supprimer')
+        const reglesActives = config.regles.filter(r => r.actif !== false);
+
+        // Filtres de population (les règles "réussite"/"echec" ne filtrent pas :
+        // elles transforment seulement les codes, via appliquerReglesSurCode).
+        //  - "conserver"             → filtre INCLUSIF : ne garder QUE les étudiants qui matchent.
+        //  - "ignorer" / "supprimer" → filtre EXCLUSIF : retirer les étudiants qui matchent.
+        const reglesInclure = reglesActives.filter(r => r.resultat === 'conserver');
+        const reglesExclure = reglesActives.filter(
+            r => r.resultat === 'ignorer' || r.resultat === 'supprimer'
         );
 
-        if (reglesIgnorer.length === 0) return etudiants;
+        if (reglesInclure.length === 0 && reglesExclure.length === 0) return etudiants;
+
+        // Une règle matche un étudiant si la formation correspond (ou règle sans formation)
+        // et qu'au moins une de ses années porte le code visé (ou règle sans code → toute la formation).
+        const regleMatcheEtudiant = (r, codes, etudFormation) => {
+            if (r.formation && String(r.formation).toUpperCase() !== etudFormation) return false;
+            const codeRegle = String(r.code || '').toUpperCase();
+            if (codeRegle) return codes.some(c => c === codeRegle);
+            return true;
+        };
 
         const filtered = new Map();
         etudiants.forEach((etudiant, etudId) => {
-            // Formation de l'étudiant : priorité au champ stocké, sinon formation globale
             const etudFormation = String(etudiant.formation || window.SANKEY_FORMATION || '').toUpperCase();
+            // codeOriginal : ne pas être affecté par les transformations déjà appliquées
             const codes = etudiant.annees.map(a => String(a.codeOriginal || a.code || '').toUpperCase());
 
-            const doitIgnorer = reglesIgnorer.some(r => {
-                // La règle ne s'applique pas si elle cible une autre formation
-                if (r.formation && String(r.formation).toUpperCase() !== etudFormation) return false;
-                const codeRegle = String(r.code || '').toUpperCase();
-                // Règle avec code : exclure si l'étudiant a ce code
-                if (codeRegle) return codes.some(c => c === codeRegle);
-                // Règle sans code : exclure tous les étudiants de cette formation
-                return true;
-            });
+            // 1. Filtre INCLUSIF ("afficher uniquement") : si des règles "conserver" ciblent
+            //    la formation de l'étudiant, on ne le garde que s'il matche au moins l'une d'elles.
+            const inclureApplicables = reglesInclure.filter(
+                r => !r.formation || String(r.formation).toUpperCase() === etudFormation
+            );
+            if (inclureApplicables.length > 0 &&
+                !inclureApplicables.some(r => regleMatcheEtudiant(r, codes, etudFormation))) {
+                return; // hors du sous-ensemble "afficher uniquement"
+            }
 
-            if (!doitIgnorer) filtered.set(etudId, etudiant);
+            // 2. Filtre EXCLUSIF ("ignorer"/"supprimer") : retirer si l'étudiant matche une règle.
+            if (reglesExclure.some(r => regleMatcheEtudiant(r, codes, etudFormation))) {
+                return;
+            }
+
+            filtered.set(etudId, etudiant);
         });
 
-        console.log(`[Règles] Filtre ignorer : ${filtered.size}/${etudiants.size} étudiants conservés`);
+        console.log(`[Règles] Filtre population : ${filtered.size}/${etudiants.size} étudiants conservés (conserver: ${reglesInclure.length}, ignorer: ${reglesExclure.length})`);
         return filtered;
     }
 
